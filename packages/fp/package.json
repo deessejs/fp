@@ -29,7 +29,7 @@
     "tsup": "^8.5.1",
     "typescript": "^5.0.0",
     "vite": "^8.0.8",
-    "vitest": "^4.1.4"
+    "vitest": "^4.1.6"
   },
   "keywords": [
     "typescript",
