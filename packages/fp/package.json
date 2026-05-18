@@ -27,7 +27,7 @@
     "@deessejs/type-testing": "^0.3.4",
     "@vitest/coverage-v8": "^4.1.4",
     "tsup": "^8.5.1",
-    "typescript": "^5.0.0",
+    "typescript": "^6.0.3",
     "vite": "^8.0.8",
     "vitest": "^4.1.4"
   },
