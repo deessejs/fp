@@ -28,7 +28,7 @@
     "@vitest/coverage-v8": "^4.1.4",
     "tsup": "^8.5.1",
     "typescript": "^5.0.0",
-    "vite": "^8.0.8",
+    "vite": "^8.0.13",
     "vitest": "^4.1.4"
   },
   "keywords": [
