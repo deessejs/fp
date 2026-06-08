@@ -7,10 +7,15 @@ export default tseslint.config(
   {
     files: ['src/**/*.ts'],
     rules: {
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': ['error', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
+        destructuredArrayIgnorePattern: '^_',
+      }],
     },
   },
   {
-    ignores: ['dist/**', 'node_modules/**'],
+    ignores: ['dist/**', 'node_modules/**', 'examples/**'],
   }
 );
