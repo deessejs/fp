@@ -58,6 +58,9 @@ export function ok<T>(value: T): Ok<T, never> {
     toMaybe(): Maybe<T> {
       return { _tag: 'Some', value } as Maybe<T>;
     },
+    toOption(): Maybe<T> {
+      return { _tag: 'Some', value } as Maybe<T>;
+    },
     isOk(): this is Ok<T, never> {
       return true;
     },
@@ -117,6 +120,9 @@ export function err<E>(error: E): Err<never, E> {
       return undefined;
     },
     toMaybe(): Maybe<never> {
+      return { _tag: 'None' } as Maybe<never>;
+    },
+    toOption(): Maybe<never> {
       return { _tag: 'None' } as Maybe<never>;
     },
     isOk(): this is Ok<never, E> {

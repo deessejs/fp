@@ -20,6 +20,7 @@ export interface Ok<T, E = never> {
   getOrNull(): T | null;
   getOrUndefined(): T | undefined;
   toMaybe(): Maybe<T>;
+  toOption(): Maybe<T>;
   isOk(): this is Ok<T, E>;
   isErr(): this is Err<T, E>;
 }
@@ -46,6 +47,7 @@ export interface Err<T = never, E = never> {
   getOrNull(): null;
   getOrUndefined(): undefined;
   toMaybe(): Maybe<T>;
+  toOption(): Maybe<T>;
   isOk(): this is Ok<T, E>;
   isErr(): this is Err<T, E>;
 }
