@@ -2,6 +2,11 @@
   "name": "@deessejs/fp",
   "version": "1.0.0-alpha.1",
   "description": "Functional Programming Utilities for TypeScript",
+  "homepage": "https://fp.deessejs.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nesalia-inc/fp.git"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -23,10 +28,10 @@
   "author": "Nesalia Inc. <hello@nesalia.com>",
   "license": "MIT",
   "peerDependencies": {
-    "@deessejs/errors": "workspace:*"
+    "@deessejs/errors": ">=1.0.0"
   },
   "devDependencies": {
-    "@deessejs/errors": "workspace:*",
+    "@deessejs/errors": "^1.0.0",
     "@eslint/js": "^9.0.0",
     "eslint": "^9.0.0",
     "typescript": "^6.0.3",

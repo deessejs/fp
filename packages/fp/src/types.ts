@@ -2,8 +2,8 @@
  * Shared type utilities for Result and Maybe
  */
 
-import type { Ok, Err, Result } from './result/types';
-import type { Some, None, Maybe } from './maybe/types';
+import type { Ok, Result } from './result/types';
+import type { Some, Maybe } from './maybe/types';
 
 /**
  * Check if a value is a Result

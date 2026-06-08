@@ -2,3 +2,4 @@
 - [Language Preference](language_preference.md) — Always communicate in English
 - [API Design Rule](api_design.md) — Public API uses functions, not classes. Internal classes OK.
 - [Project Structure](project_structure.md) — Folder structure per group: types.ts, constants.ts, builders.ts, index.ts
+- [No Inline Imports](no_inline_imports.md) — Never use inline `import()` in type definitions. Import types at top of file.

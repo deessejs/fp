@@ -55,7 +55,7 @@ export function some<T>(value: T): Some<T> {
     get<K extends keyof T>(key: K): Maybe<T[K]> {
       return maybe(value[key]);
     },
-    toResult<E>(error: E): Result<T, E> {
+    toResult<E>(_error: E): Result<T, E> {
       return { _tag: 'Ok', value, isOk: () => true, isErr: () => false } as Result<T, E>;
     },
     toArray(): T[] {

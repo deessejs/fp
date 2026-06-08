@@ -5,13 +5,13 @@
  */
 
 // Result exports
-export type { Ok, Err, Result, ResultInstance } from './result/types';
+export type { Ok, Err, Result } from './result/types';
 export { ok, err } from './result/constants';
 // TODO: pipeable functions
 // export { map, flatMap, mapError, filter, tap, match, ... } from './result/functions';
 
 // Maybe exports
-export type { Some, None, Maybe, MaybeInstance } from './maybe/types';
+export type { Some, None, Maybe } from './maybe/types';
 export { some, none, maybe } from './maybe/constants';
 // TODO: pipeable functions
 // export { map, flatMap, filter, filterMap, tap, match, ... } from './maybe/functions';
