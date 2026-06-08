@@ -1,2 +1,4 @@
 - [Project Type](project_type.md) — TypeScript package template for creating new packages
 - [Language Preference](language_preference.md) — Always communicate in English
+- [API Design Rule](api_design.md) — Public API uses functions, not classes. Internal classes OK.
+- [Project Structure](project_structure.md) — Folder structure per group: types.ts, constants.ts, builders.ts, index.ts

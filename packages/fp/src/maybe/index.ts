@@ -1,0 +1,7 @@
+/**
+ * Maybe module exports
+ */
+
+export type { Some, None, Maybe, MaybeInstance } from './types';
+export { some, none, maybe } from './constants';
+// TODO: export instance methods as pipeable functions

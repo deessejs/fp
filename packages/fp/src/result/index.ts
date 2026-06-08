@@ -1,0 +1,8 @@
+/**
+ * Result module exports
+ */
+
+export type { Ok, Err, Result, ResultInstance } from './types';
+export { ok, err } from './constants';
+// TODO: export instance methods as pipeable functions
+// export { map, flatMap, mapError, filter, tap, match, ... } from './functions';
