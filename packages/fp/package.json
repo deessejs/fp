@@ -2,6 +2,11 @@
   "name": "@deessejs/fp",
   "version": "1.0.0-alpha.1",
   "description": "Functional Programming Utilities for TypeScript",
+  "homepage": "https://fp.deessejs.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nesalia-inc/fp.git"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
