@@ -1,0 +1,14 @@
+{
+  "title": "@deessejs/fp",
+  "icon": "Zap",
+  "defaultOpen": true,
+  "pages": [
+    "index",
+    "getting-started",
+    "result",
+    "maybe",
+    "unit",
+    "---API Reference---",
+    "api-reference"
+  ]
+}

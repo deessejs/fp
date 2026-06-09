@@ -1,13 +1,52 @@
 ---
-title: Hello World
-description: Your first document
+title: "@deessejs/fp"
+description: Functional programming utilities for TypeScript
 ---
 
-Welcome to the docs! You can start writing documents in `/content/docs`.
+`@deessejs/fp` provides lightweight functional programming primitives for TypeScript. It gives you type-safe ways to represent values that might not exist (`Maybe`) or operations that might fail (`Result`).
 
-## What is Next?
+This library is intentionally minimal. No magic, no dependencies — just the primitives you need to write cleaner code.
+
+## What you get
+
+| Primitive | Purpose |
+|-----------|---------|
+| **Result** | Represents a value that may have failed (`Ok \| Err`) |
+| **Maybe** | Represents a value that may be absent (`Some \| None`) |
+| **Unit** | Represents a void return that is intentional (`Unit`) |
+
+## Quick example
+
+```ts
+import { ok, err, some, none } from '@deessejs/fp';
+
+// Result: operation that can fail
+const divide = (a: number, b: number) =>
+  b === 0 ? err('Division by zero') : ok(a / b);
+
+// Maybe: value that may not exist
+const findUser = (users: User[], id: string) =>
+  users.find(u => u.id === id) ?? none;
+```
+
+Both types expose a consistent set of methods: `map`, `flatMap`, `filter`, `tap`, `match`, `fold`, and more.
+
+## See Also
 
 <Cards>
-  <Card title="Learn more about Next.js" href="https://nextjs.org/docs" />
-  <Card title="Learn more about Fumadocs" href="https://fumadocs.dev" />
+  <Card title="Quick Start" href="/docs/getting-started">
+    Get up and running in 5 minutes.
+  </Card>
+  <Card title="Result" href="/docs/result">
+    Ok \| Err for type-safe error handling.
+  </Card>
+  <Card title="Maybe" href="/docs/maybe">
+    Some \| None for optional values.
+  </Card>
+  <Card title="Unit" href="/docs/unit">
+    The Unit type for intentional void returns.
+  </Card>
+  <Card title="API Reference" href="/docs/api-reference">
+    Full API documentation.
+  </Card>
 </Cards>
