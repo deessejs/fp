@@ -1,5 +1,5 @@
 {
-  "buildCommand": "NEXT_DISABLE_TURBOPACK=1 pnpm --filter web build",
+  "buildCommand": "pnpm --filter web -- next build --no-turbopack",
   "outputDirectory": "apps/web/.next",
   "installCommand": "pnpm install"
 }
