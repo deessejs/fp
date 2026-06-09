@@ -1,6 +1,6 @@
 {
   "name": "@deessejs/fp",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0",
   "description": "Functional Programming Utilities for TypeScript",
   "homepage": "https://fp.deessejs.com",
   "repository": {
@@ -24,7 +24,13 @@
     "type-check": "tsc --noEmit",
     "lint": "eslint src/"
   },
-  "keywords": ["typescript", "functional-programming", "result", "maybe", "fp"],
+  "keywords": [
+    "typescript",
+    "functional-programming",
+    "result",
+    "maybe",
+    "fp"
+  ],
   "author": "Nesalia Inc. <hello@nesalia.com>",
   "license": "MIT",
   "peerDependencies": {
