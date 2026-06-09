@@ -1,0 +1,295 @@
+---
+title: Maybe
+description: Some | None for optional values
+---
+
+`Maybe` represents a value that may or may not exist. It has two variants: `Some` for present values and `None` for absent values. This makes optional values explicit and safe — no more `undefined is not a function`.
+
+## Why Maybe?
+
+No more null checks that silently pass or crash at runtime. `Maybe` makes absence a first-class concept.
+
+```ts filename="why-maybe.ts"
+// Without Maybe — crashes if user is undefined
+const name = users.find(u => u.id === id).profile.displayName;
+
+// With Maybe — safe and explicit
+const name = maybe(users.find(u => u.id === id))
+  .flatMap(u => maybe(u.profile))
+  .map(p => p.displayName)
+  .getOrElse('Anonymous');
+```
+
+## Constructors
+
+### some
+
+Creates a `Some` (present value).
+
+```ts
+import { some } from '@deessejs/fp';
+
+some(5);         // Some<number>
+some('hello');   // Some<string>
+some({ id: 1 }); // Some<{ id: number }>
+```
+
+### none
+
+The `None` singleton (absent value).
+
+```ts
+import { none } from '@deessejs/fp';
+
+none; // None
+```
+
+### maybe
+
+Creates `Some` from a non-null value, `None` from `null` or `undefined`.
+
+```ts
+import { maybe } from '@deessejs/fp';
+
+maybe(5);         // Some(5)
+maybe(null);      // None
+maybe(undefined); // None
+maybe(0);         // Some(0) — 0 is not null/undefined
+maybe('');        // Some('') — empty string is not null/undefined
+```
+
+## Transformation
+
+### map
+
+Transforms the value if `Some`, passes through if `None`.
+
+```ts
+some(5).map(n => n * 2);   // Some(10)
+none.map(n => n * 2);     // None
+```
+
+### flatMap (chain)
+
+Chains a `Maybe`-returning function. Short-circuits on `None`.
+
+```ts
+some(5).flatMap(n => some(n * 2));   // Some(10)
+some(5).flatMap(() => none);         // None
+none.flatMap(n => some(n * 2));      // None
+```
+
+### filter
+
+Returns `Some` if the predicate passes, `None` if it fails.
+
+```ts
+some(4).filter(n => n % 2 === 0); // Some(4)
+some(3).filter(n => n % 2 === 0); // None
+none.filter(n => n > 0);          // None
+```
+
+### filterMap
+
+Chains a `Maybe`-returning function. Alias for `flatMap`.
+
+```ts
+some(5).filterMap(n => n > 0 ? some(n * 2) : none); // Some(10)
+some(-1).filterMap(n => n > 0 ? some(n * 2) : none); // None
+```
+
+### tap
+
+Runs a side effect on `Some`, returns the original `Maybe` unchanged.
+
+```ts
+some(5)
+  .tap(n => console.log('Value:', n)) // logs 'Value: 5'
+  .map(n => n * 2);                   // Some(10)
+```
+
+### tapAsync
+
+Async version of `tap`.
+
+```ts
+await some(5).tapAsync(async n => {
+  await sendAnalytics('received', { value: n });
+});
+```
+
+## Pattern Matching
+
+### match
+
+Transforms both variants to the same type.
+
+```ts
+some(5).match({
+  some: (value) => `Got ${value}`,
+  none: () => 'Nothing',
+}); // 'Got 5'
+```
+
+### fold
+
+Alias for `match`. Transforms both variants to the same type.
+
+```ts
+some(5).fold(
+  (value) => value * 2,
+  () => 0,
+); // 10
+```
+
+## Unwrapping
+
+### getOrElse
+
+Returns the value or a fallback.
+
+```ts
+some(5).getOrElse(0); // 5
+none.getOrElse(0);    // 0
+```
+
+### getOrNull
+
+Returns the value or `null`.
+
+```ts
+some(5).getOrNull(); // 5
+none.getOrNull();    // null
+```
+
+### getOrUndefined
+
+Returns the value or `undefined`.
+
+```ts
+some(5).getOrUndefined(); // 5
+none.getOrUndefined();    // undefined
+```
+
+### getOrThrow
+
+Returns the value or throws.
+
+```ts
+some(5).getOrThrow(); // 5
+none.getOrThrow();    // throws Error('Expected Some but got None')
+```
+
+## Property Access
+
+### get
+
+Safely accesses a property of the wrapped value. Returns `Maybe` for the property type.
+
+```ts
+const user = some({ name: 'Alice', address: { city: 'Paris' } });
+
+user.get('name');              // Some('Alice')
+user.get('address').get('city'); // Some('Paris')
+user.get('email');            // None — property doesn't exist on type
+```
+
+This is especially useful for chaining through nested objects.
+
+```ts
+some({ user: { profile: { avatar: 'url' } } })
+  .get('user')
+  .get('profile')
+  .get('avatar')
+  .getOrElse('/default.png'); // Returns the avatar or default
+```
+
+## Conversion
+
+### toResult
+
+Converts `Some` to `Ok` and `None` to `Err` with a provided error value.
+
+```ts
+some(5).toResult('not found');    // Ok(5)
+none.toResult('not found');       // Err('not found')
+```
+
+### toArray
+
+Converts to an array.
+
+```ts
+some(5).toArray(); // [5]
+none.toArray();    // []
+```
+
+### toIterable
+
+Converts to an `Iterable`.
+
+```ts
+[...some(5)]; // [5]
+[...none];    // []
+```
+
+## Type Guards
+
+### isSome
+
+Type guard that narrows to `Some`.
+
+```ts
+const maybe = some(5);
+
+if (maybe.isSome()) {
+  maybe.value; // number — TypeScript knows it's Some
+}
+```
+
+### isNone
+
+Type guard that narrows to `None`.
+
+```ts
+const maybe = some(5);
+
+if (maybe.isNone()) {
+  // unreachable here
+}
+```
+
+## Type Utilities
+
+### SomeType
+
+Extracts the inner type from a `Maybe`.
+
+```ts
+import type { SomeType } from '@deessejs/fp';
+
+type T = SomeType<Maybe<string>>; // string
+```
+
+### isMaybe
+
+Type guard to check if a value is a `Maybe`.
+
+```ts
+import { isMaybe } from '@deessejs/fp';
+
+isMaybe(some(5)); // true
+isMaybe(none);    // true
+isMaybe(5);       // false
+```
+
+## See Also
+
+<Cards>
+  <Card title="Result" href="/docs/result">
+    Ok | Err for type-safe error handling.
+  </Card>
+  <Card title="API Reference" href="/docs/api-reference">
+    Full API documentation.
+  </Card>
+</Cards>

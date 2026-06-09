@@ -1,0 +1,214 @@
+---
+title: API Reference
+description: Complete API reference for @deessejs/fp
+---
+
+## Result
+
+### Types
+
+```ts
+type Result<T, E> = Ok<T, E> | Err<T, E>;
+
+interface Ok<T, E = never> {
+  readonly _tag: 'Ok';
+  readonly value: T;
+}
+
+interface Err<T = never, E> {
+  readonly _tag: 'Err';
+  readonly error: E;
+}
+```
+
+### Constructors
+
+```ts
+// Create a successful Result
+function ok<T>(value: T): Ok<T, never>;
+
+// Create a failed Result
+function err<E>(error: E): Err<never, E>;
+```
+
+### Ok Instance Methods
+
+| Method | Signature | Returns |
+|--------|-----------|---------|
+| `map` | `(fn: (value: T) => B) => Result<B, E>` | Transformed `Ok` |
+| `flatMap` | `(fn: (value: T) => Result<B, E2>) => Result<B, E \| E2>` | Chained `Result` |
+| `mapError` | `(fn: (error: never) => E2) => Result<T, E2>` | Same `Ok` |
+| `filter` | `(predicate: (value: T) => boolean) => Result<T, E>` | Same or original `Ok` |
+| `tap` | `(fn: (value: T) => unknown) => Result<T, E>` | Same `Ok` |
+| `tapAsync` | `(fn: (value: T) => Promise<unknown>) => Promise<Result<T, E>>` | Same `Ok` |
+| `flatMapAsync` | `(fn: (value: T) => Promise<Result<B, E2>>) => Promise<Result<B, E \| E2>>` | Chained `Result` |
+| `match` | `(handlers: { ok, err }) => U` | `U` |
+| `fold` | `(onOk, onErr) => U` | `U` |
+| `getOrElse` | `(defaultValue: T) => T` | `T` |
+| `getOrThrow` | `(message?: string) => T` | `T` or throws |
+| `getOrNull` | `() => T \| null` | `T` or `null` |
+| `getOrUndefined` | `() => T \| undefined` | `T` or `undefined` |
+| `toMaybe` | `() => Maybe<T>` | `Some<T>` |
+| `toOption` | `() => Maybe<T>` | `Some<T>` |
+| `isOk` | `() => this is Ok<T, E>` | `boolean` |
+| `isErr` | `() => this is Err<T, E>` | `boolean` |
+
+### Err Instance Methods
+
+| Method | Signature | Returns |
+|--------|-----------|---------|
+| `map` | `(fn: (value: never) => B) => Result<B, E>` | Same `Err` |
+| `flatMap` | `(fn: (value: never) => Result<B, E2>) => Result<B, E \| E2>` | Same `Err` |
+| `mapError` | `(fn: (error: E) => E2) => Result<T, E2>` | `Err` with transformed error |
+| `filter` | `(predicate, errorFn?) => Result<T, E>` | Same `Err` |
+| `tap` | `(fn: (value: never) => unknown) => Result<T, E>` | Same `Err` |
+| `tapAsync` | `(fn: (value: never) => Promise<unknown>) => Promise<Result<T, E>>` | Same `Err` |
+| `flatMapAsync` | `(fn: (value: never) => Promise<Result<B, E2>>) => Promise<Result<B, E \| E2>>` | Same `Err` |
+| `match` | `(handlers: { ok, err }) => U` | `U` |
+| `fold` | `(onOk, onErr) => U` | `U` |
+| `getOrElse` | `(defaultValue: T) => T` | `defaultValue` |
+| `getOrThrow` | `(message?: string) => never` | throws |
+| `getOrNull` | `() => null` | `null` |
+| `getOrUndefined` | `() => undefined` | `undefined` |
+| `toMaybe` | `() => Maybe<T>` | `None` |
+| `toOption` | `() => Maybe<T>` | `None` |
+| `isOk` | `() => this is Ok<T, E>` | `false` |
+| `isErr` | `() => this is Err<T, E>` | `true` |
+
+---
+
+## Maybe
+
+### Types
+
+```ts
+type Maybe<T> = Some<T> | None;
+
+interface Some<T> {
+  readonly _tag: 'Some';
+  readonly value: T;
+}
+
+interface None {
+  readonly _tag: 'None';
+}
+```
+
+### Constructors
+
+```ts
+// Create a Some
+function some<T>(value: T): Some<T>;
+
+// The None singleton
+const none: None;
+
+// Create Maybe from nullable value
+function maybe<T>(value: T | null | undefined): Maybe<T>;
+```
+
+### Some Instance Methods
+
+| Method | Signature | Returns |
+|--------|-----------|---------|
+| `map` | `(fn: (value: T) => B) => Maybe<B>` | Transformed `Some` |
+| `flatMap` | `(fn: (value: T) => Maybe<B>) => Maybe<B>` | Chained `Maybe` |
+| `filter` | `(predicate: (value: T) => boolean) => Maybe<T>` | `Some` or `None` |
+| `filterMap` | `(fn: (value: T) => Maybe<B>) => Maybe<B>` | Chained `Maybe` |
+| `tap` | `(fn: (value: T) => unknown) => Maybe<T>` | Same `Some` |
+| `tapAsync` | `(fn: (value: T) => Promise<unknown>) => Promise<Maybe<T>>` | Same `Some` |
+| `match` | `(handlers: { some, none }) => U` | `U` |
+| `fold` | `(onSome, onNone) => U` | `U` |
+| `getOrElse` | `(defaultValue: T) => T` | `T` |
+| `getOrThrow` | `(message?: string) => T` | `T` or throws |
+| `getOrNull` | `() => T \| null` | `T` |
+| `getOrUndefined` | `() => T \| undefined` | `T` |
+| `get` | `<K extends keyof T>(key: K) => Maybe<T[K]>` | Property as `Maybe` |
+| `toResult` | `<E>(error: E) => Result<T, E>` | `Ok<T, E>` |
+| `toArray` | `() => T[]` | `[T]` |
+| `toIterable` | `() => Iterable<T>` | Iterable of `T` |
+| `isSome` | `() => this is Some<T>` | `true` |
+| `isNone` | `() => this is None` | `false` |
+
+### None Instance Methods
+
+| Method | Signature | Returns |
+|--------|-----------|---------|
+| `map` | `(_fn) => Maybe<never>` | `None` |
+| `flatMap` | `(_fn) => Maybe<never>` | `None` |
+| `filter` | `(_predicate) => Maybe<never>` | `None` |
+| `filterMap` | `(_fn) => Maybe<never>` | `None` |
+| `tap` | `(_fn) => Maybe<never>` | `None` |
+| `tapAsync` | `(_fn) => Promise<Maybe<never>>` | Promise of `None` |
+| `match` | `(handlers) => U` | `U` from `none` handler |
+| `fold` | `(_onSome, onNone) => U` | `U` from `onNone` |
+| `getOrElse` | `(defaultValue: T) => T` | `defaultValue` |
+| `getOrThrow` | `(message?: string) => never` | throws |
+| `getOrNull` | `() => null` | `null` |
+| `getOrUndefined` | `() => undefined` | `undefined` |
+| `get` | `(_key) => Maybe<never>` | `None` |
+| `toResult` | `<E>(error: E) => Result<never, E>` | `Err<never, E>` |
+| `toArray` | `() => []` | `[]` |
+| `toIterable` | `() => Iterable<never>` | Empty iterable |
+| `isSome` | `() => this is Some<never>` | `false` |
+| `isNone` | `() => this is None` | `true` |
+
+---
+
+## Unit
+
+### Type
+
+```ts
+type Unit = { readonly _tag: 'Unit' };
+```
+
+### Value
+
+```ts
+const unit: Unit = { _tag: 'Unit' } as const;
+```
+
+### Helper
+
+```ts
+function isUnit(value: unknown): value is Unit;
+```
+
+---
+
+## Type Utilities
+
+```ts
+// Extract Ok type from Result
+type OkType<R extends Result<unknown, unknown>> = R extends Ok<infer T, unknown> ? T : never;
+
+// Extract Err type from Result
+type ErrType<R extends Result<unknown, unknown>> = R extends Ok<unknown, infer E> ? E : never;
+
+// Extract Some type from Maybe
+type SomeType<M extends Maybe<unknown>> = M extends Some<infer T> ? T : never;
+
+// Type guard for Result
+function isResult(value: unknown): value is Result<unknown, unknown>;
+
+// Type guard for Maybe
+function isMaybe(value: unknown): value is Maybe<unknown>;
+```
+
+---
+
+## Exports
+
+```ts
+// From '@deessejs/fp'
+export { ok, err };
+export { some, none, maybe };
+export { unit, isUnit };
+
+export type { Ok, Err, Result };
+export type { Some, None, Maybe };
+export type { Unit };
+export type { OkType, ErrType, SomeType };
+export { isResult, isMaybe };
+```

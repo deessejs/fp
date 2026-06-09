@@ -1,0 +1,90 @@
+---
+title: Unit
+description: The Unit type for intentional void returns
+---
+
+`Unit` represents the absence of a meaningful return value. It makes explicit that a function performs a side effect without returning useful data — unlike `void`, which might mean "intentionally empty" or "forgot to return".
+
+## Why Unit?
+
+In functional programming, every function returns a value. `Unit` makes intentional "no value" explicit.
+
+```ts filename="why-unit.ts"
+// Without Unit — ambiguous
+function log(message: string): void {
+  console.log(message);
+  // Returns undefined — intentional or a bug?
+}
+
+// With Unit — explicit
+function log(message: string): Unit {
+  console.log(message);
+  return unit;
+}
+```
+
+## The unit value
+
+```ts
+import { unit } from '@deessejs/fp';
+
+unit; // { readonly _tag: 'Unit' }
+```
+
+`unit` is a singleton. There is only one value of type `Unit`.
+
+## Check with isUnit
+
+```ts
+import { unit, isUnit } from '@deessejs/fp';
+
+isUnit(unit);      // true
+isUnit(null);     // false
+isUnit(undefined); // false
+isUnit('hello');  // false
+```
+
+## Use with Result
+
+`Unit` is commonly used as the success type of a `Result` when a function performs a side effect:
+
+```ts
+import { ok, err, unit } from '@deessejs/fp';
+
+function saveToDatabase(data: Data): Result<Unit, Error> {
+  try {
+    db.save(data);
+    return ok(unit);
+  } catch (e) {
+    return err(e as Error);
+  }
+}
+
+const result = saveToDatabase(data);
+
+result.match({
+  ok: () => console.log('Saved successfully'),
+  err: (e) => console.error('Failed:', e),
+});
+```
+
+## Type Definition
+
+```ts
+// Unit is a singleton type
+type Unit = { readonly _tag: 'Unit' };
+
+// The singleton value
+const unit: Unit = { _tag: 'Unit' } as const;
+```
+
+## See Also
+
+<Cards>
+  <Card title="Result" href="/docs/result">
+    Ok | Err for type-safe error handling.
+  </Card>
+  <Card title="API Reference" href="/docs/api-reference">
+    Full API documentation.
+  </Card>
+</Cards>

@@ -1,0 +1,138 @@
+---
+title: Getting Started
+description: Install and use @deessejs/fp in your project
+---
+
+## Installation
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+    ```bash
+    npm install @deessejs/fp
+    ```
+  </Tab>
+  <Tab value="pnpm">
+    ```bash
+    pnpm add @deessejs/fp
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```bash
+    yarn add @deessejs/fp
+    ```
+  </Tab>
+</Tabs>
+
+`@deessejs/fp` requires TypeScript 5.0 or later.
+
+## Peer dependency
+
+`@deessejs/fp` uses structured errors from [`@deessejs/errors`](https://errors.deessejs.com) for advanced error handling:
+
+```bash
+npm install @deessejs/errors
+```
+
+This is optional — the library works without it.
+
+## Your first Result
+
+```ts filename="result.ts"
+import { ok, err } from '@deessejs/fp';
+
+// A function that can fail
+function divide(a: number, b: number) {
+  if (b === 0) {
+    return err('Division by zero');
+  }
+  return ok(a / b);
+}
+
+const result = divide(10, 2);
+
+// Check the result
+if (result.isOk()) {
+  console.log(result.value); // 5
+} else {
+  console.error(result.error); // 'Division by zero'
+}
+```
+
+## Transform with map
+
+```ts filename="transform.ts"
+import { ok, err } from '@deessejs/fp';
+
+const result = ok(5)
+  .map(n => n * 2)    // Ok(10)
+  .map(n => n + 1);   // Ok(11)
+
+result.getOrElse(0); // 11
+```
+
+## Chain operations with flatMap
+
+```ts filename="chain.ts"
+import { ok, err } from '@deessejs/fp';
+
+function findUser(id: string) {
+  return id === '1' ? ok({ id: '1', name: 'Alice' }) : err('Not found');
+}
+
+ok('1')
+  .flatMap(id => findUser(id))
+  .map(user => user.name)   // Ok('Alice')
+  .getOrElse('Unknown');    // 'Alice'
+```
+
+## Handle optional values with Maybe
+
+```ts filename="maybe.ts"
+import { some, none, maybe } from '@deessejs/fp';
+
+// Create from a nullable value
+maybe(null);       // None
+maybe(undefined);  // None
+maybe('hello');    // Some('hello')
+
+// Safe property access
+const user = { name: 'Alice', address: { city: 'Paris' } };
+
+some(user)
+  .flatMap(u => maybe(u.address))
+  .map(addr => addr.city)  // Some('Paris')
+  .getOrElse('Unknown');   // 'Paris'
+```
+
+## Pattern matching
+
+```ts filename="match.ts"
+import { ok, err, some, none } from '@deessejs/fp';
+
+// Result
+const result = ok(42);
+
+result.match({
+  ok: (value) => `Got ${value}`,
+  err: (error) => `Error: ${error}`,
+}); // 'Got 42'
+
+// Maybe
+const maybeName = some('Alice');
+
+maybeName.match({
+  some: (name) => `Hello, ${name}`,
+  none: () => 'Hello, stranger',
+}); // 'Hello, Alice'
+```
+
+## See Also
+
+<Cards>
+  <Card title="Result" href="/docs/result">
+    Ok \| Err in depth.
+  </Card>
+  <Card title="Maybe" href="/docs/maybe">
+    Some \| None in depth.
+  </Card>
+</Cards>

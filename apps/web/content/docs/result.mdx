@@ -1,0 +1,272 @@
+---
+title: Result
+description: Ok | Err for type-safe error handling
+---
+
+`Result` represents a value that may have failed. It has two variants: `Ok` for success and `Err` for failure. This makes error handling explicit and type-safe — no more forgotten `try/catch` blocks.
+
+## Why Result?
+
+Instead of throwing exceptions, functions return `Result`. Errors become values you can transform, chain, and handle just like any other data.
+
+```ts filename="why-result.ts"
+// Without Result - exceptions can slip through
+function parseJSON(input: string) {
+  return JSON.parse(input); // throws on invalid input
+}
+
+// With Result - errors are part of the type
+function parseJSON(input: string) {
+  try {
+    return ok(JSON.parse(input));
+  } catch (e) {
+    return err(e as Error);
+  }
+}
+```
+
+## Constructors
+
+### ok
+
+Creates a successful `Result`.
+
+```ts
+import { ok } from '@deessejs/fp';
+
+ok(5);       // Ok<number, never>
+ok('hello'); // Ok<string, never>
+ok({ id: 1 }); // Ok<{ id: number }, never>
+```
+
+### err
+
+Creates a failed `Result`.
+
+```ts
+import { err } from '@deessejs/fp';
+
+err('Something went wrong');       // Err<never, string>
+err(new Error('Database error'));  // Err<never, Error>
+```
+
+## Transformation
+
+### map
+
+Transforms the value if `Ok`, passes through if `Err`.
+
+```ts
+ok(5).map(n => n * 2);   // Ok(10)
+err('oops').map(n => n * 2); // Err('oops')
+```
+
+### flatMap (chain)
+
+Chains a `Result`-returning function on success. Short-circuits on `Err`.
+
+```ts
+ok(5).flatMap(n => ok(n * 2));   // Ok(10)
+ok(5).flatMap(n => err('bad'));   // Err('bad')
+err('oops').flatMap(n => ok(n * 2)); // Err('oops')
+```
+
+### mapError
+
+Transforms the error if `Err`, passes through if `Ok`.
+
+```ts
+ok(5).mapError(e => new Error(e));    // Ok(5)
+err('bad').mapError(e => new Error(e)); // Err(Error('bad'))
+```
+
+### filter
+
+Returns `Ok` if the predicate passes. Returns the original value (not an error) if it fails.
+
+<Callout type="warn" title="Note">
+  Unlike many Result implementations, `filter` here does not wrap the value in `Err`. It returns `Ok(value)` unchanged when the predicate fails. This makes it useful for "pass-through" filtering without changing the type.
+</Callout>
+
+```ts
+ok(4).filter(n => n % 2 === 0); // Ok(4) — predicate passes
+ok(3).filter(n => n % 2 === 0);  // Ok(3) — predicate fails, returns original value
+err('bad').filter(n => n > 0);   // Err('bad') — passes through
+```
+
+### tap
+
+Runs a side effect on `Ok`, returns the original `Result` unchanged.
+
+```ts
+ok(5)
+  .tap(n => console.log('Value:', n)) // logs 'Value: 5'
+  .map(n => n * 2);                   // Ok(10)
+```
+
+### tapAsync
+
+Async version of `tap`. Runs the async function and returns the original `Result`.
+
+```ts
+await ok(5).tapAsync(async n => {
+  await sendAnalytics('value_received', { value: n });
+});
+```
+
+### flatMapAsync
+
+Chains an async `Result`-returning function.
+
+```ts
+async function fetchUser(id: string) {
+  return ok({ id, name: 'Alice' });
+}
+
+await ok('123').flatMapAsync(fetchUser); // Promise<Ok<{ id: string, name: string }, never>>
+```
+
+## Pattern Matching
+
+### match
+
+Transforms both variants to the same type.
+
+```ts
+ok(5).match({
+  ok: (value) => `Success: ${value}`,
+  err: (error) => `Error: ${error}`,
+}); // 'Success: 5'
+```
+
+### fold
+
+Alias for `match`. Transforms both variants to the same type.
+
+```ts
+ok(5).fold(
+  (value) => value * 2,
+  (error) => 0,
+); // 10
+```
+
+## Unwrapping
+
+### getOrElse
+
+Returns the value or a fallback.
+
+```ts
+ok(5).getOrElse(0);    // 5
+err('oops').getOrElse(0); // 0
+```
+
+### getOrNull
+
+Returns the value or `null`.
+
+```ts
+ok(5).getOrNull();    // 5
+err('oops').getOrNull(); // null
+```
+
+### getOrUndefined
+
+Returns the value or `undefined`.
+
+```ts
+ok(5).getOrUndefined();    // 5
+err('oops').getOrUndefined(); // undefined
+```
+
+### getOrThrow
+
+Returns the value or throws the error.
+
+```ts
+ok(5).getOrThrow();           // 5
+err('oops').getOrThrow();     // throws Error('oops')
+err(new Error('bad')).getOrThrow(); // throws Error('bad')
+```
+
+## Type Guards
+
+### isOk
+
+Type guard that narrows to `Ok`.
+
+```ts
+const result = ok(5);
+
+if (result.isOk()) {
+  result.value; // number — TypeScript knows it's Ok
+}
+```
+
+### isErr
+
+Type guard that narrows to `Err`.
+
+```ts
+const result = err('oops');
+
+if (result.isErr()) {
+  result.error; // string — TypeScript knows it's Err
+}
+```
+
+## Conversion
+
+### toMaybe
+
+Converts `Ok` to `Some` and `Err` to `None`.
+
+```ts
+ok(5).toMaybe();    // Some(5)
+err('oops').toMaybe(); // None
+```
+
+## Type Utilities
+
+### OkType
+
+Extracts the `Ok` type from a `Result`.
+
+```ts
+import type { OkType } from '@deessejs/fp';
+
+type T = OkType<Result<string, Error>>; // string
+```
+
+### ErrType
+
+Extracts the `Err` type from a `Result`.
+
+```ts
+import type { ErrType } from '@deessejs/fp';
+
+type E = ErrType<Result<string, Error>>; // Error
+```
+
+### isResult
+
+Type guard to check if a value is a `Result`.
+
+```ts
+import { isResult } from '@deessejs/fp';
+
+isResult(ok(5));     // true
+isResult(err('bad')); // true
+isResult('hello');   // false
+```
+
+## See Also
+
+<Cards>
+  <Card title="Maybe" href="/docs/maybe">
+    Some | None for optional values.
+  </Card>
+  <Card title="API Reference" href="/docs/api-reference">
+    Full API documentation.
+  </Card>
+</Cards>
