@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm --filter web build -- --webpack",
+  "buildCommand": "cd apps/web && pnpm next build --webpack",
   "outputDirectory": "apps/web/.next",
   "installCommand": "pnpm install"
 }
