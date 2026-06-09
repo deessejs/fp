@@ -14,8 +14,8 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    # Only run when PR is merged and has version bump label
-    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'version bump')
+    # Only run when PR is merged and has version bump label OR manually triggered
+    if: github.event_name == 'workflow_dispatch' || (github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'version bump'))
 
     steps:
       - name: Checkout
@@ -35,16 +35,40 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Create versions from changesets
+        run: pnpm changeset version
+
+      - name: Commit version changes and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: apply changeset version bumps" || true
+          git push origin HEAD && git push --tags
+
       - name: Build
         run: pnpm build
 
       - name: Test
         run: pnpm test
 
+      - name: Configure npm
+        run: npm config set //registry.npmjs.org/:_authToken=$NPM_TOKEN
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Publish packages
-        run: pnpm release
+        run: pnpm changeset publish
+
+      - name: Get latest tag
+        id: tag
+        run: echo "version=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.version }}
+          body_path: CHANGELOG.md
+          draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-          TURBO_TEAM: ${{ vars.TURBO_TEAM }}
