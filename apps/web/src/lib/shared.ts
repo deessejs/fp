@@ -1,4 +1,4 @@
-export const appName = "@deessejs/fp";
+export const appName = "DeesseJS FP";
 export const docsRoute = "/docs";
 export const docsImageRoute = "/og/docs";
 export const docsContentRoute = "/llms.mdx/docs";
