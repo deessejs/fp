@@ -43,5 +43,5 @@ temp/
 # Generated files
 *.tsbuildinfo
 
-# Changesets
-.changeset/
+# Changesets (keep for CI)
+# .changeset/ is NOT ignored - needed for release workflow
