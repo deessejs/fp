@@ -1,0 +1,7 @@
+- [Package Identity](package-identity.md) — @deessejs/fp is a real FP package, not a template
+- [Role](role.md) — Technical writer for @apps/web/ documentation
+- [Writing Style](documentation-writing-style.md) — Patterns from better-auth, Next.js, Fumadocs
+- [Fumadocs Components](fumadocs-components.md) — Cards, Callouts, Tabs, TypeTable, etc.
+- [Fumadocs Docs Ref](fumadocs-docs-reference.md) — fumadocs.dev reference
+- [meta.json Config](fumadocs-meta-json.md) — Navigation tree configuration
+- [Docs Build Fixes](role.md) — Turbopack, YAML @, Tab/Tabs, vercel.json config
