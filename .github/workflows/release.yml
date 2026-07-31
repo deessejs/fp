@@ -18,10 +18,12 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || (github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'version bump'))
 
     steps:
-      - name: Checkout
+      - name: Checkout main
         uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -33,39 +35,53 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Create versions from changesets
-        run: pnpm changeset version
-
-      - name: Commit version changes and push
+        id: version
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase origin main
-          git add -A
-          git commit -m "chore: apply changeset version bumps" || true
-          git push origin HEAD && git push --tags
+          pnpm changeset version
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No changesets to apply, skipping release."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Build
+        if: steps.version.outputs.changed == 'true'
         run: pnpm build
 
       - name: Test
+        if: steps.version.outputs.changed == 'true'
         run: pnpm test
 
+      - name: Commit version changes and push
+        if: steps.version.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: apply changeset version bumps"
+          git push origin main
+
       - name: Configure npm
+        if: steps.version.outputs.changed == 'true'
         run: npm config set //registry.npmjs.org/:_authToken=$NPM_TOKEN
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish packages
+        if: steps.version.outputs.changed == 'true' && secrets.NPM_TOKEN != ''
         run: pnpm changeset publish
 
       - name: Get latest tag
         id: tag
+        if: steps.version.outputs.changed == 'true'
         run: echo "version=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
+        if: steps.version.outputs.changed == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.version }}
