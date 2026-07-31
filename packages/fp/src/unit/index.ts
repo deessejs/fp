@@ -2,5 +2,5 @@
  * Unit module exports
  */
 
-export type { Unit } from './types';
-export { unit, isUnit } from './constants';
+export type { Unit } from './types.js';
+export { unit, isUnit } from './constants.js';

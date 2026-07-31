@@ -2,8 +2,8 @@
  * Result constructors: ok(), err()
  */
 
-import type { Ok, Err, Result } from './types';
-import type { Maybe } from '../maybe/types';
+import type { Ok, Err, Result } from './types.js';
+import type { Maybe } from '../maybe/types.js';
 
 /**
  * Create an Ok result

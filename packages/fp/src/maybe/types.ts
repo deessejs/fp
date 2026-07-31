@@ -1,4 +1,4 @@
-import type { Result } from '../result/types';
+import type { Result } from '../result/types.js';
 
 /**
  * Some variant of Maybe - represents a present value
