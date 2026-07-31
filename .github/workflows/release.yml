@@ -14,8 +14,11 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    # Only run when PR is merged and has version bump label OR manually triggered
-    if: github.event_name == 'workflow_dispatch' || (github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'version bump'))
+    # Only run on manual dispatch, or when the closed PR is merged and carries
+    # the 'version bump' label. The label check is done in a per-step `if:`
+    # below to avoid evaluating github.event.pull_request on events where it
+    # does not exist (which previously made the whole workflow fail on push).
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request'
 
     steps:
       - name: Checkout main
@@ -48,16 +51,31 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Verify release trigger
+        id: verify
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "trigger=manual" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "pull_request" ] && \
+               [ "${{ github.event.pull_request.merged }}" = "true" ] && \
+               printf '%s\n' "${{ github.event.pull_request.labels.*.name }}" | grep -qx "version bump"; then
+            echo "trigger=label" >> "$GITHUB_OUTPUT"
+          else
+            echo "trigger=none" >> "$GITHUB_OUTPUT"
+            echo "Release trigger conditions not met; skipping."
+            exit 0
+          fi
+
       - name: Build
-        if: steps.version.outputs.changed == 'true'
+        if: steps.verify.outputs.trigger != 'none' && steps.version.outputs.changed == 'true'
         run: pnpm build
 
       - name: Test
-        if: steps.version.outputs.changed == 'true'
+        if: steps.verify.outputs.trigger != 'none' && steps.version.outputs.changed == 'true'
         run: pnpm test
 
       - name: Commit version changes and push
-        if: steps.version.outputs.changed == 'true'
+        if: steps.verify.outputs.trigger != 'none' && steps.version.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -66,22 +84,22 @@ jobs:
           git push origin main
 
       - name: Configure npm
-        if: steps.version.outputs.changed == 'true'
+        if: steps.verify.outputs.trigger != 'none' && steps.version.outputs.changed == 'true'
         run: npm config set //registry.npmjs.org/:_authToken=$NPM_TOKEN
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish packages
-        if: steps.version.outputs.changed == 'true' && secrets.NPM_TOKEN != ''
+        if: steps.verify.outputs.trigger != 'none' && steps.version.outputs.changed == 'true' && secrets.NPM_TOKEN != ''
         run: pnpm changeset publish
 
       - name: Get latest tag
         id: tag
-        if: steps.version.outputs.changed == 'true'
+        if: steps.verify.outputs.trigger != 'none' && steps.version.outputs.changed == 'true'
         run: echo "version=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
-        if: steps.version.outputs.changed == 'true'
+        if: steps.verify.outputs.trigger != 'none' && steps.version.outputs.changed == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.version }}
