@@ -2,7 +2,7 @@
  * Unit constants and utilities
  */
 
-import type { Unit } from './types';
+import type { Unit } from './types.js';
 
 /**
  * The Unit singleton value

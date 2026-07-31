@@ -57,4 +57,4 @@ export interface Err<T = never, E = never> {
  */
 export type Result<T, E> = Ok<T, E> | Err<T, E>;
 
-import type { Maybe } from '../maybe/types';
+import type { Maybe } from '../maybe/types.js';

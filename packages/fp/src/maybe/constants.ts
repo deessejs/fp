@@ -2,8 +2,8 @@
  * Maybe constructors: some(), none(), maybe()
  */
 
-import type { Some, None, Maybe } from './types';
-import type { Result } from '../result/types';
+import type { Some, None, Maybe } from './types.js';
+import type { Result } from '../result/types.js';
 
 /**
  * Create a Some Maybe
