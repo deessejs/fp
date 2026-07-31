@@ -90,8 +90,10 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish packages
-        if: steps.verify.outputs.trigger != 'none' && steps.version.outputs.changed == 'true' && secrets.NPM_TOKEN != ''
+        if: steps.verify.outputs.trigger != 'none' && steps.version.outputs.changed == 'true' && env.NPM_TOKEN != ''
         run: pnpm changeset publish
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Get latest tag
         id: tag
