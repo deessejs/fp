@@ -1,3 +1,5 @@
+> **Default PR target:** `staging`. PRs targeting `main` are reserved for the auto-generated "Version Packages" PR and for hotfixes. See `docs/engineering/plans/release-pipeline.md` for the full flow.
+
 ## Summary
 
 <!-- Brief description of what this PR does -->
@@ -10,6 +12,11 @@
 - [ ] Documentation update
 - [ ] Refactoring
 - [ ] Test update
+
+## Changeset
+
+- [ ] I have added a changeset file under `.changeset/` describing this change (use `pnpm changeset`).
+- [ ] This PR does not affect any published package (CI, docs, internal refactor only).
 
 ## Checklist
 
