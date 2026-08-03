@@ -132,13 +132,13 @@ Why this design: since `main` has no bypass, no human can push a `v*.*.*` tag di
 
 > **Note:** the path is `https://www.npmjs.com/package/<name>/access`, not the global settings page. This trips people up.
 
-**npm allows exactly ONE Trusted Publisher configuration per package** (verified against the npm docs as of 2026-08-03). To support three publish paths — stable release, hotfix, and canary snapshot — under a single trusted publisher, the repository uses an **entrypoint pattern**:
+**npm allows exactly ONE Trusted Publisher configuration per package** (verified against the npm docs as of 2026-08-03). The repository handles the three publish paths (stable release, hotfix, canary snapshot) with a **single workflow file containing all three**:
 
-- `.github/workflows/publish.yml` is the **single Trusted Publisher entrypoint**. It is the only file registered on npmjs.com.
-- It dispatches to three **reusable workflows** (`.github/workflows/_publish-release.yml`, `_publish-hotfix.yml`, `_publish-canary.yml`), which perform the actual work.
-- npm validates the entrypoint (`publish.yml`), not the reusable workflows.
+- `.github/workflows/publish.yml` contains three jobs (`release`, `hotfix`, `canary`), each with its own step list.
+- All three jobs declare `id-token: write` and use `environment: release`.
+- npm validates the workflow file containing the `pnpm changeset publish` step. Since every publish step is in `publish.yml`, the registered filename matches what npm sees in the OIDC `workflow_ref` claim.
 
-This design is documented and recommended for multi-workflow scenarios: see Paige Niedringhaus, "Run Multiple npm Publishing Scripts with Trusted Publishing (OIDC) via GitHub Reusable Workflows".
+> **Why not reusable workflows?** A previous iteration used an entrypoint + reusable workflow pattern. It failed because npm Trusted Publishing validates the **workflow file that contains the publish step**, not the caller. With reusable workflows, the OIDC `workflow_ref` claim pointed to the reusable file (e.g. `_publish-canary.yml`), which never matched the registered filename. npm surfaced this as a misleading `E404 Not Found` (see npm/cli #9088). The fix was to inline all publish steps into `publish.yml`.
 
 ### 5.1 Add the single Trusted Publisher entry
 
@@ -166,7 +166,6 @@ At this point the Trusted Publisher is registered but no publish has happened ye
 
 - The package's npm page shows exactly one Trusted Publisher entry: "Trusted Publisher: GitHub Actions — deessejs/fp — publish.yml" in the access tab.
 - A `git push` to the branch containing `publish.yml` must be merged to `main` before the first publish — npm validates that the workflow file exists at the registered path.
-- The reusable workflows (`_publish-*.yml`) do **not** need to be registered separately; they are dispatched from the entrypoint and inherit the OIDC trust.
 
 ---
 
@@ -175,7 +174,7 @@ At this point the Trusted Publisher is registered but no publish has happened ye
 **Path:** Repository → Settings → Actions → General → Workflow permissions
 
 - **Workflow permissions:** "Read repository contents and packages permissions".
-  - The `publish.yml` entrypoint overrides with `id-token: write` at the job level, so the org-wide default can stay at read-only.
+  - The `publish.yml` workflow overrides with `id-token: write` at the job level, so the org-wide default can stay at read-only.
 - **Allow GitHub Actions to create and approve pull requests:** **ON** — required for the Changesets "Version Packages" PR automation.
 
 Save.
@@ -188,7 +187,7 @@ Save.
 
 The repo already has a dependabot config. Confirm `/.github/dependabot.yml` includes a `github-actions` ecosystem entry. If not, see `release-pipeline.md` Appendix A for the expected shape.
 
-### 7.2 Code Owners for `.github/workflows/publish.yml` and reusable workflows
+### 7.2 Code Owners for `.github/workflows/publish.yml`
 
 The current `CODEOWNERS` file already covers `.github/`. Verify by reading `.github/CODEOWNERS`:
 
@@ -196,7 +195,7 @@ The current `CODEOWNERS` file already covers `.github/`. Verify by reading `.git
 /.github/ @deessejs/engineering
 ```
 
-This means any PR touching `.github/workflows/publish.yml` or the reusable workflows will require review from `@deessejs/engineering`. Keep it.
+This means any PR touching `.github/workflows/publish.yml` will require review from `@deessejs/engineering`. Keep it.
 
 ### 7.3 Notification channels
 
@@ -215,10 +214,10 @@ Before the first real publish, walk through this list:
 - [ ] npmjs.com Trusted Publisher registered for `@deessejs/fp`, workflow filename `publish.yml`, environment `release`, allowed action `npm publish`.
 - [ ] npmjs.com publishing access: "Require 2FA and disallow tokens".
 - [ ] Workflow permissions: "Allow GitHub Actions to create and approve pull requests" ON.
-- [ ] `feat/publish-entrypoint` branch (or its successor) is merged into `main`.
 - [ ] `.github/workflows/publish.yml` exists in `main` with the exact filename registered on npmjs.com.
+- [ ] `.github/workflows/_publish-{release,hotfix,canary}.yml` do **not** exist on `main` (deleted in PR #372).
 
-When all boxes are checked, the first dry-run publish can be attempted via `workflow_dispatch` on `publish.yml` (or by pushing a tag on a hotfix branch) to test the OIDC chain without burning a version number.
+When all boxes are checked, the first dry-run publish can be attempted by pushing a tag on a hotfix branch (or any release-shaped push) to test the OIDC chain.
 
 ---
 
