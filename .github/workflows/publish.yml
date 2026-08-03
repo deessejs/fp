@@ -73,11 +73,17 @@ jobs:
 
   # Stable release: triggered by push to main after a "Version
   # Packages" PR is merged.
+  #
+  # Note: this job is NOT gated on check-release. The reason is
+  # that by the time the push reaches main, the changeset has
+  # already been consumed by the Version Packages PR. The
+  # .changeset/ directory is empty. The actual gate for whether
+  # to publish is the anti-republish guard: if the local version
+  # already exists on npm, the publish step fails cleanly and
+  # the job exits without publishing.
   release:
-    needs: check-release
     if: >-
-      needs.check-release.outputs.has_changeset == 'true'
-      && github.event_name == 'push'
+      github.event_name == 'push'
       && !startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     environment: release
@@ -147,8 +153,12 @@ jobs:
 
   # Hotfix: triggered by a tag push on main. The tag is created by
   # a maintainer as part of the hotfix procedure.
+  #
+  # Note: not gated on check-release. Tag pushes always publish;
+  # the package.json version must match the tag (verified by the
+  # 'Verify version matches tag' step), and the anti-republish
+  # guard catches duplicate publishes.
   hotfix:
-    needs: check-release
     if: >-
       github.event_name == 'push'
       && startsWith(github.ref, 'refs/tags/v')
