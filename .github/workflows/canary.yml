@@ -44,18 +44,39 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # A snapshot only makes sense if there is a changeset to
+      # snapshot. Infra-only PRs (CI, docs, refactors) have no
+      # changeset, so we skip cleanly instead of failing at publish
+      # time. `changeset status` exits 0 with empty output when no
+      # changesets are pending.
+      - name: Detect pending changesets
+        id: changesets
+        run: |
+          OUT=$(pnpm changeset status --since=origin/staging 2>&1 || true)
+          if [ -z "$OUT" ]; then
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "No pending changesets — skipping canary."
+          else
+            echo "found=true" >> "$GITHUB_OUTPUT"
+            echo "Pending changesets detected — proceeding with canary."
+          fi
+
       - run: pnpm build
 
       # Generate a snapshot version like 0.0.0-canary-<timestamp>.
       # The --snapshot flag prevents the version bump from being
-      # committed to the branch.
+      # committed to the branch. Skipped when there is nothing to
+      # snapshot (see "Detect pending changesets" above).
       - name: Snapshot version
+        if: steps.changesets.outputs.found == 'true'
         run: pnpm changeset version --snapshot canary
 
       - name: Publish snapshot to canary tag
+        if: steps.changesets.outputs.found == 'true'
         run: pnpm changeset publish --tag canary --no-git-tag
 
       - name: Comment on PR with install instructions
+        if: steps.changesets.outputs.found == 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         with:
           script: |
