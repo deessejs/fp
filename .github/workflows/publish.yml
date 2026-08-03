@@ -127,9 +127,13 @@ jobs:
         run: |
           node --input-type=module -e "
             import * as m from './packages/fp/dist/index.js';
+            // Each expected export must exist and be either a
+            // function (constructors ok/err/some/maybe) or an
+            // object sentinel (none is a const object).
             for (const name of ['ok', 'err', 'some', 'none', 'maybe']) {
-              if (typeof m[name] !== 'function') {
-                throw new Error('expected export missing: ' + name);
+              const t = typeof m[name];
+              if (t !== 'function' && t !== 'object') {
+                throw new Error('expected export missing or wrong type: ' + name + ' (got ' + t + ')');
               }
             }
             console.log('smoke OK');
@@ -216,9 +220,13 @@ jobs:
         run: |
           node --input-type=module -e "
             import * as m from './packages/fp/dist/index.js';
+            // Each expected export must exist and be either a
+            // function (constructors ok/err/some/maybe) or an
+            // object sentinel (none is a const object).
             for (const name of ['ok', 'err', 'some', 'none', 'maybe']) {
-              if (typeof m[name] !== 'function') {
-                throw new Error('expected export missing: ' + name);
+              const t = typeof m[name];
+              if (t !== 'function' && t !== 'object') {
+                throw new Error('expected export missing or wrong type: ' + name + ' (got ' + t + ')');
               }
             }
             console.log('smoke OK');
