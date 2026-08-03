@@ -153,28 +153,60 @@ Why this design: since `main` has no bypass, no human can push a `v*.*.*` tag di
 
 > **Note:** the path is `https://www.npmjs.com/package/<name>/access`, not the global settings page. This trips people up.
 
+npm Trusted Publishing allows **one trusted publisher per package**. We register two entries that share the same provider/repository but differ on the workflow filename and environment, because npm matches on `(repo, workflow filename, environment)` triple.
+
+### 5.1 Trusted Publisher for stable releases (`release.yml`)
+
 - **Provider:** GitHub Actions
 - **Organization or user:** `deessejs`
 - **Repository:** `fp`
-- **Workflow filename:** `release.yml` (the file we'll add in the next implementation step)
+- **Workflow filename:** `release.yml`
 - **Environment name:** `release`
 - **Allowed actions:** `npm publish` (per §13.1 decision)
 
 Save.
 
-### 5.1 Update package publishing access
+### 5.2 Trusted Publisher for hotfixes (`hotfix.yml`)
+
+Click "Add Trusted Publisher" again on the same package:
+
+- **Provider:** GitHub Actions
+- **Organization or user:** `deessejs`
+- **Repository:** `fp`
+- **Workflow filename:** `hotfix.yml`
+- **Environment name:** `hotfix`
+- **Allowed actions:** `npm publish` (per §13.1 decision)
+
+Save.
+
+### 5.3 Trusted Publisher for canary snapshots (`canary.yml`)
+
+If `canary.yml` is in use, register a third entry:
+
+- **Provider:** GitHub Actions
+- **Organization or user:** `deessejs`
+- **Repository:** `fp`
+- **Workflow filename:** `canary.yml`
+- **Environment name:** *(leave empty if no GitHub Environment is configured for canary)*
+- **Allowed actions:** `npm publish`
+
+Save.
+
+If canary snapshots are not desired for now, skip this step. The `canary.yml` workflow will fail at the publish step until a Trusted Publisher entry exists for it, which is intentional.
+
+### 5.4 Update package publishing access
 
 Same page (`/access`) → "Publishing access":
 
 - Select **"Require two-factor authentication and disallow tokens"**
 - Save
 
-### 5.2 Verify (do not skip)
+### 5.5 Verify (do not skip)
 
-At this point the Trusted Publisher is registered but no publish has happened yet. Confirm:
+At this point the Trusted Publishers are registered but no publish has happened yet. Confirm:
 
-- The package's npm page shows "Trusted Publisher: GitHub Actions — deessejs/fp" in the access tab.
-- A `git push origin feat/release-pipeline` (or the equivalent merge to `main`) will be needed before the first publish — the workflow must exist in `main` for npm to validate.
+- The package's npm page shows each Trusted Publisher entry (e.g. "Trusted Publisher: GitHub Actions — deessejs/fp — release.yml" and "Trusted Publisher: GitHub Actions — deessejs/fp — hotfix.yml") in the access tab.
+- A `git push origin feat/release-pipeline` (or the equivalent merge to `main`) will be needed before the first publish — the workflow files must exist in `main` for npm to validate.
 
 ---
 
