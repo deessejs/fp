@@ -1,0 +1,55 @@
+name: Changesets Version PR
+
+# Opens or updates a "Version Packages" PR on every push to
+# staging. This PR contains the result of `pnpm changeset
+# version`: bumped package versions, generated CHANGELOG entries,
+# and consumed changeset files.
+#
+# Merging this PR into main triggers the release workflow
+# (release.yml), which publishes to npm via Trusted Publishing.
+#
+# The action is configured to point the resulting PR at `main`
+# (the release target). Source branch is automatically managed
+# by the action (changesets/action branches off the configured
+# base).
+#
+# This workflow deliberately does not require an environment,
+# reviewers, or any OIDC setup — it only manipulates git and
+# PRs within the repository.
+
+on:
+  push:
+    branches: [staging]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: changeset-version-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Create or update Version Packages PR
+        uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d
+        with:
+          title: 'chore: version packages'
+          commit-message: 'chore: version packages'
+          branch: changesets/version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
