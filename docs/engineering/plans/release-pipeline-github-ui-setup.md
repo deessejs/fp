@@ -114,15 +114,33 @@ The ruleset is a stronger guarantee but not strictly required. Pick one.
 
 ---
 
-## 4. Tag Protection Rules
+## 4. Tag Pushes (no protection by design)
 
-**Path:** Repository → Settings → Tags → Add rule (older UI) or via Rulesets (newer UI)
+**No action required.** This pipeline intentionally does not use GitHub tag protection rules.
 
-- **Tag pattern:** `v*`
-- **Allowed creators:** **leave empty**. The publish workflow uses `GITHUB_TOKEN` (or an app token) to push tags as part of the run; tag protection rules with an empty allow-list still allow the workflow to push tags but block direct user pushes.
-- **Block pushes:** enabled.
+### Why no tag protection
 
-Why this design: since `main` has no bypass, no human can push a `v*.*.*` tag directly anyway. Tag protection becomes a defense-in-depth measure that prevents accidental force-push to existing tags. We do not need to enumerate "release engineers" because there are none.
+Tag protection rules (`Restrict creations`) require an explicit allow-list of actors. The only entities that can create a `v*` tag in this pipeline are:
+
+- The publish workflow, which uses `GITHUB_TOKEN` to push tags. The GITHUB_TOKEN has the `contents: write` permission declared at the workflow level (`publish.yml`).
+- Maintainers, who can push tags directly if they have write access to the repo.
+
+The `github-actions[bot]` identity (the user behind GITHUB_TOKEN pushes) cannot be added as an allow-listed creator on tag protection rules — the ruleset UI lists specific actor types (users, teams, GitHub Apps, roles) but not the GitHub Actions bot. Trying to enforce tag protection on `v*` with an empty allow-list blocks the workflow's tag push with HTTP 403 (observed on the 1.0.2 dummy release run, run `30817274927`).
+
+### Defense relies on other layers
+
+The pipeline does not need tag protection because security is enforced by other layers:
+
+- **Environment protection** (`release`) requires a named reviewer on any workflow run that publishes. A human gate is in place before any tag is pushed.
+- **Anti-republish guard** in the publish job queries npm for the local version and aborts if it already exists. This prevents double-publishing and detects accidental re-runs.
+- **OIDC provenance** ties every published version to a specific workflow run and source commit, providing an audit trail.
+- **Branch protection on `main`** requires a PR with review for every merge. Direct pushes to `main` (and therefore direct tag pushes on `main` ref) are rejected at the branch level.
+
+This mirrors the production pattern used by the `@deessejs/errors` package in the same repository (and by Vite, Vue, Nuxt, Cloudflare SDK): no tag protection, content-write on the workflow, environment protection as the human gate.
+
+### If tag protection is desired later
+
+For organizations with stricter requirements, the senior approach is a GitHub App with `contents: write`, installed on the repo, used as the actor in both the workflow and the ruleset bypass list. This is more setup than a single tag-protection rule and is overkill for the current release cadence.
 
 ---
 
