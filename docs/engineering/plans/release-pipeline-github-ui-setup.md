@@ -15,9 +15,9 @@ This document lists every action that must be performed in the GitHub web UI and
 
 ---
 
-## 1. Create the `release` and `hotfix` GitHub Environments
+## 1. Create the `release` GitHub Environment
 
-**Why:** Environment protection rules add a human gate on any workflow that uses `environment: release`, and they let us pin which branches can deploy.
+**Why:** Environment protection rules add a human gate on any workflow that uses `environment: release`. The single environment covers the stable release path, the hotfix path, and the canary snapshot path — they all dispatch through `publish.yml` which uses `environment: release`.
 
 **Path:** Repository → Settings → Environments → New environment
 
@@ -26,33 +26,12 @@ This document lists every action that must be performed in the GitHub web UI and
 - **Name:** `release`
 - **Deployment branches and tags:**
   - Selected branches: `main`
-  - This means the job can only run when the workflow is triggered by `push` to `main` (our intended path). `pull_request.closed` and `workflow_dispatch` from any other ref are rejected.
+  - Selected tags: `v*` (optional — only if you want hotfix tags to be deployable; the entrypoint's tag push trigger will run regardless)
 - **Required reviewers:** add 1–2 named engineering maintainers. **Do not** add a team — keep it named individuals so accountability is explicit.
 - **Wait timer:** 0 minutes
 - **Allow administrators to bypass configured protection rules:** **OFF** (force even admins through review)
 
 Save.
-
-### 1.2 Environment `hotfix`
-
-- **Name:** `hotfix`
-- **Deployment branches and tags:**
-  - Selected branches: `main`
-- **Required reviewers:** 1 named on-call engineer. Document in `CONTRIBUTING.md` who is on-call this week.
-- **Wait timer:** 0 minutes
-- **Allow administrators to bypass:** OFF
-
-Save.
-
-### 1.3 Optional environment `canary`
-
-If you want a dedicated environment for the `canary.yml` workflow:
-
-- **Name:** `canary`
-- **Deployment branches:** `staging`
-- No required reviewers — canary publishes are non-blocking and informational.
-
-Skip this environment if you're comfortable with no protection on canary.
 
 ---
 
@@ -153,60 +132,41 @@ Why this design: since `main` has no bypass, no human can push a `v*.*.*` tag di
 
 > **Note:** the path is `https://www.npmjs.com/package/<name>/access`, not the global settings page. This trips people up.
 
-npm Trusted Publishing allows **one trusted publisher per package**. We register two entries that share the same provider/repository but differ on the workflow filename and environment, because npm matches on `(repo, workflow filename, environment)` triple.
+**npm allows exactly ONE Trusted Publisher configuration per package** (verified against the npm docs as of 2026-08-03). To support three publish paths — stable release, hotfix, and canary snapshot — under a single trusted publisher, the repository uses an **entrypoint pattern**:
 
-### 5.1 Trusted Publisher for stable releases (`release.yml`)
+- `.github/workflows/publish.yml` is the **single Trusted Publisher entrypoint**. It is the only file registered on npmjs.com.
+- It dispatches to three **reusable workflows** (`.github/workflows/_publish-release.yml`, `_publish-hotfix.yml`, `_publish-canary.yml`), which perform the actual work.
+- npm validates the entrypoint (`publish.yml`), not the reusable workflows.
+
+This design is documented and recommended for multi-workflow scenarios: see Paige Niedringhaus, "Run Multiple npm Publishing Scripts with Trusted Publishing (OIDC) via GitHub Reusable Workflows".
+
+### 5.1 Add the single Trusted Publisher entry
 
 - **Provider:** GitHub Actions
 - **Organization or user:** `deessejs`
 - **Repository:** `fp`
-- **Workflow filename:** `release.yml`
+- **Workflow filename:** `publish.yml`
 - **Environment name:** `release`
 - **Allowed actions:** `npm publish` (per §13.1 decision)
 
 Save.
 
-### 5.2 Trusted Publisher for hotfixes (`hotfix.yml`)
+If a previous Trusted Publisher entry exists from an earlier iteration (with a different workflow filename), revoke it first: `npm trust revoke --id <id>` or via the npmjs.com UI, then add the new one.
 
-Click "Add Trusted Publisher" again on the same package:
-
-- **Provider:** GitHub Actions
-- **Organization or user:** `deessejs`
-- **Repository:** `fp`
-- **Workflow filename:** `hotfix.yml`
-- **Environment name:** `hotfix`
-- **Allowed actions:** `npm publish` (per §13.1 decision)
-
-Save.
-
-### 5.3 Trusted Publisher for canary snapshots (`canary.yml`)
-
-If `canary.yml` is in use, register a third entry:
-
-- **Provider:** GitHub Actions
-- **Organization or user:** `deessejs`
-- **Repository:** `fp`
-- **Workflow filename:** `canary.yml`
-- **Environment name:** *(leave empty if no GitHub Environment is configured for canary)*
-- **Allowed actions:** `npm publish`
-
-Save.
-
-If canary snapshots are not desired for now, skip this step. The `canary.yml` workflow will fail at the publish step until a Trusted Publisher entry exists for it, which is intentional.
-
-### 5.4 Update package publishing access
+### 5.2 Update package publishing access
 
 Same page (`/access`) → "Publishing access":
 
 - Select **"Require two-factor authentication and disallow tokens"**
 - Save
 
-### 5.5 Verify (do not skip)
+### 5.3 Verify (do not skip)
 
-At this point the Trusted Publishers are registered but no publish has happened yet. Confirm:
+At this point the Trusted Publisher is registered but no publish has happened yet. Confirm:
 
-- The package's npm page shows each Trusted Publisher entry (e.g. "Trusted Publisher: GitHub Actions — deessejs/fp — release.yml" and "Trusted Publisher: GitHub Actions — deessejs/fp — hotfix.yml") in the access tab.
-- A `git push origin feat/release-pipeline` (or the equivalent merge to `main`) will be needed before the first publish — the workflow files must exist in `main` for npm to validate.
+- The package's npm page shows exactly one Trusted Publisher entry: "Trusted Publisher: GitHub Actions — deessejs/fp — publish.yml" in the access tab.
+- A `git push` to the branch containing `publish.yml` must be merged to `main` before the first publish — npm validates that the workflow file exists at the registered path.
+- The reusable workflows (`_publish-*.yml`) do **not** need to be registered separately; they are dispatched from the entrypoint and inherit the OIDC trust.
 
 ---
 
@@ -215,7 +175,7 @@ At this point the Trusted Publishers are registered but no publish has happened 
 **Path:** Repository → Settings → Actions → General → Workflow permissions
 
 - **Workflow permissions:** "Read repository contents and packages permissions".
-  - Our `release.yml` overrides with `id-token: write` and `contents: read` at the job level, so the org-wide default can stay at read-only.
+  - The `publish.yml` entrypoint overrides with `id-token: write` at the job level, so the org-wide default can stay at read-only.
 - **Allow GitHub Actions to create and approve pull requests:** **ON** — required for the Changesets "Version Packages" PR automation.
 
 Save.
@@ -228,7 +188,7 @@ Save.
 
 The repo already has a dependabot config. Confirm `/.github/dependabot.yml` includes a `github-actions` ecosystem entry. If not, see `release-pipeline.md` Appendix A for the expected shape.
 
-### 7.2 Code Owners for `.github/workflows/release.yml`
+### 7.2 Code Owners for `.github/workflows/publish.yml` and reusable workflows
 
 The current `CODEOWNERS` file already covers `.github/`. Verify by reading `.github/CODEOWNERS`:
 
@@ -236,7 +196,7 @@ The current `CODEOWNERS` file already covers `.github/`. Verify by reading `.git
 /.github/ @deessejs/engineering
 ```
 
-This means any PR touching `.github/workflows/release.yml` will require review from `@deessejs/engineering`. Keep it.
+This means any PR touching `.github/workflows/publish.yml` or the reusable workflows will require review from `@deessejs/engineering`. Keep it.
 
 ### 7.3 Notification channels
 
@@ -249,17 +209,16 @@ After the first publish, set up notifications for failed workflow runs in the `r
 Before the first real publish, walk through this list:
 
 - [ ] `release` environment exists, requires at least 1 named reviewer, restricted to `main`.
-- [ ] `hotfix` environment exists, restricted to `main`, requires at least 1 named reviewer.
 - [ ] `main` branch protection: PR required, 1 approval, linear history, signed commits, include administrators, **no bypass list**.
 - [ ] `staging` branch protection: PR required, 1 approval, linear history, no bypass.
 - [ ] Tag protection on `v*`: block force-push, no allow-list (workflow is the only creator).
-- [ ] npmjs.com Trusted Publisher registered for `@deessejs/fp`, allowed action `npm publish`, environment `release`.
+- [ ] npmjs.com Trusted Publisher registered for `@deessejs/fp`, workflow filename `publish.yml`, environment `release`, allowed action `npm publish`.
 - [ ] npmjs.com publishing access: "Require 2FA and disallow tokens".
 - [ ] Workflow permissions: "Allow GitHub Actions to create and approve pull requests" ON.
-- [ ] `feat/release-pipeline` branch exists and contains the rewritten `release.yml` (next implementation step).
-- [ ] `.github/workflows/release.yml` file exists in `main` with the exact filename registered on npmjs.com.
+- [ ] `feat/publish-entrypoint` branch (or its successor) is merged into `main`.
+- [ ] `.github/workflows/publish.yml` exists in `main` with the exact filename registered on npmjs.com.
 
-When all boxes are checked, the next implementation step (rewriting `.github/workflows/release.yml`) can be merged and a first dry-run publish attempted via `workflow_dispatch` with reason `hotfix` (to test the OIDC chain without burning a version number).
+When all boxes are checked, the first dry-run publish can be attempted via `workflow_dispatch` on `publish.yml` (or by pushing a tag on a hotfix branch) to test the OIDC chain without burning a version number.
 
 ---
 
@@ -267,7 +226,7 @@ When all boxes are checked, the next implementation step (rewriting `.github/wor
 
 If anything goes wrong:
 
-- **Trusted Publisher registration**: edit or delete on `https://www.npmjs.com/package/@deessejs/fp/access`. Takes effect immediately.
+- **Trusted Publisher registration**: edit or delete on `https://www.npmjs.com/package/@deessejs/fp/access`. Takes effect immediately. Use `npm trust revoke --id <id>` if needed.
 - **Branch protection**: edit or delete the rule. Takes effect immediately.
 - **Environment**: edit or delete the environment. Takes effect immediately.
 - **Tag protection**: edit or delete the rule.
