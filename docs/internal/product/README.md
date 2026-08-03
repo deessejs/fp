@@ -71,3 +71,5 @@ npm install @deessejs/fp
 ## License
 
 MIT
+
+<!-- dummy-release-test: marker for e2e release pipeline validation -->
