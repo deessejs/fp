@@ -14,7 +14,7 @@
 3. Keep the release decision **human-gated** while automating every mechanical step (versioning, changelog, tagging, publishing).
 4. Apply **defense in depth**: independent gates must all fail closed before a package becomes `latest` on npm.
 5. Support **stable releases**, **canary snapshots** per PR, **pre-release cycles** (`next`/`beta`), and **hotfixes**, without divergent tooling.
-6. Stay consistent with `CLAUDE.md` (`main <- staging <- dev`) by making the branch strategy **executable**, not only documented. **All developer PRs target `staging`.** `main` is updated only by the release engineer (or by an automated release-train flow) when promoting a `staging` snapshot to production.
+6. Stay consistent with `CLAUDE.md` (`main <- staging <- dev`) by making the branch strategy **executable**, not only documented. **All developer PRs target `staging`.** `main` is updated through a reviewable PR (the "Version Packages" PR, or a hotfix PR) — there is **no bypass on `main`**; every merge goes through PR review.
 
 ## 2. Non-Goals
 
@@ -102,18 +102,19 @@ Side channels for canary, pre-release, and hotfix are detailed in section 8.
 |--------|------|-------------------|----|
 | `dev` | Day-to-day work, draft | feature/*, fix/* | Lint + types + tests (fast) |
 | `staging` | Integration / release train | `dev`, feature/*, fix/* | Lint + types + tests + build + changeset-check |
-| `main` | Source of truth, releases | the "Version Packages" PR (auto), hotfix back-merges | Same as `staging`, plus the release workflow is allowed to run here |
+| `main` | Source of truth, releases | the "Version Packages" PR (auto), hotfix PRs | Same as `staging`, plus the release workflow is allowed to run here |
 
 Rules:
 
 - **Default PR target: `staging`.** This is enforced two ways:
-  - GitHub branch protection on `main`: no contributor is allowed to push directly or to open a PR targeting `main` except the release engineer role.
+  - GitHub branch protection on `main`: PR required, no bypass for anyone.
   - Repository ruleset (or `CODEOWNERS` + a required-reviewer pattern) that auto-closes or auto-redirects any PR targeting `main`.
-- No direct push to `main` (branch protection).
+- No direct push to `main` (branch protection, applies to administrators too).
+- No bypass list on `main`. The "release engineer" is a **role**, not a permission — it's the person who opens the "Version Packages" PR from `staging`, not someone with elevated rights.
 - `staging` allows direct push for trusted maintainers, but PRs are the default.
 - `dev` is the working branch for early-stage work. It merges into `staging` once the feature is ready for integration.
 - Pre-release cycles (`next`/`beta`) live on a dedicated `release/next` branch cut from `staging`, never on `main`.
-- A hotfix lives on `hotfix/*`, is merged into `main` (which triggers publish), then back-merged into `staging` and `dev`.
+- A hotfix lives on `hotfix/*`, is merged into `main` through a regular PR (which triggers publish), then back-merged into `staging` and `dev`.
 
 ## 6. Changesets Workflow
 
@@ -144,9 +145,9 @@ Rules:
 
 - On every push to `staging`, the `changesets/action@v2` workflow opens or updates a pull request titled "Version Packages" with the base branch set to `main`.
 - That PR contains the result of `pnpm changeset version`: bumped versions, generated `CHANGELOG.md` entries, deleted changeset files.
-- The PR is reviewable: the release engineer sees exactly which packages move and why, against the frozen `staging` snapshot.
+- The PR is reviewable: any reviewer can see exactly which packages move and why, against the frozen `staging` snapshot. The role of "release engineer" is whoever opens this PR and shepherds the merge — it is **not** a special permission.
 - No publish happens at this stage.
-- The base branch `main` and the required reviewers are configured so that only the release engineer can merge this PR.
+- `main` has branch protection (PR required, 1 approval) but **no bypass**. The "Version Packages" PR is merged like any other PR.
 
 ### 6.4 Publish
 
@@ -172,7 +173,7 @@ On `https://www.npmjs.com/package/@deessejs/fp/access`:
 
 - Create the `release` environment with:
   - Required reviewers: at least one engineering maintainer.
-  - Deployment branches: `main` and `refs/pull/*/merge`. This restricts publishes to merges into `main` and to PR-merge refs, blocking `workflow_dispatch` from feature branches or forks.
+  - Deployment branches: `main` only (no PR refs — the publish workflow is triggered by a `push` to `main`, never by `pull_request.closed`).
   - "Allow administrators to bypass" disabled.
 - Under Settings → Actions → General → Workflow permissions: enable **Allow GitHub Actions to create and approve pull requests** (required for the "Version Packages" PR automation).
 
@@ -330,11 +331,11 @@ This separation lets us evolve the publish pipeline (e.g. add stage publishing, 
 | Per-run authentication | OIDC tokens minted per workflow run, scoped to the trusted publisher |
 | Build provenance | Automatic via Trusted Publishing for public + public |
 | Human gate on release | Required reviewer on the `release` GitHub Environment |
-| Restrict to PR-merge path | `refs/pull/*/merge` allowed in environment deployment branches |
+| No silent release path | `main` branch protection with no bypass — every merge requires a PR with review |
 | Action supply-chain hardening | Every third-party action pinned by SHA |
 | Cache poisoning mitigation | `package-manager-cache: false` on the publish job |
 | Replay / re-publish defense | Anti-republish guard aborts if the version is already on npm |
-| Tag abuse mitigation | GitHub tag protection rules — only release maintainers can create `v*.*.*` tags |
+| Tag abuse mitigation | Git tag protection rules block force-push on `v*.*.*`; tags are created only by the publish workflow |
 | MFA at the npm side | `Require 2FA and disallow tokens` on the package settings |
 | Optional final gate | Switch `Allowed actions` to `npm stage publish` only; human promotion via `npm stage approve` with MFA |
 
@@ -389,7 +390,7 @@ The following questions were resolved during planning review on 2026-08-03:
 2. **Changeset-check enforcement**: non-blocking for the first two weeks (Changesets bot reminders only). Bump to blocking once reminder fatigue is observed.
 3. **Linked groups in Changesets**: not anticipated now. Configure `linked`/`fixed` only when the second package is ready to be published.
 4. **Hotfix trigger**: PR-only. The tag `v*.*.*` is pushed from the merged PR into `main`. Direct tag pushes are rejected by tag protection rules.
-5. **Release engineer identity**: a dedicated GitHub team `nesalia-inc/release-engineers`. Members get bypass rights on `main` branch protection. All other contributors are routed through `staging`.
+5. **Release engineer identity**: no dedicated team, no bypass. The release engineer is a **role** — whoever opens the "Version Packages" PR from `staging` and shepherds its merge. Everyone merges `main` through a regular PR with a reviewer; there is no shortcut for "release engineers".
 6. **`dev` branch**: not materialized. `feature/*` and `fix/*` branches target `staging` directly. The model `main <- staging <- dev` documented in `CLAUDE.md` is preserved as a conceptual model where `dev` is the collective name for the per-feature work-in-progress, not a long-lived branch.
 
 ## 14. Revisit Later
@@ -416,10 +417,9 @@ Files that will be created or modified:
 | `.github/PULL_REQUEST_TEMPLATE.md` | Add "Changeset" checkbox + notice that the default target is `staging` |
 | `.changeset/config.json` | Keep `commit: false`, set `baseBranch: main`, consider `snapshot.useCalculatedVersion` for canary shape |
 | `packages/fp/package.json` | Fix `repository.url`, add `engines.node: ">=22.14.0"`, optionally `publishConfig.provenance: true` |
-| GitHub UI — branch protection | Lock `main` (release engineers team only), allow direct push to `staging` and `dev` for maintainers |
-| GitHub UI — rulesets | Enforce "PRs default to `staging`"; auto-close or redirect PRs targeting `main` from non-release-engineers |
+| GitHub UI — branch protection | PR required on `main` and `staging`; linear history; no bypass list |
+| GitHub UI — rulesets | Enforce "PRs default to `staging`"; auto-close or redirect PRs targeting `main` |
 | GitHub UI — environments | Create `release` and `hotfix` environments with required reviewers; tag protection rules on `v*.*.*` |
-| GitHub UI — `nesalia-inc/release-engineers` team | Members allowed to merge PRs targeting `main` |
 | npmjs.com UI | Register Trusted Publisher, switch Publishing access to `Require 2FA and disallow tokens`, revoke `NPM_TOKEN` |
 | `CONTRIBUTING.md` | Document the new flow, link to this plan, state the default PR target |
 | Secrets | Remove `NPM_TOKEN`. Add `NPM_READ_TOKEN` only if private dependencies are reintroduced |
