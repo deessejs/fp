@@ -1,30 +1,29 @@
-name: Canary
+name: _publish-canary
 
-# Per-PR snapshot publish for early feedback. Publishes to the
-# npm dist-tag 'canary' without touching the official version or
-# the branch's history. Comment on the PR with the install
-# command when a snapshot is published.
+# Reusable workflow that performs the actual npm publish for the
+# canary snapshot path (per-PR). Called from publish.yml (the
+# Trusted Publisher entrypoint registered on npmjs.com).
+#
+# Note: this file is NOT the Trusted Publisher. npm validates the
+# entrypoint (publish.yml), not the reusable workflow. Permissions
+# for OIDC are declared at the entrypoint level.
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches: [staging]
+  workflow_call:
 
-permissions:
-  contents: read
-  pull-requests: write
+permissions: {}
 
 concurrency:
-  group: canary-${{ github.workflow }}-${{ github.event.pull_request.number }}
+  group: canary-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
   canary:
     runs-on: ubuntu-latest
+    environment: release
     permissions:
       contents: read
       pull-requests: write
-      id-token: write
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1

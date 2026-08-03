@@ -1,0 +1,65 @@
+name: Publish
+
+# Single Trusted Publisher entrypoint. Registered on npmjs.com
+# under "Trusted Publisher" with workflow filename = "publish.yml"
+# and environment = "release".
+#
+# npm Trusted Publishing allows only one configuration per
+# package. To support three publish paths (release / hotfix /
+# canary) under a single trusted publisher, this workflow
+# dispatches to reusable workflows. npm validates THIS file, not
+# the reusable ones.
+#
+# Triggers covered here:
+#   - push to main              -> release path
+#   - push tag vX.Y.Z on main   -> hotfix path
+#   - pull_request to staging   -> canary path
+#
+# Each downstream reusable workflow inherits OIDC from this
+# entrypoint. Reusable workflows declare permissions explicitly
+# but do not request id-token themselves.
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [staging]
+
+permissions: {}
+
+concurrency:
+  group: publish-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # Stable release: triggered by push to main (the canonical
+  # "Version Packages" PR merge path).
+  release:
+    if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
+    uses: ./.github/workflows/_publish-release.yml
+    permissions:
+      id-token: write
+      contents: read
+
+  # Hotfix: triggered by a tag push on main. The tag is created by
+  # a maintainer as part of the hotfix procedure (see release
+  # pipeline docs).
+  hotfix:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    uses: ./.github/workflows/_publish-hotfix.yml
+    permissions:
+      id-token: write
+      contents: read
+
+  # Canary: triggered by a PR targeting staging. Skips cleanly when
+  # the PR has no changeset.
+  canary:
+    if: github.event_name == 'pull_request'
+    uses: ./.github/workflows/_publish-canary.yml
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
