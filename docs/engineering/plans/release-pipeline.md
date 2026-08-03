@@ -287,6 +287,32 @@ Workflow: `.github/workflows/canary.yml`
   - Comment on the PR with the install command: `pnpm add @deessejs/fp@canary`
 - Why: validates the build and the publish path on every PR without touching the official version. No commit back to the branch (per Changesets snapshot release guidance).
 
+#### 8.1.1 Known limitations
+
+The Changesets snapshot-on-public-npm approach has trade-offs we accept for now:
+
+- **Pollutes the public npm registry.** Every push to a PR publishes a package under the `@canary` dist-tag. Public. With a name that does not match semver expectations.
+- **Concurrent PRs overwrite each other.** Two open PRs publishing snapshots at roughly the same time collide on the `canary` dist-tag; whichever publishes last wins. The earlier snapshot is no longer installable as `@canary`.
+- **Requires a Trusted Publisher slot.** The `canary.yml` workflow needs its own entry on npmjs.com (see `release-pipeline-github-ui-setup.md` §5.3) — it cannot share the `release.yml` entry.
+- **No retention control.** Old snapshots linger on the npm registry until manually unpublished (and `npm unpublish` only works within 72 hours of publish for non-scoped packages; for scoped packages the constraint is relaxed but still operationally awkward).
+
+#### 8.1.2 The senior alternative we are not adopting (yet)
+
+The 2026 industry-standard replacement is **[pkg.pr.new](https://pkg.pr.new/)** (StackBlitz, backed by Cloudflare):
+
+- Each commit/PR gets an npm-compatible URL keyed by SHA, e.g. `npm i https://pkg.pr.new/deessejs/fp/@deessejs/fp@<sha>`.
+- Zero pollution of the public npm registry.
+- Per-SHA isolation: two concurrent PRs do not overwrite each other.
+- The bot comments on the PR automatically.
+- Monorepo-aware out of the box (`pkg-pr-new publish './packages/fp'`).
+- Adopted in production by Vite, Vue, Nuxt, Svelte, Rolldown, Cloudflare workers-sdk.
+
+We keep Changesets-based snapshots in this iteration because the setup is zero and we already have Changesets in the loop. The migration to `pkg.pr.new` is deferred to a follow-up PR; when it lands, `canary.yml` is removed and the trusted publisher slot for `canary.yml` is freed.
+
+#### 8.1.3 The safety net that does not depend on canary
+
+The `release.yml` workflow runs a smoke test (dynamic ESM import, exports presence check) on every release. This is the actual safety net: even if a broken change slips past review and merges, the publish fails before reaching npm. Canary is a courtesy for reviewers; the smoke test is the production guard.
+
 ### 8.2 Pre-release cycles (`next`, `beta`)
 
 Used for breaking refactors or pre-stable cycles.
