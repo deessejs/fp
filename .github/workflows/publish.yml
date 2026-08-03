@@ -35,10 +35,64 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Detect whether there is anything to publish. For push events
+  # to main, this corresponds to a Changesets "Version Packages"
+  # PR having been merged with pending changesets. For pull
+  # requests to staging, this corresponds to the PR containing a
+  # changeset file under .changeset/. Tag pushes are always
+  # considered publishable (a tag is an explicit signal).
+  #
+  # When no changesets are pending, this job exits 0 and the
+  # downstream jobs are skipped — the workflow run reports green
+  # with an explicit "nothing to publish" log line. This keeps
+  # the CI history clean: pushes that should not trigger a
+  # release do not show up as failures.
+  check-release:
+    name: Detect pending changesets
+    runs-on: ubuntu-latest
+    outputs:
+      has_changeset: ${{ steps.detect.outputs.found }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Detect pending changesets
+        id: detect
+        run: |
+          # Tag pushes are always publishable: a tag is an
+          # explicit signal that the maintainer wants to
+          # publish.
+          if [ "$GITHUB_EVENT_NAME" = "push" ] && \
+             case "$GITHUB_REF" in refs/tags/v*) true ;; *) false ;; esac; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+            echo "Tag push detected — proceeding with hotfix publish."
+            exit 0
+          fi
+
+          # Otherwise, count pending changesets under .changeset/.
+          # README.md and config.json are bookkeeping, not
+          # actual changesets.
+          count=$(ls .changeset/*.md 2>/dev/null \
+            | grep -v 'README.md$' \
+            | grep -v 'config.json$' \
+            | wc -l)
+          if [ "$count" -gt 0 ]; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+            echo "$count changeset(s) detected."
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "No pending changesets — nothing to publish."
+          fi
+
   # Stable release: triggered by push to main (the canonical
   # "Version Packages" PR merge path).
   release:
-    if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
+    needs: check-release
+    if: >-
+      needs.check-release.outputs.has_changeset == 'true'
+      && github.event_name == 'push'
+      && !startsWith(github.ref, 'refs/tags/')
     uses: ./.github/workflows/_publish-release.yml
     permissions:
       id-token: write
@@ -48,7 +102,10 @@ jobs:
   # a maintainer as part of the hotfix procedure (see release
   # pipeline docs).
   hotfix:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: check-release
+    if: >-
+      github.event_name == 'push'
+      && startsWith(github.ref, 'refs/tags/v')
     uses: ./.github/workflows/_publish-hotfix.yml
     permissions:
       id-token: write
@@ -57,7 +114,10 @@ jobs:
   # Canary: triggered by a PR targeting staging. Skips cleanly when
   # the PR has no changeset.
   canary:
-    if: github.event_name == 'pull_request'
+    needs: check-release
+    if: >-
+      needs.check-release.outputs.has_changeset == 'true'
+      && github.event_name == 'pull_request'
     uses: ./.github/workflows/_publish-canary.yml
     permissions:
       id-token: write
