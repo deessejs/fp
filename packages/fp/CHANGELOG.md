@@ -1,5 +1,11 @@
 # @deessejs/fp
 
+## 1.0.2
+
+### Patch Changes
+
+- 301857b: Dummy e2e test of the release pipeline. No code or API change — only a documentation marker added to validate the Trusted Publishing path end-to-end. This entry can be reverted once the test is complete.
+
 ## 1.0.1
 
 ### Patch Changes
