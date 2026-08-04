@@ -11,7 +11,7 @@
 If you discover a security vulnerability, please report it by:
 
 1. **Do not** open a public GitHub issue
-2. Email security@nesalia.com with:
+2. Email support@deessejs.com with:
    - Description of the vulnerability
    - Steps to reproduce
    - Potential impact

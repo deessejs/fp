@@ -221,5 +221,5 @@ Before submitting a PR:
 
 - Issues: [github.com/deessejs/fp/issues](https://github.com/deessejs/fp/issues)
 - Discussions: [github.com/deessejs/fp/discussions](https://github.com/deessejs/fp/discussions)
-- Email: [hello@nesalia.com](mailto:hello@nesalia.com)
+- Email: [support@deessejs.com](mailto:support@deessejs.com)
 - Documentation: [fp.deessejs.com](https://fp.deessejs.com)
