@@ -1,5 +1,3 @@
-> **Note:** This repository does not include a banner image. The structure below mirrors the deessejs organization README template, adapted for a focused TypeScript library.
-
 <p align="center">
   <h1 align="center">@deessejs/fp</h1>
 </p>
@@ -30,7 +28,7 @@
   </a>
 </p>
 
-> **Sibling projects:** `@deessejs/errors` provides error types that integrate natively with `@deessejs/fp`'s `Result` and `Try`. Install them together to get a complete error-handling story without glue code.
+> **Sibling projects:** [`@deessejs/errors`](https://github.com/deessejs/errors) provides error types that integrate natively with `@deessejs/fp`'s `Result` and `Try`. Install them together to get a complete error-handling story without glue code.
 
 ---
 
@@ -47,16 +45,16 @@
 | **Predicate utilities** | `Predicate`, `Refinement`, `not`, `and`, `or` | First-class predicates and type guards. |
 | **Collection types** | `Context`, `Sequence`, `Collection`, async iterator helpers | Sequence operations over various sources. |
 | **Generator composition** | `gen()` with `yield*` | Async flow control that reads like sync code. |
-| **`@deessejs/errors` integration** | All `Result` constructors accept `@deessejs/errors` | No string-error footguns — use real error types. |
+| **[`@deessejs/errors`](https://github.com/deessejs/errors) integration** | All `Result` constructors accept `@deessejs/errors` | No string-error footguns — use real error types. |
 
 ## Why this stack
 
 - **Simple by default.** No over-engineering, no fancy type gymnastics. Just the primitives you need to write cleaner code.
 - **ESM-only.** Modern packaging, no CJS shim, no `module`/`main` duplication.
-- **Zero runtime dependencies.** The only peer dep is `@deessejs/errors`, which is opt-in. The library itself is dependency-free.
+- **Zero runtime dependencies.** The only peer dep is [`@deessejs/errors`](https://github.com/deessejs/errors), which is opt-in. The library itself is dependency-free.
 - **TypeScript 6 first-class.** Strict types, no `any` leakages, full inference. JSDoc where types alone are not enough.
 - **Lockfile-clean pnpm workspaces.** A single `pnpm install` rebuilds, lints, types, and tests the whole monorepo.
-- **Real testing.** Vitest, with coverage and integration tests against `@deessejs/errors`.
+- **Real testing.** Vitest, with coverage and integration tests against [@deessejs/errors](https://github.com/deessejs/errors).
 
 ## Quick start
 
@@ -69,10 +67,12 @@
 ### Install
 
 ```bash
+# Install @deessejs/fp with its optional sibling, @deessejs/errors.
+# See https://github.com/deessejs/errors
 npm install @deessejs/fp @deessejs/errors
 ```
 
-`@deessejs/errors` is optional — install it if you want `Result<T, E>` to carry typed errors instead of strings.
+[`@deessejs/errors`](https://github.com/deessejs/errors) is optional — install it if you want `Result<T, E>` to carry typed errors instead of strings.
 
 ### Usage
 
@@ -147,7 +147,7 @@ ESM-only. Consumers using a CJS resolver need to use dynamic `import()` or migra
 
 | Package | Required | Notes |
 |---|---|---|
-| `@deessejs/errors` | Optional, peer `>=1.0.0` | Required if you want `err()` to accept typed errors. Listed as a `devDependency` for testing. |
+| [`@deessejs/errors`](https://github.com/deessejs/errors) | Optional, peer `>=1.0.0` | Required if you want `err()` to accept typed errors. Listed as a `devDependency` for testing. |
 
 ### Engines
 
@@ -200,8 +200,8 @@ For the full pipeline design, see [`docs/engineering/plans/release-pipeline.md`]
 - **Composition over inheritance.** All primitives compose via `pipe` and `flow`. No class hierarchy, no `extends`.
 - **Zero-runtime abstractions.** No decorators, no reflection, no proxy traps. The library is straightforward to read in DevTools and `node --prof`.
 - **Smoke-tested before publish.** The release workflow runs a dynamic ESM import of the built artifact and verifies that key exports are present. A broken build fails the publish step before reaching npm.
-- **`@deessejs/errors` is opt-in.** The peer dep stays optional so consumers can adopt `@deessejs/fp` in isolation. Once `@deessejs/errors` is added, every `err(error)` call accepts a typed error.
-- **One source of truth for auth-style errors.** The `apps/app/proxy.ts` (in the broader deessejs monorepo, not in this repo) enforces email verification at the proxy level. `@deessejs/errors` errors are caught and translated to HTTP responses centrally.
+- **[`@deessejs/errors`](https://github.com/deessejs/errors) is opt-in.** The peer dep stays optional so consumers can adopt `@deessejs/fp` in isolation. Once `@deessejs/errors` is added, every `err(error)` call accepts a typed error.
+- **One source of truth for auth-style errors.** The `apps/app/proxy.ts` (in the broader deessejs monorepo, not in this repo) enforces email verification at the proxy level. [@deessejs/errors](https://github.com/deessejs/errors) errors are caught and translated to HTTP responses centrally.
 
 ## Contributing
 
