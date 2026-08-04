@@ -30,6 +30,8 @@
 
 > **Sibling projects:** [`@deessejs/errors`](https://github.com/deessejs/errors) provides error types that integrate natively with `@deessejs/fp`'s `Result` and `Try`. Install them together to get a complete error-handling story without glue code.
 
+> **Used internally** at [deessejs.com](https://deessejs.com) — every error path and every nullable value in production goes through `@deessejs/fp` and [`@deessejs/errors`](https://github.com/deessejs/errors). The library is dogfooded on the same codebase that ships to paying users.
+
 ---
 
 ## What's included
