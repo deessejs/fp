@@ -29,6 +29,14 @@
     "functional-programming",
     "result",
     "maybe",
+    "try",
+    "unit",
+    "pipe",
+    "flow",
+    "error-handling",
+    "async",
+    "monorepo",
+    "deessejs",
     "fp"
   ],
   "author": "Nesalia Inc. <hello@nesalia.com>",
@@ -36,12 +44,21 @@
   "engines": {
     "node": ">=22.14.0"
   },
+  "bugs": {
+    "url": "https://github.com/deessejs/fp/issues",
+    "email": "support@deessejs.com"
+  },
   "publishConfig": {
     "access": "public",
     "provenance": true
   },
   "peerDependencies": {
     "@deessejs/errors": ">=1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@deessejs/errors": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@deessejs/errors": "^1.0.0",

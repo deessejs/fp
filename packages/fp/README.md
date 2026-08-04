@@ -1,25 +1,85 @@
-# @deessejs/fp
+<p align="center">
+  <h1 align="center">@deessejs/fp</h1>
+</p>
 
-Functional Programming Utilities for TypeScript
+<p align="center">
+  <strong>Lightweight, type-safe functional programming utilities for TypeScript.</strong>
+  Result, Maybe, Try, Unit, and friends — ESM-only, no runtime dependencies, designed for first-class interoperability with <a href="https://github.com/deessejs/errors">@deessejs/errors</a>.
+</p>
 
-`@deessejs/fp` provides lightweight, type-safe functional programming utilities. Built for simplicity and first-class integration with `@deessejs/errors`.
+<p align="center">
+  <a href="https://github.com/deessejs/fp/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/deessejs/fp" alt="License">
+  </a>
+  <a href="https://github.com/deessejs/fp/actions/workflows/ci.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/deessejs/fp/ci.yml?label=CI" alt="CI">
+  </a>
+  <a href="https://github.com/deessejs/fp/stargazers">
+    <img src="https://img.shields.io/github/stars/deessejs/fp?style=social" alt="Stars">
+  </a>
+  <a href="https://www.npmjs.com/package/@deessejs/fp">
+    <img src="https://img.shields.io/npm/v/@deessejs/fp?color=brightgreen" alt="npm">
+  </a>
+</p>
 
-## Installation
+<p align="center">
+  <a href="https://fp.deessejs.com">
+    <img src="https://img.shields.io/badge/docs-fp.deessejs.com-blue" alt="Documentation">
+  </a>
+</p>
+
+> **Sibling projects:** [`@deessejs/errors`](https://github.com/deessejs/errors) provides error types that integrate natively with [`@deessejs/fp`'s](https://github.com/deessejs/fp) `Result` and `Try`. Install them together to get a complete error-handling story without glue code. **Used internally** at [deessejs.com](https://deessejs.com).
+
+---
+
+## What's included
+
+| Layer | What you get | Why it matters |
+|---|---|---|
+| **`Result<T, E>`** | `ok`, `err`, pattern matching, sequencing | Type-safe error handling without exceptions or nulls. |
+| **`Maybe<T>`** | `some`, `none`, `maybe`, `map`, `getOrElse` | Optional values that compose. |
+| **`Try<T>`** | `try`, `tryAsync`, conversion to `Result` | Wrap throwing functions in a typed shell. |
+| **`Unit`** | The unit type for void-returning operations | Express "no value" without `null` or `undefined`. |
+| **Functional utilities** | `pipe`, `flow`, `identity`, `constant`, `flip`, `tupled` | Compose functions without ad-hoc helpers. |
+| **Async utilities** | `sleep`, `retry`, `timeout`, `Queue` | Time-based primitives that compose with `Result`. |
+| **Predicate utilities** | `Predicate`, `Refinement`, `not`, `and`, `or` | First-class predicates and type guards. |
+| **Collection types** | `Context`, `Sequence`, `Collection`, async iterator helpers | Sequence operations over various sources. |
+| **Generator composition** | `gen()` with `yield*` | Async flow control that reads like sync code. |
+| **[`@deessejs/errors`](https://github.com/deessejs/errors) integration** | All `Result` constructors accept `@deessejs/errors` | No string-error footguns — use real error types. |
+
+## Why this stack
+
+- **Simple by default.** No over-engineering, no fancy type gymnastics. Just the primitives you need to write cleaner code.
+- **ESM-only.** Modern packaging, no CJS shim, no `module`/`main` duplication.
+- **Zero runtime dependencies.** The only peer dep is [`@deessejs/errors`](https://github.com/deessejs/errors), which is opt-in. The library itself is dependency-free.
+- **TypeScript 6 first-class.** Strict types, no `any` leakages, full inference. JSDoc where types alone are not enough.
+- **Lockfile-clean pnpm workspaces.** A single `pnpm install` rebuilds, lints, types, and tests the whole monorepo.
+- **Real testing.** Vitest, with coverage and integration tests against [@deessejs/errors](https://github.com/deessejs/errors).
+
+## Quick start
+
+### Prerequisites
+
+- Node.js **22.14.0+** (`engines.node` enforced)
+- pnpm **10+** for development (`corepack enable` if not installed)
+- TypeScript **6+** for consumers (the package emits `dist/*.d.ts`)
+
+### Install
 
 ```bash
+# Install @deessejs/fp with its optional sibling, @deessejs/errors.
+# See https://github.com/deessejs/errors
 npm install @deessejs/fp @deessejs/errors
 ```
 
-```bash
-pnpm add @deessejs/fp @deessejs/errors
-```
+[`@deessejs/errors`](https://github.com/deessejs/errors) is optional — install it if you want `Result<T, E>` to carry typed errors instead of strings.
 
-## Quick Start
+### Usage
 
 ```typescript
-import { ok, err, some, none, maybe } from '@deessejs/fp';
+import { ok, err, some, none, maybe, pipe } from '@deessejs/fp';
 
-// Result - handle errors explicitly
+// Result: represent values that may have failed
 const divide = (a: number, b: number) =>
   b === 0 ? err('Division by zero') : ok(a / b);
 
@@ -29,189 +89,137 @@ result.match({
   err: (error) => console.error(`Error: ${error}`),
 });
 
-// Maybe - handle optional values safely
+// Maybe: represent optional values
 const user = { name: 'Alice', address: { city: 'Paris' } };
 const city = maybe(user.address?.city)
-  .map(c => c.toUpperCase())
+  .map((c) => c.toUpperCase())
   .getOrElse('Unknown');
+
+// pipe: compose functions without glue
+const trim = (s: string) => s.trim();
+const uppercase = (s: string) => s.toUpperCase();
+const processed = pipe('  hello  ', trim, uppercase);
 ```
 
-## Result
+### Engine compatibility
 
-`Result<T, E>` represents a computation that can succeed (`Ok`) or fail (`Err`).
+| Runtime | Minimum version |
+|---|---|
+| Node.js | 22.14.0 |
+| pnpm | 10 (for development) |
+| TypeScript | 6.0 |
 
-```typescript
-import { ok, err, Result } from '@deessejs/fp';
+ESM-only. Consumers using a CJS resolver need to use dynamic `import()` or migrate to ESM.
 
-// Create
-const success = ok(10);
-const failure = err('something went wrong');
+## Available commands
 
-// Transform
-ok(10)
-  .map(x => x * 2)           // Ok(20)
-  .filter(x => x > 5)         // Ok(20)
-  .flatMap(x => ok(x + 1));  // Ok(21)
+### Workspace (root)
 
-// Handle errors
-err('error')
-  .mapError(e => new Error(e))  // Err(Error)
-  .map(x => x * 2);             // Err(Error) - unchanged
+| Command | What it does |
+|---|---|
+| `pnpm build` | Build every workspace |
+| `pnpm test` | Run all tests in watch mode |
+| `pnpm test:run` | Run all tests once |
+| `pnpm lint` | Lint every workspace |
+| `pnpm type-check` | Type-check every workspace |
+| `pnpm format` | Format with Prettier |
 
-// Extract value
-ok(10).getOrElse(0);           // 10
-err('error').getOrElse(0);      // 0
-ok(10).getOrNull();             // 10
-err('error').getOrNull();       // null
+### Package: `@deessejs/fp`
 
-// Pattern matching
-ok(10).match({
-  ok: (v) => `Got ${v}`,
-  err: (e) => `Error: ${e}`,
-}); // "Got 10"
+| Command | What it does |
+|---|---|
+| `pnpm --filter @deessejs/fp build` | Build `dist/` |
+| `pnpm --filter @deessejs/fp test` | Run vitest in watch mode |
+| `pnpm --filter @deessejs/fp test:run` | Run vitest once |
+| `pnpm --filter @deessejs/fp type-check` | `tsc --noEmit` |
+| `pnpm --filter @deessejs/fp lint` | Run ESLint |
+
+### App: `web`
+
+| Command | What it does |
+|---|---|
+| `pnpm --filter web dev` | Start the docs site in dev mode |
+| `pnpm --filter web build` | Build the docs site |
+
+## Compatibility
+
+### Peer dependencies
+
+| Package | Required | Notes |
+|---|---|---|
+| [`@deessejs/errors`](https://github.com/deessejs/errors) | Optional, peer `>=1.0.0` | Required if you want `err()` to accept typed errors. Listed as a `devDependency` for testing. |
+
+### Engines
+
+| Field | Value |
+|---|---|
+| `engines.node` | `>=22.14.0` |
+| `packageManager` | `pnpm@10.30.3` |
+
+## Project structure
+
+```
+.
+├── packages/
+│   └── fp/                # The library — @deessejs/fp on npm
+│       ├── src/           # Source code (ESM)
+│       ├── dist/          # Build output (gitignored)
+│       ├── vitest.config.ts
+│       └── tsconfig.build.json
+├── apps/
+│   └── web/               # Documentation site (Next.js + Fumadocs)
+├── docs/
+│   ├── internal/          # Engineering plans, runbooks
+│   │   ├── product/
+│   │   └── versions/
+│   └── CLAUDE.md          # Claude / agent guidance
+├── pnpm-workspace.yaml
+├── turbo.json             # Turborepo pipelines
+├── .changeset/            # Changesets for versioning
+└── README.md
 ```
 
-### Error Handling with @deessejs/errors
+## Publishing
 
-```typescript
-import { ok, err, mapError } from '@deessejs/fp';
-import { error, is } from '@deessejs/errors';
+Releases are fully automated via Changesets + npm Trusted Publishing (OIDC). No long-lived `NPM_TOKEN` is required.
 
-const ValidationError = error({
-  name: 'ValidationError',
-  message: 'Validation failed: {reason}',
-});
+| What | How |
+|---|---|
+| Bump version | Add a `.changeset/<topic>.md` file with semver + description |
+| Open the release PR | `changesets-version.yml` opens / updates a "Version Packages" PR from staging to main |
+| Publish | Merge the Version Packages PR → `publish.yml` runs → version bump committed → Trusted Publishing publishes to npm with provenance attestation |
+| Hotfix | Push a tag `vX.Y.Z` to main → same workflow runs for the hotfix path |
+| Rollback or deprecate | Planned: see `docs/engineering/plans/release-pipeline-github-ui-setup.md` |
 
-async function getUser(id: string) {
-  if (!id) {
-    return err(ValidationError({ reason: 'ID required' }));
-  }
-  const user = await db.find(id);
-  if (!user) {
-    return err(ValidationError({ reason: 'Not found' }));
-  }
-  return ok(user);
-}
+For the full pipeline design, see [`docs/engineering/plans/release-pipeline.md`](docs/engineering/plans/release-pipeline.md).
 
-const result = await getUser('123');
-if (result.isErr() && is(result.error, ValidationError)) {
-  console.log(result.error.fields.reason);
-}
-```
+## Architecture notes
 
-## Maybe
+- **ESM-only.** The package exports ES modules. Consumers using legacy CJS resolvers must use dynamic `import()`.
+- **Strict types.** `Result.match` requires both branches; `Maybe.getOrElse` requires a fallback. No partial type escapes.
+- **Composition over inheritance.** All primitives compose via `pipe` and `flow`. No class hierarchy, no `extends`.
+- **Zero-runtime abstractions.** No decorators, no reflection, no proxy traps. The library is straightforward to read in DevTools and `node --prof`.
+- **Smoke-tested before publish.** The release workflow runs a dynamic ESM import of the built artifact and verifies that key exports are present. A broken build fails the publish step before reaching npm.
+- **[`@deessejs/errors`](https://github.com/deessejs/errors) is opt-in.** The peer dep stays optional so consumers can adopt `@deessejs/fp` in isolation. Once `@deessejs/errors` is added, every `err(error)` call accepts a typed error.
+- **One source of truth for auth-style errors.** The `apps/app/proxy.ts` (in the broader deessejs monorepo, not in this repo) enforces email verification at the proxy level. [@deessejs/errors](https://github.com/deessejs/errors) errors are caught and translated to HTTP responses centrally.
 
-`Maybe<T>` represents a value that may or may not exist (`Some` or `None`).
+## Contributing
 
-```typescript
-import { some, none, maybe } from '@deessejs/fp';
+Open an issue to discuss larger changes. For typos, broken links, and small fixes, PRs are welcome.
 
-// Create
-some(10);              // Some(10)
-none;                   // None
-maybe(null);            // None
-maybe(undefined);       // None
-maybe(10);              // Some(10)
+Before submitting a PR:
 
-// Transform
-some(10)
-  .map(x => x * 2)      // Some(20)
-  .filter(x => x > 5)   // Some(20)
-  .flatMap(x => some(x + 1)); // Some(21)
-
-// Safe property access
-maybe(user?.address?.city); // Maybe<string>
-
-// Extract value
-some(10).getOrElse(0);      // 10
-none.getOrElse(0);           // 0
-some(10).getOrNull();        // 10
-none.getOrNull();            // null
-none.getOrThrow();           // throws Error
-
-// Convert to Result
-some(10).toResult('error');  // Ok(10)
-none.toResult('error');      // Err('error')
-```
-
-## Unit
-
-`Unit` represents the absence of a meaningful return value for side-effect functions.
-
-```typescript
-import { unit, isUnit, some, none } from '@deessejs/fp';
-
-function log(message: string): typeof unit {
-  console.log(message);
-  return unit;
-}
-
-// Type guard
-isUnit(unit);        // true
-isUnit(null);        // false
-isUnit(undefined);   // false
-```
-
-## API Reference
-
-### Result
-
-| Function | Description |
-|----------|-------------|
-| `ok(value)` | Create successful result |
-| `err(error)` | Create failed result |
-
-| Method | Description |
-|--------|-------------|
-| `map(fn)` | Transform the value |
-| `flatMap(fn)` | Chain computations |
-| `mapError(fn)` | Transform the error |
-| `filter(predicate)` | Filter with predicate |
-| `tap(fn)` | Execute side effect |
-| `match({ ok, err })` | Pattern matching |
-| `fold(okFn, errFn)` | Fold to value |
-| `getOrElse(default)` | Get value or default |
-| `getOrNull()` | Get value or null |
-| `getOrUndefined()` | Get value or undefined |
-| `getOrThrow()` | Get value or throw |
-| `toMaybe()` | Convert to Maybe |
-| `isOk()` | Type guard |
-| `isErr()` | Type guard |
-
-### Maybe
-
-| Function | Description |
-|----------|-------------|
-| `some(value)` | Create present value |
-| `none` | Create absent value |
-| `maybe(value)` | Wrap nullable value |
-
-| Method | Description |
-|--------|-------------|
-| `map(fn)` | Transform the value |
-| `flatMap(fn)` | Chain computations |
-| `filter(predicate)` | Filter with predicate |
-| `filterMap(fn)` | Filter and map |
-| `tap(fn)` | Execute side effect |
-| `match({ some, none })` | Pattern matching |
-| `fold(someFn, noneFn)` | Fold to value |
-| `getOrElse(default)` | Get value or default |
-| `getOrNull()` | Get value or null |
-| `getOrUndefined()` | Get value or undefined |
-| `getOrThrow()` | Get value or throw |
-| `get(key)` | Safe property access |
-| `toResult(error)` | Convert to Result |
-| `toArray()` | Convert to array |
-| `isSome()` | Type guard |
-| `isNone()` | Type guard |
-
-### Unit
-
-| Function | Description |
-|----------|-------------|
-| `unit` | The singleton Unit value |
-| `isUnit(value)` | Check if value is Unit |
+1. Run `pnpm --filter @deessejs/fp test:run` and `pnpm --filter @deessejs/fp lint`.
+2. Add a `.changeset/<topic>.md` if the change is user-facing (patch / minor / major).
+3. Update `docs/internal/product/README.md` if the API surface changes.
 
 ## License
 
-MIT
+[MIT](./LICENSE). See the LICENSE file for details.
+
+## Support
+
+- Issues: [github.com/deessejs/fp/issues](https://github.com/deessejs/fp/issues)
+- Discussions: [github.com/deessejs/fp/discussions](https://github.com/deessejs/fp/discussions)
+- Email: [support@deessejs.com](mailto:support@deessejs.com)
+- Documentation: [fp.deessejs.com](https://fp.deessejs.com)
