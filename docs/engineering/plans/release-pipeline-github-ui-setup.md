@@ -122,7 +122,7 @@ The ruleset is a stronger guarantee but not strictly required. Pick one.
 
 Tag protection rules (`Restrict creations`) require an explicit allow-list of actors. The only entities that can create a `v*` tag in this pipeline are:
 
-- The publish workflow, which uses `GITHUB_TOKEN` to push tags. The GITHUB_TOKEN has the `contents: write` permission declared at the workflow level (`publish.yml`).
+- The publish workflow, which uses `GITHUB_TOKEN` to push tags. The workflow-level `permissions:{}` is empty so jobs default to no token. The two jobs that need `contents: write` (`push-bump` and `release`) declare it at the job level.
 - Maintainers, who can push tags directly if they have write access to the repo.
 
 The `github-actions[bot]` identity (the user behind GITHUB_TOKEN pushes) cannot be added as an allow-listed creator on tag protection rules — the ruleset UI lists specific actor types (users, teams, GitHub Apps, roles) but not the GitHub Actions bot. Trying to enforce tag protection on `v*` with an empty allow-list blocks the workflow's tag push with HTTP 403 (observed on the 1.0.2 dummy release run, run `30817274927`).
@@ -150,13 +150,13 @@ For organizations with stricter requirements, the senior approach is a GitHub Ap
 
 > **Note:** the path is `https://www.npmjs.com/package/<name>/access`, not the global settings page. This trips people up.
 
-**npm allows exactly ONE Trusted Publisher configuration per package** (verified against the npm docs as of 2026-08-03). To support three publish paths — stable release, hotfix, and canary snapshot — under a single trusted publisher, the repository uses an **entrypoint pattern**:
+npm allows exactly ONE Trusted Publisher configuration per package (verified against the npm docs as of 2026-08-03). The repository uses a single-workflow architecture:
 
-- `.github/workflows/publish.yml` is the **single Trusted Publisher entrypoint**. It is the only file registered on npmjs.com.
-- It dispatches to three **reusable workflows** (`.github/workflows/_publish-release.yml`, `_publish-hotfix.yml`, `_publish-canary.yml`), which perform the actual work.
-- npm validates the entrypoint (`publish.yml`), not the reusable workflows.
+- `.github/workflows/publish.yml` is the single Trusted Publisher entrypoint. It is the only file registered on npmjs.com.
+- It is a single publish entrypoint (the six-job workflow) rather than a workflow that dispatches to reusable workflows. A single Trusted Publisher is sufficient for any release channel.
+- The regular release path and the hotfix path use the same entrypoint. The hotfix path merges into `main` and fires `publish.yml`; the reviewer guard and other guards are inherited from the `release` environment configuration.
 
-This design is documented and recommended for multi-workflow scenarios: see Paige Niedringhaus, "Run Multiple npm Publishing Scripts with Trusted Publishing (OIDC) via GitHub Reusable Workflows".
+This matches the production pattern used by `@deessejs/errors` in the same repository and by Vite, Vue, Nuxt, Cloudflare SDK: one Workflow file.
 
 ### 5.1 Add the single Trusted Publisher entry
 
@@ -165,7 +165,7 @@ This design is documented and recommended for multi-workflow scenarios: see Paig
 - **Repository:** `fp`
 - **Workflow filename:** `publish.yml`
 - **Environment name:** `release`
-- **Allowed actions:** `npm publish` (per §13.1 decision)
+- **Allowed actions:** `npm publish` (per section 13.1 decision)
 
 Save.
 
@@ -173,22 +173,18 @@ If a previous Trusted Publisher entry exists from an earlier iteration (with a d
 
 ### 5.2 Update package publishing access
 
-Same page (`/access`) → "Publishing access":
+Same page (`/access`) --> `Publishing access`:
 
-- Select **"Require two-factor authentication and disallow tokens"**
+- Select Require two-factor authentication and disallow tokens
 - Save
 
 ### 5.3 Verify (do not skip)
 
 At this point the Trusted Publisher is registered but no publish has happened yet. Confirm:
 
-- The package's npm page shows exactly one Trusted Publisher entry: "Trusted Publisher: GitHub Actions — deessejs/fp — publish.yml" in the access tab.
-- A `git push` to the branch containing `publish.yml` must be merged to `main` before the first publish — npm validates that the workflow file exists at the registered path.
-- The reusable workflows (`_publish-*.yml`) do **not** need to be registered separately; they are dispatched from the entrypoint and inherit the OIDC trust.
-
----
-
-## 6. Workflow Permissions (org-wide)
+- The package npm page shows exactly one Trusted Publisher entry: Trusted Publisher: GitHub Actions -- deessejs/fp -- publish.yml in the access tab.
+- A git push to the branch containing publish.yml must be merged to main before the first publish -- npm validates that the workflow file exists at the registered path.
+- No additional workflows need to be registered; the single entrypoint publishes all channels.## 6. Workflow Permissions (org-wide)
 
 **Path:** Repository → Settings → Actions → General → Workflow permissions
 
@@ -206,7 +202,7 @@ Save.
 
 The repo already has a dependabot config. Confirm `/.github/dependabot.yml` includes a `github-actions` ecosystem entry. If not, see `release-pipeline.md` Appendix A for the expected shape.
 
-### 7.2 Code Owners for `.github/workflows/publish.yml` and reusable workflows
+### 7.2 Code Owners for `.github/workflows/`
 
 The current `CODEOWNERS` file already covers `.github/`. Verify by reading `.github/CODEOWNERS`:
 
@@ -214,7 +210,7 @@ The current `CODEOWNERS` file already covers `.github/`. Verify by reading `.git
 /.github/ @deessejs/engineering
 ```
 
-This means any PR touching `.github/workflows/publish.yml` or the reusable workflows will require review from `@deessejs/engineering`. Keep it.
+This means any PR touching `.github/workflows/` (publish.yml, ci.yml, changesets-version.yml, backmerge.yml) will require review from `@deessejs/engineering`. Keep it.
 
 ### 7.3 Notification channels
 
