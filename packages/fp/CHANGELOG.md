@@ -1,5 +1,13 @@
 # @deessejs/fp
 
+> **Note (2026-08-06).** `package.json#version` is at 1.1.1, but
+> `CHANGELOG.md` tops out at 1.1.0. This is a known pre-branch
+> inconsistency: the 1.1.1 release was prepared (see
+> `.changeset/release-1.1.1.md`) but never consumed via
+> `pnpm changeset version`. The pipeline branch this note lives in
+> does not regenerate the CHANGELOG; the next release will produce
+> a 1.1.1 (or 1.2.0) entry automatically.
+
 ## 1.1.0
 
 ### Minor Changes
