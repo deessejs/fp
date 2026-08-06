@@ -46,5 +46,11 @@ jobs:
           title: 'chore: version packages'
           commit-message: 'chore: version packages'
           branch: changesets/version
+          # The action defaults pr-base-branch to github.ref_name,
+          # which for pushes to staging resolves to staging. We want
+          # the Version Packages PR to open against main so that
+          # merging it triggers publish.yml (which only listens on
+          # pull_request.closed against main).
+          pr-base-branch: main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
