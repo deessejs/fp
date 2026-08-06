@@ -3,7 +3,7 @@
 **Status:** Proposed
 **Owner:** Engineering
 **Last updated:** 2026-08-03
-**Supersedes:** ad-hoc `release.yml` workflow + `NPM_TOKEN` long-lived secret
+**Supersedes:** ad-hoc `publish.yml` workflow + `NPM_TOKEN` long-lived secret
 
 ---
 
@@ -188,89 +188,30 @@ On `https://www.npmjs.com/package/@deessejs/fp/access`:
   - "Allow administrators to bypass" disabled.
 - Under Settings → Actions → General → Workflow permissions: enable **Allow GitHub Actions to create and approve pull requests** (required for the "Version Packages" PR automation).
 
-### 7.3 Workflow shape (`release.yml`)
+### 7.3 Workflow shape (`publish.yml`)
 
-The release workflow runs **only on `main`**, triggered by the merge of the "Version Packages" PR (a regular `push` event, not a `pull_request.closed` event). This is the single canonical entry point to a release.
+The release workflow runs on `pull_request.closed` events against `main`, gated on `merged == true`. This is the single canonical entry point to a release. The actual current file lives at `.github/workflows/publish.yml`; the shape is summarized here.
 
-```yaml
-name: Release
+Six jobs run in sequence:
 
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
-    inputs:
-      reason:
-        description: 'Reason for manual publish (hotfix recovery)'
-        required: true
 
-permissions: {}
 
-concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: false
+Concurrency: `release-${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}`. Per-PR, not per-ref, so a hotfix landing during a regular release is not serialized. The anti-republish guard in `validate` is the safety net for the rare race.
 
-jobs:
-  release:
-    if: >
-      github.event_name == 'push' ||
-      (github.event_name == 'workflow_dispatch'
-       && contains(github.event.inputs.reason, 'hotfix'))
-    runs-on: ubuntu-latest
-    environment: release
-    permissions:
-      id-token: write
-      contents: read
-      pull-requests: read
+Permissions:
 
-    steps:
-      - uses: actions/checkout@<pinned-sha>
-        with:
-          fetch-depth: 0
-          ref: main
-
-      - uses: pnpm/action-setup@<pinned-sha>
-      - uses: actions/setup-node@<pinned-sha>
-        with:
-          node-version: '24'
-          registry-url: 'https://registry.npmjs.org'
-          package-manager-cache: false
-
-      - run: npm install -g npm@latest
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Anti-republish guard
-        run: |
-          PKG=$(node -p 'require("./packages/fp/package.json").name')
-          VER=$(node -p 'require("./packages/fp/package.json").version')
-          if npm view "${PKG}@${VER}" version >/dev/null 2>&1; then
-            echo "::error::${PKG}@${VER} is already published"
-            exit 1
-          fi
-
-      - run: pnpm build
-
-      - run: pnpm test
-
-      - name: Smoke test the built artifact
-        run: |
-          node -e "import('./packages/fp/dist/index.js').then(m => { if (typeof m.ok !== 'function') throw new Error('ok() missing'); console.log('smoke OK'); })"
-
-      - run: pnpm changeset publish --provenance --tag latest
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@<pinned-sha>
-        with:
-          tag_name: v$(node -p 'require("./packages/fp/package.json").version')
-          generate_release_notes: true
-```
+- `detect` and `bump`: `contents: read`, `pull-requests: read`.
+- `push-bump`: `contents: write` (must push the version bump).
+- `validate` and `publish`: `id-token: write`, `contents: read`, in the `release` GitHub environment (OIDC for Trusted Publishing).
+- `release`: `contents: write` (must push the tag and create the GitHub Release).
 
 Notes:
 
-- `pull_request.closed` is intentionally **not** a trigger. The version bump is its own PR, and its merge to `main` is the natural `push` event.
-- `workflow_dispatch` is restricted to hotfix recoveries only and must justify the reason in the input field (the input is logged in the workflow run for audit).
-- Pinning by SHA — not by tag — for every third-party action. Tag-based refs are mutable and a rewritten upstream runs code we did not intend.
+- `pnpm changeset status` exits 0 on the happy path (pending changesets exist). The `detect` job inverts this to a `has_changesets` boolean. Config errors (e.g., packages changed but no changeset) exit non-zero and the job treats that as skip.
+- The rebase in `push-bump` closes the non-fast-forward race that happens when two PRs merge into `main` within seconds. The `||` fallback in the concurrency group covers any future event type that lacks `pull_request.number`.
+- Major-version tags (`@v4`, `@v2`) are used for actions; Dependabot can track them via a `.github/dependabot.yml` `github-actions` entry.
+- The `release` job does not run in the `release` environment; it only needs `contents: write` for the tag push and GitHub Release. Keeping OIDC off the tag path keeps the trust boundary small.
+- The current `publish.yml` does not have a `workflow_dispatch` trigger. Hotfixes use the same PR-merge flow (a hotfix PR targets `main` directly, see `hotfix.md` § 4). Any future `workflow_dispatch` would be a separate, maintainer-only entry point and would need explicit review.
 
 ### 7.4 Repository URL alignment
 
@@ -337,26 +278,29 @@ The warning from the Changesets docs is respected: pre-releases never run on `ma
 
 ### 8.3 Hotfix
 
-Workflow: `.github/workflows/hotfix.yml`
+There is no dedicated `hotfix.yml`. A hotfix reuses the regular `publish.yml` workflow:
 
-- Trigger: `push: tags: ['v*.*.*']` from a `hotfix/*` branch (merged into `main`).
-- Behavior: minimal pipeline, no Changesets run, hard-coded `pnpm publish --provenance --tag latest` for the changed package(s).
-- Uses a separate `hotfix` environment (smaller reviewer pool, faster SLA).
-- The hotfix PR targets `main` directly (the one exception to the staging rule, justified by urgency and limited scope).
-- After the hotfix is published, a back-merge from `main` to `staging` (and `dev`) is mandatory, plus a regular changeset PR documenting the fix on `staging`.
+- A `hotfix/*` branch is cut from `main`.
+- The hotfix PR targets `main` directly (the one exception to the PRs target `staging` rule, justified by urgency).
+- The PR does **not** carry a Changeset file (the per-PR Changeset rule is scoped to `staging`; see `changesets.md` § 7.1).
+- When the PR merges, `publish.yml` runs as for a regular release.
+- After the hotfix is published, `backmerge.yml` opens a back-merge PR from `main` to `staging` (auto-merge after CI).
+- A follow-up PR on `staging` carries the audit-trail Changeset for the hotfix and lands in the next regular release.
 
-## 9. Why a thin custom wrapper may sit on top of `changesets/action@v2`
+The full procedure is documented in `hotfix.md`.
 
-The default `changesets/action@v2` handles both the "Version Packages" PR and the publish step. We prefer to:
+## 9. Why `publish.yml` is split from `changesets/action@v2`
 
-- Keep the version PR behavior (declarative, reviewable), with the PR base branch set to `main` and the source branch coming from `staging`.
-- **Replace the publish step** with our hardened pipeline above (OIDC permissions, environment, anti-republish, smoke test, SHA-pinned actions).
+The default `changesets/action@v2` handles both the "Version Packages" PR and the publish step. We separate the two:
 
-The result is a custom job that:
+- `changesets-version.yml` (uses `changesets/action@v2`) opens/updates the Version Packages PR against `main`. It does **not** publish.
+- `publish.yml` runs on `pull_request.closed` (merged) against `main` and publishes the version that the Version Packages PR brought in.
 
-1. Listens for `push` to `main` (which is what closes the Version Packages PR).
-2. Re-runs `changeset status` and aborts if no pending changes remain.
-3. Executes the hardened publish block from §7.3.
+The composition is:
+
+1. `changesets-version.yml` opens a Version Packages PR with the bumped version and regenerated CHANGELOG.
+2. The Version Packages PR is reviewed and merged.
+3. `publish.yml` runs on the merge commit via `pull_request.closed`. It detects pending changesets via `pnpm changeset status`, bumps versions, rebases onto `origin/main`, validates with the OIDC-protected `release` environment, publishes, and tags.
 
 This separation lets us evolve the publish pipeline (e.g. add stage publishing, swap npm CLI, add SBOM emission) without forking Changesets.
 
@@ -378,35 +322,24 @@ This separation lets us evolve the publish pipeline (e.g. add stage publishing, 
 
 ## 11. Migration Plan
 
-Ordered steps. Each is independently reversible.
+The pipeline described in this plan is now in place. The migration steps landed as part of the `ci/release-pipeline-hardening` branch (PR #394):
 
-1. **Configure branch protection and rulesets.**
-   - On `main`: require PR, restrict who can push (release engineers + bots), require linear history, restrict who can dismiss reviews.
-   - Add a repository ruleset that **forces the default PR target to `staging`** for non-release-engineer roles, or that auto-closes any PR targeting `main` opened by a non-engineer.
-   - Update `CONTRIBUTING.md` and any onboarding doc: "Default PR target is `staging`. Do not open PRs against `main`."
-2. **Align `package.json#repository.url`** in `packages/fp/package.json` with the actual GitHub repo. Verify `npm pkg get repository` matches.
-3. **Create the GitHub `release` environment** with required reviewers and `refs/pull/*/merge` + `main` deployment branch restriction.
-4. **Register the Trusted Publisher** on `https://www.npmjs.com/package/@deessejs/fp/access`, allowed action `npm publish`, environment name `release`.
-5. **Rewrite `.github/workflows/release.yml`** to the hardened shape from §7.3. The trigger moves from "PR closed with label `version bump`" to "push to `main`".
-6. **Rewrite `.github/workflows/build.yml`, `lint.yml`, `tests.yml`, `types.yml`** to run on `staging` (PR + push) and on `main` (push only). Add `permissions: contents: read`.
-7. **Update `changesets/action` configuration** so the Version Packages PR targets `main` from a branch cut off `staging`.
-8. **Add `canary.yml`** for PR snapshot publishes targeting `staging`.
-9. **Run one full release** end to end. Confirm the package appears on npm with a `Built and signed on GitHub Actions` badge on the npm page and `npm audit signatures` returns clean.
+1. **Branch protection configured.** `main` requires PR, no direct push, no bypass.
+2. **`package.json#repository.url` aligned** with the actual GitHub repo.
+3. **GitHub `release` environment created** with required reviewers and `main` deployment-branch restriction.
+4. **Trusted Publisher registered** on `https://www.npmjs.iom/package/@deessejs/fp/access`, environment name `release`.
+5. **`.github/workflows/publish.yml` rewritten** to the six-job shape from ✀7.3 (detect, bump, push-bump, validate, publish, release). Trigger: `pull_request.closed` (merged) against ``main``.
+6. **Consolidate CI into `.github/workflows/ci.yml`** with four parallel jobs (lint, typecheck, build, test) plus a new `changeset-check` job  that enforces the per-PR Changeset rule on PRs targeting `staging`.
+7. **`.github/workflows/changesets-version.yml` added** to open/update the Version Packages PR against `main` on every push to `staging`.
+8. **`.github/workflows/backmerge.yml` added** to auto-open a backmerge PR from `main` to `staging` after every push to `main`.
+9. **Run one full release end-to-end.** The 1.1.0 release on `main` validated the pipeline.
 10. **Switch npm Publishing access to `Require 2FA and disallow tokens`**.
-11. **Revoke the legacy `NPM_TOKEN`** GitHub secret.
-12. **Document the new flow** in `CONTRIBUTING.md` and link to this plan.
+11. **Revoke the legacy `NPM_TOKEN` GitHub secret.** No long-lived npm credentials in the repository.
+12. **Document the new flow** in README and `CONTRIBUTING.md`, pointing to this plan.
 
-### 11a. Trigger migration choice
+11a. Trigger migration choice
 
-Two valid options; pick one and stick to it:
-
-| Option | Trigger | Pros | Cons |
-|--------|---------|------|------|
-| A — "Version Packages" PR | `push` to `main` (after merging the version PR) | Diff is reviewable, no surprise releases, declarative | Slight learning curve for contributors |
-| B — Label on regular PR | `pull_request.closed` + `merged == true` + label `version-packages` | Simpler, similar to today's flow | No review of the version diff; one missed label skips a release |
-
-Recommendation: **Option A**. It eliminates the most common failure mode (forgetting the label) and makes releases an explicit, reviewable artifact.
-
+The pipeline follows the "Version Packages" PR approach (Option A below). This is enforced by the current setup: `changesets-version.yml` opens the Version Packages PR against `main` on every push to `staging`. Merging that PR into `main` fires `publish.yml` (one of the `changesets-action@v2` outputs already staged in the PR by the Changesets action), which completes the release.
 ## 12. Observability and Auditing
 
 - Every release writes a `GitHub Release` with auto-generated notes and a `provenance` link to the workflow run.
@@ -443,24 +376,19 @@ These decisions are time-boxed. Re-evaluate at the checkpoints noted:
 
 ## Appendix A — File Inventory
 
-Files that will be created or modified:
+The pipeline described in this plan is implemented in four workflow files under `.github/workflows/`:
 
-| Path | Action |
-|------|--------|
-| `.github/workflows/release.yml` | Rewrite per §7.3, §9. Trigger: `push` to `main`, plus restricted `workflow_dispatch` for hotfix recovery |
-| `.github/workflows/canary.yml` | New — §8.1. Trigger: PR targeting `staging` |
-| `.github/workflows/hotfix.yml` | New — §8.3. Trigger: tag push on `main` from a `hotfix/*` branch |
-| `.github/workflows/build.yml` `lint.yml` `tests.yml` `types.yml` | Add `permissions: contents: read`, run on `staging` (PR + push) and `main` (push only) |
-| `.github/PULL_REQUEST_TEMPLATE.md` | Add "Changeset" checkbox + notice that the default target is `staging` |
-| `.changeset/config.json` | Keep `commit: false`, set `baseBranch: main`, consider `snapshot.useCalculatedVersion` for canary shape |
-| `packages/fp/package.json` | Fix `repository.url`, add `engines.node: ">=22.14.0"`, optionally `publishConfig.provenance: true` |
-| GitHub UI — branch protection | PR required on `main` and `staging`; linear history; no bypass list |
-| GitHub UI — rulesets | Enforce "PRs default to `staging`"; auto-close or redirect PRs targeting `main` |
-| GitHub UI — environments | Create `release` and `hotfix` environments with required reviewers; tag protection rules on `v*.*.*` |
-| npmjs.com UI | Register Trusted Publisher, switch Publishing access to `Require 2FA and disallow tokens`, revoke `NPM_TOKEN` |
-| `CONTRIBUTING.md` | Document the new flow, link to this plan, state the default PR target |
-| Secrets | Remove `NPM_TOKEN`. Add `NPM_READ_TOKEN` only if private dependencies are reintroduced |
+| Path | Action | Status |
+|------|--------|--------|
+| `.github/workflows/ci.yml` | Lint, typecheck, build, test, plus `changeset-check` on PRs targeting `staging`. | Active |
+| `.github/workflows/publish.yml` | Six-job release: detect, bump, push-bump, validate, publish, release. Trigger: `pull_request.closed` (merged) against `main`. | Active |
+| `.github/workflows/changesets-version.yml` | Opens/updates the Version Packages PR against `main` on every push to `staging`. Does not publish. | Active |
+| `.github/workflows/backmerge.yml` | Auto-opens a backmerge PR from `main` to `staging` after every push to `main`. Anti-recursion via branch-scope trigger, label check, and SHA-keyed concurrency. | Active |
 
+Future channels (documented in § 8, not yet implemented):
+
+- `canary.yml` — per-PR snapshots on the `canary` dist-tag (see § 8.1).
+- `prerelease-cycles.yml` — `next` / `beta` / `rc` phases (see § 8.2).
 ## Appendix B — References
 
 - Changesets — [Automating Changesets](https://github.com/changesets/changesets/blob/main/docs/automating-changesets.md)
