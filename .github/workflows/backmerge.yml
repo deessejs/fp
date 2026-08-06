@@ -1,0 +1,82 @@
+name: Backmerge main → staging
+
+# Auto-opens a backmerge PR after every push to main. Anti-recursion
+# is enforced by:
+#   1. Comparing staging's HEAD to main's SHA — if they're equal,
+#      skip (nothing to backmerge).
+#   2. Checking for an open PR with label bot:backmerge — if one
+#      exists, skip (avoid stacking open backmerges).
+#   3. The opened PR targets staging; when it merges into staging,
+#      that push to staging does NOT trigger this workflow because
+#      the trigger is `push: branches: [main]` only.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: backmerge-${{ github.event.after }}
+  cancel-in-progress: false
+
+jobs:
+  open-backmerge:
+    name: Open backmerge PR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Check if backmerge is needed
+        id: check
+        run: |
+          MAIN_SHA=$(git rev-parse HEAD)
+          STAGING_SHA=$(git rev-parse origin/staging)
+          if [ "$MAIN_SHA" = "$STAGING_SHA" ]; then
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+            echo "staging is already at main — nothing to backmerge."
+            exit 0
+          fi
+
+          EXISTING=$(gh pr list \
+            --state open \
+            --label bot:backmerge \
+            --json number --jq 'length')
+          if [ "$EXISTING" -gt 0 ]; then
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+            echo "Backmerge PR #$EXISTING is already open — skipping."
+            exit 0
+          fi
+          echo "needed=true" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Open backmerge PR
+        if: steps.check.outputs.needed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: backmerge/main-to-staging-${{ github.event.after }}
+          base: staging
+          title: '[BOT] Backmerge main → staging'
+          body: |
+            Automated backmerge of `main` into `staging`.
+
+            - main:    ${{ github.event.after }}
+            - staging: was at $(git rev-parse origin/staging) at workflow start
+
+            This PR was opened by `backmerge.yml`. It does not require a
+            Changeset (it's a merge, not a feature change). Auto-merge is
+            enabled; the merge will proceed once CI is green.
+          labels: |
+            bot:backmerge
+            bot:auto-merge
+          add-paths: |
+            .changeset/
+            packages/fp/package.json
+            packages/fp/CHANGELOG.md
+          commit-message: 'chore(backmerge): main → staging'
