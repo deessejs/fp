@@ -1,5 +1,11 @@
 # @deessejs/fp
 
+## 1.1.2
+
+### Patch Changes
+
+- 62a6bf7: Release 1.1.1 — pushes the restructured README and enriched package metadata (keywords, bugs, peerDependenciesMeta) to npm. No functional change. Triggered via the tag-driven hotfix path of the release pipeline.
+
 > **Note (2026-08-06).** `package.json#version` is at 1.1.1, but
 > `CHANGELOG.md` tops out at 1.1.0. This is a known pre-branch
 > inconsistency: the 1.1.1 release was prepared (see
