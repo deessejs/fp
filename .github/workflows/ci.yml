@@ -92,6 +92,7 @@ jobs:
     if: |
       github.event_name == 'pull_request'
       && github.event.pull_request.base.ref == 'staging'
+      && !contains(github.event.pull_request.labels.*.name, 'bot:backmerge')
     permissions:
       contents: read
       pull-requests: read
