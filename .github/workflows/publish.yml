@@ -65,17 +65,17 @@ jobs:
       - name: Run pnpm changeset status
         id: status
         run: |
-          # `pnpm changeset status` exits 0 when there are no pending
-          # changesets and non-zero (typically exit 1) when there are.
-          # We only need the boolean. Capture the exit code; do not
-          # rely on stdout parsing — the format is not part of the
-          # public API.
+          # `pnpm changeset status` exits 0 on the happy path: when
+          # changesets ARE pending (it successfully reports their
+          # status). It exits non-zero only when packages changed but
+          # no changeset is present, which is a config error. We
+          # invert the exit code: 0 means "proceed".
           if pnpm changeset status; then
-            echo "has_changesets=false" >> "$GITHUB_OUTPUT"
-            echo "No pending changesets — skipping release."
-          else
             echo "has_changesets=true" >> "$GITHUB_OUTPUT"
             echo "Pending changesets found — proceeding with release."
+          else
+            echo "has_changesets=false" >> "$GITHUB_OUTPUT"
+            echo "No pending changesets — skipping release."
           fi
 
   bump:
