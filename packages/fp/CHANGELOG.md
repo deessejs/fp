@@ -1,5 +1,33 @@
 # @deessejs/fp
 
+## 1.1.2
+
+### Patch Changes
+
+- 62a6bf7: Release 1.1.1 — pushes the restructured README and enriched package metadata (keywords, bugs, peerDependenciesMeta) to npm. No functional change. Triggered via the tag-driven hotfix path of the release pipeline.
+
+> **Note (2026-08-06).** `package.json#version` is at 1.1.1, but
+> `CHANGELOG.md` tops out at 1.1.0. This is a known pre-branch
+> inconsistency: the 1.1.1 release was prepared (see
+> `.changeset/release-1.1.1.md`) but never consumed via
+> `pnpm changeset version`. The pipeline branch this note lives in
+> does not regenerate the CHANGELOG; the next release will produce
+> a 1.1.2 (or 1.2.0) entry that implicitly covers the 1.1.1 work.
+
+## 1.1.0
+
+### Minor Changes
+
+- 04e3798: Release 1.1.0.
+
+  Advances the version from 1.0.2 (the dummy release-test artifact) to 1.1.0 to bring the published version on npm into a clean state. The release pipeline is now end-to-end validated; this entry produces the first legitimate user-facing minor bump since the Trusted Publishing migration.
+
+## 1.0.2
+
+### Patch Changes
+
+- 301857b: Dummy e2e test of the release pipeline. No code or API change — only a documentation marker added to validate the Trusted Publishing path end-to-end. This entry can be reverted once the test is complete.
+
 ## 1.0.1
 
 ### Patch Changes
