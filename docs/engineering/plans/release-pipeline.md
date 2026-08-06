@@ -69,19 +69,30 @@
                     │
                     ▼
    ┌──────────────────────────────────────────┐
-   │  publish.yml runs on main:               │
-   │   - checkout main (fetch-depth 0)        │
-   │   - id-token: write (OIDC)               │
-   │   - environment: release                 │
-   │   - actions pinned by SHA                │
-   │   - upgrade npm to ≥ 11.5.1              │
-   │   - guard: version not yet on npm        │
-   │   - pnpm install --frozen-lockfile       │
-   │   - pnpm build                           │
-   │   - pnpm test                            │
-   │   - pnpm changeset publish --tag latest  │
-   │   - create git tag vX.Y.Z                │
-   │   - create GitHub Release                │
+   │  publish.yml runs on main as six jobs    │
+   │  in a chain: detect → bump → push-bump  │
+   │  → validate → publish → release          │
+   │                                          │
+   │   - detect: runs `pnpm changeset        │
+   │     status`; emits has_changesets        │
+   │   - bump: runs `pnpm changeset version`  │
+   │     on main locally                      │
+   │   - push-bump: rebase onto origin/main,  │
+   │     then push back (closes the #384      │
+   │     non-fast-forward race)               │
+   │   - validate: in `release` environment,  │
+   │     anti-republish guard, pnpm build,    │
+   │     pnpm test, smoke test on dist/       │
+   │   - publish: `pnpm changeset publish     │
+   │     --tag latest` via OIDC               │
+   │   - release: git tag vX.Y.Z and          │
+   │     GitHub Release with auto notes       │
+   │                                          │
+   │  Concurrency group: per-PR, not per-ref,  │
+   │  so a hotfix landing during a regular    │
+   │  release is not serialized. The anti-    │
+   │  republish guard in `validate` is the    │
+   │  safety net for the race.                │
    └────────────────┬─────────────────────────┘
                     ▼
       Provenance attestation generated automatically
