@@ -483,7 +483,8 @@ The rule is enforced by a dedicated CI job, not by reviewer vigilance. The job r
 every PR targeting `staging`:
 
 - **Job name:** `changeset-check`.
-- **Trigger:** any push to a PR whose base is `staging`.
+- **Trigger:** any pull request event targeting `staging` (opened, synchronize, reopened).
+- **Exclusions:** PRs carrying the `bot:backmerge` label are skipped. The `backmerge.yml` workflow labels its PRs this way so the auto-backmerge from `main` does not require a Changeset file.
 - **Logic:** diff the PR head against the merge base on `staging`, list the files
   added, and assert that at least one matches `^.changeset/.*\.md$` (excluding
   `README.md`).
