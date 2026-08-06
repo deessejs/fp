@@ -78,14 +78,13 @@ jobs:
             echo "No pending changesets — skipping release."
           fi
 
-  bump:
-    name: Bump versions
+  push-bump:
+    name: Bump and push version to main
     needs: detect
     if: needs.detect.outputs.has_changesets == 'true'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      pull-requests: read
+      contents: write
     outputs:
       version: ${{ steps.ver.outputs.version }}
     steps:
@@ -111,30 +110,6 @@ jobs:
         run: |
           VER=$(node -p "require('./packages/fp/package.json').version")
           echo "version=${VER}" >> "$GITHUB_OUTPUT"
-
-  push-bump:
-    name: Push version bump back to main
-    needs: bump
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Bump versions
-        run: pnpm changeset version
 
       - name: Fetch origin/main
         run: git fetch origin main
@@ -166,7 +141,10 @@ jobs:
     name: Validate (build, test, smoke, anti-republish)
     needs: push-bump
     runs-on: ubuntu-latest
-    environment: release
+    # validate is intentionally outside the release environment:
+    # publishing is gated by the release env on the publish job.
+    # validate only needs id-token: write for the npm-view
+    # anti-republish guard. Build/test/smoke use no cloud creds.
     permissions:
       id-token: write
       contents: read
@@ -263,6 +241,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag -a "v${VER}" -m "Release v${VER}"
+          # If the tag already exists (e.g. from a previous partial publish run),
+          # fail loudly rather than overwrite. The publish job anti-republish
+          # guard should catch this earlier in validate, but defense in depth.
+          if git rev-parse "v${VER}" >/dev/null 2>&1; then
+            echo "::error::Tag v${VER} already exists. Did the previous run partially succeed?"
+            exit 1
+          fi
           git push origin "v${VER}"
 
       - name: Create GitHub Release

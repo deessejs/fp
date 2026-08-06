@@ -111,13 +111,19 @@ jobs:
 
       - name: Verify a Changeset file is present in the PR diff
         run: |
-          git fetch origin staging --depth=0
-          ADDED=$(git diff --name-only origin/staging...HEAD \
+          BASE=${{ github.event.pull_request.base.ref }}
+          git fetch origin "$BASE"
+          # Sanity: the PR head must be downstream of the base ref.
+          if ! git merge-base --is-ancestor "origin/$BASE" HEAD; then
+            echo "::error::PR head is not ahead of origin/$BASE. Refusing to diff."
+            exit 1
+          fi
+          ADDED=$(git diff --name-only origin/$BASE...HEAD \
             | grep -E '^\.changeset/.*\.md$' \
             | grep -v 'README.md$' || true)
           if [ -z "$ADDED" ]; then
             echo "::error::No Changeset file in this PR."
-            echo "::error::Every PR targeting staging must add a file under .changeset/."
+            echo "::error::Every PR targeting ${{ github.event.pull_request.base.ref }} must add a file under .changeset/."
             echo "::error::See docs/engineering/process/changesets.md § 7.1."
             echo "::error::For no-user-impact changes, run: pnpm changeset --empty"
             exit 1
