@@ -6,7 +6,7 @@
 > `.changeset/release-1.1.1.md`) but never consumed via
 > `pnpm changeset version`. The pipeline branch this note lives in
 > does not regenerate the CHANGELOG; the next release will produce
-> a 1.1.1 (or 1.2.0) entry automatically.
+> a 1.1.2 (or 1.2.0) entry that implicitly covers the 1.1.1 work.
 
 ## 1.1.0
 
