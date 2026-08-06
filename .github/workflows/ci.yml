@@ -19,12 +19,12 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: pnpm
@@ -36,12 +36,12 @@ jobs:
     name: Type Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: pnpm
@@ -55,12 +55,12 @@ jobs:
     env:
       NODE_ENV: production
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: pnpm
@@ -72,12 +72,12 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: pnpm
@@ -96,12 +96,12 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: pnpm

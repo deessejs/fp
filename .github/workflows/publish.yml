@@ -49,13 +49,13 @@ jobs:
       has_changesets: ${{ steps.status.outputs.has_changesets }}
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: pnpm
@@ -90,13 +90,13 @@ jobs:
       version: ${{ steps.ver.outputs.version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: pnpm
@@ -120,13 +120,13 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: pnpm
@@ -172,13 +172,13 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: pnpm
@@ -224,13 +224,13 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: pnpm
@@ -252,7 +252,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
@@ -266,7 +266,7 @@ jobs:
           git push origin "v${VER}"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v$(node -p "require('./packages/fp/package.json').version")
           generate_release_notes: true
