@@ -23,7 +23,7 @@ Specifically, the chain that runs without any human intervention is:
 1. `changesets/action` opens or updates the "Version Packages" pull request against
    `main`.
 2. The Version Packages PR is reviewed and merged.
-3. `publish.yml` runs on the merge commit:
+3. `publish.yml` runs on the pull_request closed (merged) event:
    - detects changesets,
    - bumps versions,
    - builds the package,
@@ -420,8 +420,8 @@ This is not a separate rule added on top of the workflow — it is a *consequenc
 rules that already hold:
 
 1. **Every PR adds a Changeset** (§ 7). The CI refuses to merge any PR that does not.
-2. **The release workflow runs on every push to `main`** (the `publish.yml` workflow
-   fires on `push` events to the default branch, after the Version Packages PR merges).
+2. **The release workflow runs on every merge to `main`** (the `publish.yml` workflow
+   fires on `pull_request.closed` events against `main`, gated on `merged == true`).
 
 Put together: every merge to `main` carries at least one Changeset, and the workflow
 publishes it. The release is therefore not a *decision* the maintainer makes; it is a
