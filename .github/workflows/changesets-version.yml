@@ -1,0 +1,56 @@
+name: Changesets Version PR
+
+# Opens or updates the "Version Packages" PR against main whenever
+# staging accumulates a change. The PR contains the result of
+# `pnpm changeset version`: bumped versions, regenerated CHANGELOG
+# entries, and consumed Changeset files.
+#
+# Merging the Version Packages PR into main triggers publish.yml,
+# which publishes to npm via Trusted Publishing. This workflow does
+# NOT publish — the `publish` input to changesets/action is
+# intentionally omitted to avoid a double-publish. See
+# docs/engineering/process/changesets.md § 6.
+
+on:
+  push:
+    branches: [staging]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: changesets-version-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  version:
+    name: Open or update Version Packages PR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Create or update Version Packages PR
+        uses: changesets/action@v2
+        with:
+          title: 'chore: version packages'
+          commit-message: 'chore: version packages'
+          branch: changesets/version
+          # The action defaults pr-base-branch to github.ref_name,
+          # which for pushes to staging resolves to staging. We want
+          # the Version Packages PR to open against main so that
+          # merging it triggers publish.yml (which only listens on
+          # pull_request.closed against main).
+          pr-base-branch: main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
