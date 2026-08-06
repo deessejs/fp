@@ -473,7 +473,7 @@ release tooling and either ships silently or requires a hotfix to recover.
   `staging`, not `main`. The `changeset-check` CI job (§ 7.2 below) is gated on
   `pull_request.base.ref == 'staging'` and skips hotfix PRs. The audit entry for the
   hotfix is added afterwards via a follow-up PR on `staging` that follows the per-PR
-  rule (see `hotfix.md` § 7), and the changelog entry appears in the next regular
+  rule (see `hotfix.md` § 8), and the changelog entry appears in the next regular
   release. The hotfix exemption is the only carve-out, and it is *only* for hotfix PRs
   targeting `main`.
 
