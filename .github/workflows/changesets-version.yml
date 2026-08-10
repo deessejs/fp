@@ -41,7 +41,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Create or update Version Packages PR
-        uses: changesets/action@v2
+        uses: changesets/action@v2.0.0-next.4
         with:
           title: 'chore: version packages'
           commit-message: 'chore: version packages'
