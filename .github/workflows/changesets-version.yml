@@ -43,14 +43,12 @@ jobs:
       - name: Create or update Version Packages PR
         uses: changesets/action@v2.0.0-next.4
         with:
-          title: 'chore: version packages'
+          # In v2, the inputs were renamed: title -> pr-title,
+          # branch -> pr-base-branch. We use pr-title and
+          # commit-message, and set pr-base-branch: main so the
+          # Version Packages PR opens against main (not staging).
+          pr-title: 'chore: version packages'
           commit-message: 'chore: version packages'
-          branch: changesets/version
-          # The action defaults pr-base-branch to github.ref_name,
-          # which for pushes to staging resolves to staging. We want
-          # the Version Packages PR to open against main so that
-          # merging it triggers publish.yml (which only listens on
-          # pull_request.closed against main).
           pr-base-branch: main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
