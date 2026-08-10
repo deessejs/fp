@@ -40,6 +40,9 @@ jobs:
           ref: main
           fetch-depth: 1
 
+      - name: Fetch origin/staging
+        run: git fetch origin staging:refs/remotes/origin/staging
+
       - name: Check if backmerge is needed
         id: check
         run: |

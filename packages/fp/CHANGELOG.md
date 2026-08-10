@@ -1,5 +1,23 @@
 # @deessejs/fp
 
+## 1.2.0
+
+### Minor Changes
+
+- 04e3798: Release 1.1.0.
+  
+  Advances the version from 1.0.2 (the dummy release-test artifact) to 1.1.0 to bring the published version on npm into a clean state. The release pipeline is now end-to-end validated; this entry produces the first legitimate user-facing minor bump since the Trusted Publishing migration.
+
+### Patch Changes
+
+- 2814283: Back-merge of main to staging, bringing the changesets CLI v3 upgrade (PR #400) onto staging. The CLI was bumped from 2.31.0 to 3.0.0-next.5 to be compatible with changesets/action@v2.0.0-next.4. With this, the changesets-version.yml workflow should now run end-to-end and open a Version Packages PR against main on the next staging push.
+- 97a72be: Back-merge of main to staging, bringing the changesets/action@v2.0.0-next.4 fix from PR #398 onto staging. With this, the changesets-version.yml workflow can resolve the action correctly and the Version Packages PR opens against main as designed.
+- 9b6e5b5: Back-merge of main to staging, bringing the format: false fix from PR #402. Without this, changesets v3 tries to invoke prettier (not in devDependencies) and the format step fails. With format: false, the Version Packages PR pipeline runs end-to-end.
+- 6e3b4fc: Bootstrap changeset for the back-merge of main onto staging. The new release pipeline (5-job publish, changesets-version.yml, backmerge.yml, ci.yml with changeset-check) now lives on staging. This PR carries no functional change; the changeset exists solely to satisfy the per-PR Changeset rule.
+  After this PR merges, the Changeset file will be consumed by changesets-version.yml, producing a 1.1.3 patch entry (or whatever the next version is) that documents this bootstrap in the CHANGELOG.
+- a59f5d1: End-to-end test of the new release pipeline on staging after the back-merge. This PR validates that changeset-check passes, that changesets-version.yml opens the Version Packages PR against main on merge, that publish.yml runs end-to-end, and that backmerge.yml keeps staging in sync.
+  No functional change to the library.
+
 ## 1.1.2
 
 ### Patch Changes
