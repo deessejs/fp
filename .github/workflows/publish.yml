@@ -65,18 +65,21 @@ jobs:
       - name: Run pnpm changeset status
         id: status
         run: |
-          # `pnpm changeset status` exits 0 on the happy path: when
-          # changesets ARE pending (it successfully reports their
-          # status). It exits non-zero only when packages changed but
-          # no changeset is present, which is a config error. We
-          # invert the exit code: 0 means "proceed".
-          if pnpm changeset status; then
+          # `pnpm changeset status` exits 0 in two cases:
+          # (a) pending changesets exist, or (b) nothing to do.
+          # Exit 1 only on a config error. Since exit code alone is
+          # ambiguous, we use --output to dump the release plan and
+          # count releases in the changesets array.
+          pnpm changeset status --output status.json >/dev/null
+          RELEASES=$(node -e "const p=require('./status.json'); console.log((p.changesets||[]).reduce((n,c)=>n+(c.releases||[]).length,0))")
+          if [ "$RELEASES" -gt 0 ]; then
             echo "has_changesets=true" >> "$GITHUB_OUTPUT"
-            echo "Pending changesets found — proceeding with release."
+            echo "Pending changesets found ($RELEASES releases) — proceeding with release."
           else
             echo "has_changesets=false" >> "$GITHUB_OUTPUT"
             echo "No pending changesets — skipping release."
           fi
+          rm -f status.json
 
   push-bump:
     name: Bump and push version to main
