@@ -67,13 +67,6 @@ jobs:
         run: |
           # `pnpm changeset status` exits 0 in two cases:
           # (a) pending changesets exist, or (b) nothing to do.
-          # Exit 1 only on a config error. Since exit code alone is
-          # ambiguous, we use --output to dump the release plan and
-          # count releases in the changesets array.
-          pnpm changeset status --output status.json >/dev/null
-          RELEASES=$(node -e "const p=require('./status.json'); console.log((p.changesets||[]).reduce((n,c)=>n+(c.releases||[]).length,0))")
-          if [ "$RELEASES" -gt 0 ]; then
-            echo "has_changesets=true" >> "$GITHUB_OUTPUT"
           # PR merge: the changesets-version.yml workflow bumps
           # packages/fp/package.json on its branch and deletes the
           # changesets. After the merge, the changesets are gone
