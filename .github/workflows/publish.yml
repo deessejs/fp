@@ -83,68 +83,11 @@ jobs:
           fi
           rm -f status.json
 
-  push-bump:
-    name: Bump and push version to main
-    needs: detect
-    if: needs.detect.outputs.has_changesets == 'true'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    outputs:
-      version: ${{ steps.ver.outputs.version }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
 
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Run pnpm changeset version
-        run: pnpm changeset version
-
-      - name: Capture new version
-        id: ver
-        run: |
-          VER=$(node -p "require('./packages/fp/package.json').version")
-          echo "version=${VER}" >> "$GITHUB_OUTPUT"
-
-      - name: Fetch origin/main
-        run: git fetch origin main
-
-      - name: Rebase onto origin/main
-        run: |
-          # If origin/main advanced since this workflow started,
-          # rebase the bumped commit (or commits) onto it. A non-fast-
-          # forward push would otherwise fail at git push time.
-          if ! git merge-base --is-ancestor origin/main HEAD; then
-            git rebase origin/main
-          fi
-
-      - name: Commit and push the version bump
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A
-          # If no changes were staged (e.g. empty changeset list),
-          # skip the commit rather than fail.
-          if git diff --cached --quiet; then
-            echo "No version bump to push"
-            exit 0
-          fi
-          git commit -m "chore(release): version packages"
-          git push origin HEAD:main
 
   validate:
     name: Validate (build, test, smoke, anti-republish)
-    needs: push-bump
+    needs: detect
     runs-on: ubuntu-latest
     # validate is intentionally outside the release environment:
     # publishing is gated by the release env on the publish job.
