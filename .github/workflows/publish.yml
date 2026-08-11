@@ -74,11 +74,20 @@ jobs:
           RELEASES=$(node -e "const p=require('./status.json'); console.log((p.changesets||[]).reduce((n,c)=>n+(c.releases||[]).length,0))")
           if [ "$RELEASES" -gt 0 ]; then
             echo "has_changesets=true" >> "$GITHUB_OUTPUT"
-            echo "Pending changesets found ($RELEASES releases) — proceeding with release."
+          # PR merge: the changesets-version.yml workflow bumps
+          # packages/fp/package.json on its branch and deletes the
+          # changesets. After the merge, the changesets are gone
+          # but the version bump persists. So we detect a release
+          # by checking whether packages/fp/package.json changed
+          # in HEAD~1..HEAD.
+          if git diff --name-only HEAD~1 HEAD -- 'packages/fp/package.json' | grep -q .; then
+            echo "has_changesets=true" >> "$GITHUB_OUTPUT"
+            VERSION=$(node -p "require('./packages/fp/package.json').version")
+            echo "Version bump detected in merge commit: $VERSION"
           else
             echo "has_changesets=false" >> "$GITHUB_OUTPUT"
-            echo "No pending changesets — skipping release."
-          fi
+            echo "No version bump in packages/fp/package.json — skipping release."
+          fi          fi
           rm -f status.json
 
   push-bump:
