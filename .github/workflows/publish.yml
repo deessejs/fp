@@ -87,7 +87,7 @@ jobs:
           else
             echo "has_changesets=false" >> "$GITHUB_OUTPUT"
             echo "No version bump in packages/fp/package.json — skipping release."
-          fi          fi
+          fi
           rm -f status.json
 
   push-bump:
