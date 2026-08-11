@@ -1,6 +1,6 @@
 {
   "name": "@deessejs/fp",
-  "version": "1.1.1",
+  "version": "1.2.1",
   "description": "Functional Programming Utilities for TypeScript",
   "homepage": "https://fp.deessejs.com",
   "repository": {
