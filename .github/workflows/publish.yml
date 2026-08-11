@@ -186,16 +186,16 @@ jobs:
       - name: Create git tag
         run: |
           VER=$(node -p "require('./packages/fp/package.json').version")
+          # If the tag already exists in origin, fail loudly rather than overwrite.
+          # The publish job anti-republish guard should catch this earlier in
+          validate, but defense in depth.
+          if git ls-remote --tags origin "v${VER}" | grep -q .; then
+            echo "::error::Tag v${VER} already exists on origin. Did the previous run partially succeed?"
+            exit 1
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag -a "v${VER}" -m "Release v${VER}"
-          # If the tag already exists (e.g. from a previous partial publish run),
-          # fail loudly rather than overwrite. The publish job anti-republish
-          # guard should catch this earlier in validate, but defense in depth.
-          if git rev-parse "v${VER}" >/dev/null 2>&1; then
-            echo "::error::Tag v${VER} already exists. Did the previous run partially succeed?"
-            exit 1
-          fi
           git push origin "v${VER}"
 
       - name: Create GitHub Release
