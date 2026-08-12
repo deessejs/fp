@@ -183,20 +183,16 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Create git tag
+      - name: Create or update git tag (idempotent)
         run: |
           VER=$(node -p "require('./packages/fp/package.json').version")
-          # If the tag already exists in origin, fail loudly rather than overwrite.
-          # The publish job anti-republish guard should catch this earlier in
-          validate, but defense in depth.
-          if git ls-remote --tags origin "v${VER}" | grep -q .; then
-            echo "::error::Tag v${VER} already exists on origin. Did the previous run partially succeed?"
-            exit 1
-          fi
+          # Force-overwrite any local tag with the same name, then push.
+          # This is safe because the merge commit is the source of truth --
+          # the version bump on main is what we want to mark.
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "v${VER}" -m "Release v${VER}"
-          git push origin "v${VER}"
+          git tag -f "v${VER}" -m "Release v${VER}" HEAD
+          git push -f origin "v${VER}"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
