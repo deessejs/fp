@@ -183,6 +183,10 @@ jobs:
           ref: main
           fetch-depth: 0
 
+      - name: Resolve version
+        id: version
+        run: echo "tag=v$(node -p \"require('./packages/fp/package.json').version\")" >> "$GITHUB_OUTPUT"
+
       - name: Create or update git tag (idempotent)
         run: |
           VER=$(node -p "require('./packages/fp/package.json').version")
@@ -197,5 +201,5 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v$(node -p "require('./packages/fp/package.json').version")
+          tag_name: v${{ steps.version.outputs.tag }}
           generate_release_notes: true
