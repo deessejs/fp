@@ -186,7 +186,7 @@ jobs:
       - name: Resolve version
         id: version
         run: |
-          echo "tag=v$(node -p 'require(\"./packages/fp/package.json\").version')" >> "$GITHUB_OUTPUT"
+          echo "tag=v$(node -p 'require("./packages/fp/package.json").version')" >> "$GITHUB_OUTPUT"
 
       - name: Create or update git tag (idempotent)
         run: |
