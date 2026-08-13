@@ -1,135 +1,166 @@
 /**
  * Result constructors: ok(), err()
+ *
+ * Each factory returns a plain object whose shape satisfies the
+ * discriminated union `Result<T,E>`. Inside the literal, every method
+ * binds `this` to the public `Ok<T,E>` / `Err<T,E>` type — that is the
+ * one annotation that lets short-circuit returns (`return this`)
+ * type-check without chained casts.
  */
 
 import type { Ok, Err, Result } from './types.js';
 import type { Maybe } from '../maybe/types.js';
+import { some, none } from '../maybe/constants.js';
 
 /**
- * Create an Ok result
+ * Create an Ok result.
  *
  * @example
  * ok(10).map(x => x * 2) // Ok(20)
  */
-export function ok<T>(value: T): Ok<T, never> {
-  return {
+export function ok<T, E = never>(value: T): Ok<T, E> {
+  // The first generic is T (the value), the second is E (the error).
+  // `Ok<T, never>` is the default; consumers can widen E by annotating
+  // their factories or chain `.filter(..., fn)` to produce a wider E.
+  const okResult: Ok<T, E> = {
     _tag: 'Ok',
     value,
-    map<B>(fn: (value: T) => B): Result<B, never> {
-      return ok(fn(value));
+    map<B>(this: Ok<T, E>, fn: (value: T) => B): Result<B, E> {
+      return ok<B, E>(fn(this.value));
     },
-    flatMap<B, E2>(fn: (value: T) => Result<B, E2>): Result<B, E2> {
-      return fn(value);
+    flatMap<B, E2>(this: Ok<T, E>, fn: (value: T) => Result<B, E2>): Result<B, E | E2> {
+      return fn(this.value);
     },
-    mapError<E2>(_fn: (error: never) => E2): Result<T, E2> {
+    mapError<E2>(this: Ok<T, E>, _fn: (error: never) => E2): Result<T, E2> {
       return this as unknown as Result<T, E2>;
     },
-    filter(predicate: (value: T) => boolean, _errorFn?: (value: T) => never): Result<T, never> {
-      return predicate(value) ? this : ok(value) as Result<T, never>;
-    },
-    tap(fn: (value: T) => unknown): Result<T, never> {
-      fn(value);
+    filter(
+      this: Ok<T, E>,
+      predicate: (value: T) => boolean,
+      errorFn?: (value: T) => E,
+    ): Result<T, E> {
+      if (predicate(this.value)) return this;
+      if (errorFn) return err<T, E>(errorFn(this.value));
       return this;
     },
-    tapAsync(fn: (value: T) => Promise<unknown>): Promise<Result<T, never>> {
-      return Promise.resolve(fn(value)).then(() => this);
+    tap(this: Ok<T, E>, fn: (value: T) => unknown): Result<T, E> {
+      fn(this.value);
+      return this;
     },
-    flatMapAsync<B, E2>(fn: (value: T) => Promise<Result<B, E2>>): Promise<Result<B, E2>> {
-      return Promise.resolve(fn(value));
+    tapAsync(this: Ok<T, E>, fn: (value: T) => Promise<unknown>): Promise<Result<T, E>> {
+      return Promise.resolve(fn(this.value)).then(() => this);
     },
-    match<U>(handlers: { ok: (value: T) => U; err: (error: never) => U }): U {
-      return handlers.ok(value);
+    flatMapAsync<B, E2>(
+      this: Ok<T, E>,
+      fn: (value: T) => Promise<Result<B, E2>>,
+    ): Promise<Result<B, E | E2>> {
+      return Promise.resolve(fn(this.value));
     },
-    fold<U>(onOk: (value: T) => U, _onErr: (error: never) => U): U {
-      return onOk(value);
+    match<U>(this: Ok<T, E>, handlers: { ok: (value: T) => U; err: (error: E) => U }): U {
+      return handlers.ok(this.value);
     },
-    getOrElse(_defaultValue: T): T {
-      return value;
+    fold<U>(this: Ok<T, E>, onOk: (value: T) => U, _onErr: (error: E) => U): U {
+      return onOk(this.value);
     },
-    getOrThrow(_message?: string): T {
-      return value;
+    getOrElse(this: Ok<T, E>, _defaultValue: T): T {
+      return this.value;
     },
-    getOrNull(): T | null {
-      return value;
+    getOrThrow(this: Ok<T, E>, _message?: string): T {
+      return this.value;
     },
-    getOrUndefined(): T | undefined {
-      return value;
+    getOrNull(this: Ok<T, E>): T | null {
+      return this.value;
     },
-    toMaybe(): Maybe<T> {
-      return { _tag: 'Some', value } as Maybe<T>;
+    getOrUndefined(this: Ok<T, E>): T | undefined {
+      return this.value;
     },
-    toOption(): Maybe<T> {
-      return { _tag: 'Some', value } as Maybe<T>;
+    toMaybe(this: Ok<T, E>): Maybe<T> {
+      return some(this.value);
     },
-    isOk(): this is Ok<T, never> {
+    toOption(this: Ok<T, E>): Maybe<T> {
+      return some(this.value);
+    },
+    isOk(this: Ok<T, E>): this is Ok<T, E> {
       return true;
     },
-    isErr(): this is Err<T, never> {
+    isErr(this: Ok<T, E>): this is Err<T, E> {
       return false;
     },
   };
+  return okResult;
 }
 
 /**
- * Create an Err result
+ * Create an Err result.
  *
  * @example
  * err('error').map(x => x * 2) // Err('error')
  */
-export function err<E>(error: E): Err<never, E> {
-  return {
+export function err<T = never, E = never>(error: E): Err<T, E> {
+  const errResult: Err<T, E> = {
     _tag: 'Err',
     error,
-    map<B>(_fn: (value: never) => B): Result<B, E> {
-      return this as unknown as Err<B, E>;
+    map<B>(this: Err<T, E>, _fn: (value: never) => B): Result<B, E> {
+      return this as unknown as Result<B, E>;
     },
-    flatMap<B, E2>(_fn: (value: never) => Result<B, E2>): Result<B, E | E2> {
-      return this as unknown as Err<B, E | E2>;
+    flatMap<B, E2>(this: Err<T, E>, _fn: (value: never) => Result<B, E2>): Result<B, E | E2> {
+      return this as unknown as Result<B, E | E2>;
     },
-    mapError<E2>(fn: (error: E) => E2): Result<never, E2> {
-      return { _tag: 'Err', error: fn(error), isOk: () => false, isErr: () => true } as Err<never, E2>;
+    mapError<E2>(this: Err<T, E>, fn: (error: E) => E2): Err<T, E2> {
+      return err<T, E2>(fn(this.error));
     },
-    filter(_predicate: (value: never) => boolean, _errorFn?: (value: never) => E): Result<never, E> {
-      return this as Err<never, E>;
-    },
-    tap(_fn: (value: never) => unknown): Result<never, E> {
+    filter(
+      this: Err<T, E>,
+      _predicate: (value: never) => boolean,
+      _errorFn?: (value: never) => E,
+    ): Err<T, E> {
       return this;
     },
-    tapAsync(_fn: (value: never) => Promise<unknown>): Promise<Result<never, E>> {
+    tap(this: Err<T, E>, _fn: (value: never) => unknown): Err<T, E> {
+      return this;
+    },
+    tapAsync(this: Err<T, E>, _fn: (value: never) => Promise<unknown>): Promise<Err<T, E>> {
       return Promise.resolve(this);
     },
-    flatMapAsync<B, E2>(_fn: (value: never) => Promise<Result<B, E2>>): Promise<Result<B, E | E2>> {
+    flatMapAsync<B, E2>(
+      this: Err<T, E>,
+      _fn: (value: never) => Promise<Result<B, E2>>,
+    ): Promise<Result<B, E | E2>> {
+      // Required because Err<T,E> structurally satisfies Result<B,E|E2>
+      // by widening T to the union, but the compiler does not infer it
+      // across two different generic type parameters without classes.
       return Promise.resolve(this as unknown as Err<B, E | E2>);
     },
-    match<U>(handlers: { ok: (value: never) => U; err: (error: E) => U }): U {
-      return handlers.err(error);
+    match<U>(this: Err<T, E>, handlers: { ok: (value: never) => U; err: (error: E) => U }): U {
+      return handlers.err(this.error);
     },
-    fold<U>(_onOk: (value: never) => U, onErr: (error: E) => U): U {
-      return onErr(error);
+    fold<U>(this: Err<T, E>, _onOk: (value: never) => U, onErr: (error: E) => U): U {
+      return onErr(this.error);
     },
-    getOrElse<T>(defaultValue: T): T {
+    getOrElse<U>(this: Err<T, E>, defaultValue: U): T | U {
       return defaultValue;
     },
-    getOrThrow(message?: string): never {
-      throw new Error(message ?? String(error));
+    getOrThrow(this: Err<T, E>, message?: string): never {
+      throw new Error(message ?? String(this.error));
     },
-    getOrNull(): null {
+    getOrNull(this: Err<T, E>): null {
       return null;
     },
-    getOrUndefined(): undefined {
+    getOrUndefined(this: Err<T, E>): undefined {
       return undefined;
     },
-    toMaybe(): Maybe<never> {
-      return { _tag: 'None' } as Maybe<never>;
+    toMaybe(this: Err<T, E>): Maybe<T> {
+      return none as unknown as Maybe<T>;
     },
-    toOption(): Maybe<never> {
-      return { _tag: 'None' } as Maybe<never>;
+    toOption(this: Err<T, E>): Maybe<T> {
+      return none as unknown as Maybe<T>;
     },
-    isOk(): this is Ok<never, E> {
+    isOk(this: Err<T, E>): this is Ok<T, E> {
       return false;
     },
-    isErr(): this is Err<never, E> {
+    isErr(this: Err<T, E>): this is Err<T, E> {
       return true;
     },
   };
+  return errResult;
 }
