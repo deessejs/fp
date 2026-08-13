@@ -82,16 +82,18 @@ err('bad').mapError(e => new Error(e)); // Err(Error('bad'))
 
 ### filter
 
-Returns `Ok` if the predicate passes. Returns the original value (not an error) if it fails.
+Returns `Ok` if the predicate passes. When the predicate fails, behaviour depends on whether `errorFn` is supplied:
 
-<Callout type="warn" title="Note">
-  Unlike many Result implementations, `filter` here does not wrap the value in `Err`. It returns `Ok(value)` unchanged when the predicate fails. This makes it useful for "pass-through" filtering without changing the type.
-</Callout>
+- **With `errorFn`**: returns `Err(errorFn(value))`.
+- **Without `errorFn`**: passes through `Ok(value)` unchanged (useful for "pass-through" filtering without changing the type).
+
+`Err.filter` always passes through.
 
 ```ts
-ok(4).filter(n => n % 2 === 0); // Ok(4) — predicate passes
-ok(3).filter(n => n % 2 === 0);  // Ok(3) — predicate fails, returns original value
-err('bad').filter(n => n > 0);   // Err('bad') — passes through
+ok(4).filter(n => n % 2 === 0);                  // Ok(4) — predicate passes
+ok(3).filter(n => n % 2 === 0);                  // Ok(3) — predicate fails, no errorFn, pass-through
+ok(3).filter(n => n % 2 === 0, n => `odd:${n}`); // Err('odd:3') — errorFn invoked
+err('bad').filter(n => n > 0);                   // Err('bad') — passes through
 ```
 
 ### tap
