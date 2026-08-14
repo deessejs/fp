@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { ok, err, some, none, maybe, unit, isUnit } from '../src/index.js';
+import { ok, err, some, none, maybe, unit, isUnit } from '@deessejs/fp';
+import type { Result } from '@deessejs/fp';
 
 describe('Result', () => {
   describe('ok', () => {
@@ -114,5 +115,44 @@ describe('Unit', () => {
     expect(isUnit(null)).toBe(false);
     expect(isUnit(undefined)).toBe(false);
     expect(isUnit('not a unit')).toBe(false);
+  });
+});
+
+describe('Result.filter honours its type contract', () => {
+  it('returns Err(errorFn(value)) when predicate fails and errorFn is supplied', () => {
+    const r: Result<number, string> = ok<number, string>(3);
+    const filtered = r.filter((n) => n % 2 === 0, (n) => `odd:${n}`);
+    expect(filtered.isErr()).toBe(true);
+    if (filtered.isErr()) expect(filtered.error).toBe('odd:3');
+  });
+
+  it('passes through Ok(value) when predicate passes', () => {
+    const r: Result<number, string> = ok<number, string>(4);
+    const filtered = r.filter((n) => n % 2 === 0, (n) => `odd:${n}`);
+    expect(filtered.isOk()).toBe(true);
+  });
+
+  it('passes through Ok(value) when predicate fails and no errorFn is supplied', () => {
+    const r: Result<number, string> = ok<number, string>(3);
+    const filtered = r.filter((n) => n % 2 === 0);
+    expect(filtered.isOk()).toBe(true);
+  });
+});
+
+describe('Conversion methods preserve chaining', () => {
+  it('Ok.toMaybe().map chains', () => {
+    expect(ok(5).toMaybe().map((n: number) => n + 1).getOrNull()).toBe(6);
+  });
+
+  it('Err.toMaybe() is None', () => {
+    expect(err('e').toMaybe().isNone()).toBe(true);
+  });
+
+  it('Some.toResult chains', () => {
+    expect(some(5).toResult('e').map((n: number) => n + 1).getOrNull()).toBe(6);
+  });
+
+  it('None.toResult(err) is Err', () => {
+    expect(none.toResult('e').isErr()).toBe(true);
   });
 });

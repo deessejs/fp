@@ -1,6 +1,6 @@
 {
   "name": "@deessejs/fp",
-  "version": "1.2.0",
+  "version": "1.2.9",
   "description": "Functional Programming Utilities for TypeScript",
   "homepage": "https://fp.deessejs.com",
   "repository": {
@@ -20,6 +20,7 @@
   "scripts": {
     "test": "vitest",
     "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "build": "tsc -p tsconfig.build.json",
     "type-check": "tsc --noEmit",
     "lint": "eslint src/"
@@ -52,20 +53,12 @@
     "access": "public",
     "provenance": true
   },
-  "peerDependencies": {
-    "@deessejs/errors": ">=1.0.0"
-  },
-  "peerDependenciesMeta": {
-    "@deessejs/errors": {
-      "optional": true
-    }
-  },
   "devDependencies": {
-    "@deessejs/errors": "^1.0.0",
+    "@vitest/coverage-v8": "^4.1.10",
     "@eslint/js": "^9.0.0",
     "eslint": "^9.0.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.61.0",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.10"
   }
 }
