@@ -75,9 +75,6 @@ importers:
 
   packages/fp:
     devDependencies:
-      '@deessejs/errors':
-        specifier: ^1.0.0
-        version: 1.1.1
       '@eslint/js':
         specifier: ^9.0.0
         version: 9.39.4
@@ -235,9 +232,6 @@ packages:
   '@clack/prompts@1.7.0':
     resolution: {integrity: sha512-y7/yvZ2TPAnR9+jnc00klvNNLkJiXFFrQA/hlLCcxA9a2A4zQIOimyFQ9XfwYKiGD1fb5GY8vbKIIgO8d5Tb2A==}
     engines: {node: '>= 20.12.0'}
-
-  '@deessejs/errors@1.1.1':
-    resolution: {integrity: sha512-iq9ei2OgoGqpuO37c7Mp4EBIFOZsyueGQLgavSwUKtExu0oSElWCzTcF568XUWRVAjrjlxWD8vcDyLRFPYSIZQ==}
 
   '@emnapi/core@1.10.0':
     resolution: {integrity: sha512-yq6OkJ4p82CAfPl0u9mQebQHKPJkY7WrIuk205cTYnYe+k2Z8YBh11FrbRG/H6ihirqcacOgl2BIO8oyMQLeXw==}
@@ -4049,10 +4043,6 @@ snapshots:
       fast-string-width: 3.0.2
       fast-wrap-ansi: 0.2.2
       sisteransi: 1.0.5
-
-  '@deessejs/errors@1.1.1':
-    dependencies:
-      '@standard-schema/spec': 1.1.0
 
   '@emnapi/core@1.10.0':
     dependencies:
