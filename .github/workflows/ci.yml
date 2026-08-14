@@ -84,7 +84,7 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm turbo build
-      - run: pnpm turbo test
+      - run: pnpm turbo test --filter=@deessejs/fp
 
   coverage:
     name: Coverage
@@ -107,7 +107,10 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm turbo build
-      - run: pnpm turbo test:coverage
+      # --filter=@deessejs/fp limits the run to this package. The other
+      # workspace packages (apps/web) don't have a test:coverage script,
+      # so an unfiltered turbo run would refuse to execute any task.
+      - run: pnpm turbo test:coverage --filter=@deessejs/fp
 
       - name: Upload coverage artifact
         if: always()
