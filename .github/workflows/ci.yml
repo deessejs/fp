@@ -86,6 +86,49 @@ jobs:
       - run: pnpm turbo build
       - run: pnpm turbo test
 
+  coverage:
+    name: Coverage
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo build
+      - run: pnpm turbo test:coverage
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ github.sha }}
+          path: packages/fp/coverage
+          retention-days: 14
+
+      - name: Render coverage table
+        if: success()
+        id: render
+        run: node .github/scripts/render-coverage.mjs
+
+      - name: Post coverage comment
+        if: success()
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: coverage
+          message: ${{ steps.render.outputs.markdown }}
+
   changeset-check:
     name: Changeset check
     runs-on: ubuntu-latest
@@ -113,7 +156,6 @@ jobs:
         run: |
           BASE=${{ github.event.pull_request.base.ref }}
           git fetch origin "$BASE"
-          # Sanity: the PR head must be downstream of the base ref.
           if ! git merge-base --is-ancestor "origin/$BASE" HEAD; then
             echo "::error::PR head is not ahead of origin/$BASE. Refusing to diff."
             exit 1
