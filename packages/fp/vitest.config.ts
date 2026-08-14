@@ -1,6 +1,22 @@
+import { resolve } from 'node:path';
 import { defineConfig } from 'vitest/config';
 
+// Tests at packages/fp/tests/* import the package as '@deessejs/fp'
+// (per the published-style import). For dev tests we want to resolve
+// that import to the source (not the dist build). The workspace
+// pnpm symlink is in node_modules/@deessejs/fp -> packages/fp, so the
+// package's package.json#exports.import maps '.' to './dist/index.js',
+// which only exists after `pnpm build`. Resolve it to the source
+// for tests, then the regular build pipeline resolves it back to dist.
+const packageRoot = resolve(__dirname);
+const sourceEntry = resolve(packageRoot, 'src/index.ts');
+
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@deessejs/fp': sourceEntry,
+    },
+  },
   test: {
     globals: true,
     environment: 'node',
@@ -9,29 +25,15 @@ export default defineConfig({
       all: true,
       include: ['src/**/*.ts'],
       exclude: [
-        // Type-only files have no runtime.
         'src/**/*.d.ts',
         'src/**/types.ts',
         'src/types.ts',
-        // Re-export barrels have no body.
         'src/**/internal/index.ts',
-        // Sealed classes are tested through the public factories
-        // (rule 0014 forbids importing them through the public API).
         'src/**/*-class.ts',
-        // The barrel that re-exports the public surface.
         'src/index.ts',
       ],
-      // json-summary emits packages/fp/coverage/coverage-summary.json
-      // which the workflow's render-coverage.mjs reads to build the
-      // PR comment. The other reporters (text, html, lcov) are kept
-      // for local dev and the artifact upload.
       reporter: ['text-summary', 'html', 'lcov', 'json', 'json-summary'],
       reportsDirectory: './coverage',
-      // Threshold gate is intentionally disabled in this PR. The full
-      // method × variant test matrix lives in tests/ (a follow-up PR).
-      // This PR adds the coverage reporter and the artifact upload but
-      // does not enforce 100% yet — the gate would block on missing
-      // tests rather than accelerate alignment with the ADR.
       thresholds: {
         lines: 0,
         branches: 0,
