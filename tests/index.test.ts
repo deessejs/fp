@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { ok, err, some, none, maybe, unit, isUnit } from '../src/index.js';
-import type { Result } from '../src/index.js';
+import { ok, err, some, none, maybe, unit, isUnit } from '../../src/index.js';
+import type { Result } from '../../src/index.js';
 
 describe('Result', () => {
   describe('ok', () => {
