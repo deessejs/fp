@@ -1,3 +1,260 @@
-fatal: ambiguous argument 'origin\staging;.github\workflows\publish.yml': unknown revision or path not in the working tree.
-Use '--' to separate paths from revisions, like this:
-'git <command> [<revision>...] -- [<file>...]'
+name: Release
+
+# Monorepo release pipeline for @deessejs/fp. Modeled after the
+# @deessejs/errors release workflow in this same repository
+# (production-tested pattern).
+#
+# Single trigger: pull_request closed (merged into main). The
+# workflow is split into six jobs that run in sequence:
+#
+#   detect → bump → push-bump → validate → publish → release
+#
+# The release is fully automated from the moment a PR merges into
+# main. There is no manual trigger, no manual tag push, no dry-run
+# path. Hotfixes use the same PR-merge flow (hotfix PR targets
+# main directly, see docs/engineering/process/hotfix.md).
+#
+# This workflow is the single Trusted Publisher registered on
+# npmjs.com with workflow filename = "publish.yml" and
+# environment = "release".
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions: {}
+
+# Per-PR concurrency: two PRs closed against main in quick
+# succession run in parallel rather than serializing. The anti-
+# republish guard in `validate` is the safety net for the rare race
+# where both PRs bump to the same version.
+concurrency:
+  group: release-${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  detect:
+    name: Detect changesets
+    runs-on: ubuntu-latest
+    # Triggered on: PR merged into main.
+    if: |
+      github.event_name == 'pull_request'
+      && github.event.pull_request.merged == true
+      && github.event.pull_request.base.ref == 'main'
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      has_changesets: ${{ steps.status.outputs.has_changesets }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Run pnpm changeset status
+        id: status
+        run: |
+          # `pnpm changeset status` exits 0 in two cases:
+          # (a) pending changesets exist, or (b) nothing to do.
+          # Exit 1 only on a config error. Since exit code alone is
+          # ambiguous, we use --output to dump the release plan and
+          # count releases in the changesets array.
+          pnpm changeset status --output status.json >/dev/null
+          RELEASES=$(node -e "const p=require('./status.json'); console.log((p.changesets||[]).reduce((n,c)=>n+(c.releases||[]).length,0))")
+          if [ "$RELEASES" -gt 0 ]; then
+            echo "has_changesets=true" >> "$GITHUB_OUTPUT"
+            echo "Pending changesets found ($RELEASES releases) — proceeding with release."
+          else
+            echo "has_changesets=false" >> "$GITHUB_OUTPUT"
+            echo "No pending changesets — skipping release."
+          fi
+          rm -f status.json
+
+  push-bump:
+    name: Bump and push version to main
+    needs: detect
+    if: needs.detect.outputs.has_changesets == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Run pnpm changeset version
+        run: pnpm changeset version
+
+      - name: Capture new version
+        id: ver
+        run: |
+          VER=$(node -p "require('./packages/fp/package.json').version")
+          echo "version=${VER}" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch origin/main
+        run: git fetch origin main
+
+      - name: Rebase onto origin/main
+        run: |
+          # If origin/main advanced since this workflow started,
+          # rebase the bumped commit (or commits) onto it. A non-fast-
+          # forward push would otherwise fail at git push time.
+          if ! git merge-base --is-ancestor origin/main HEAD; then
+            git rebase origin/main
+          fi
+
+      - name: Commit and push the version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          # If no changes were staged (e.g. empty changeset list),
+          # skip the commit rather than fail.
+          if git diff --cached --quiet; then
+            echo "No version bump to push"
+            exit 0
+          fi
+          git commit -m "chore(release): version packages"
+          git push origin HEAD:main
+
+  validate:
+    name: Validate (build, test, smoke, anti-republish)
+    needs: push-bump
+    runs-on: ubuntu-latest
+    # validate is intentionally outside the release environment:
+    # publishing is gated by the release env on the publish job.
+    # validate only needs id-token: write for the npm-view
+    # anti-republish guard. Build/test/smoke use no cloud creds.
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Anti-republish guard
+        run: |
+          PKG=$(node -p "require('./packages/fp/package.json').name")
+          VER=$(node -p "require('./packages/fp/package.json').version")
+          if npm view "${PKG}@${VER}" version >/dev/null 2>&1; then
+            echo "::error::${PKG}@${VER} is already published"
+            exit 1
+          fi
+
+      - run: pnpm build
+
+      - run: pnpm test
+
+      - name: Smoke test the built artifact
+        run: |
+          node --input-type=module -e "
+            import * as m from './packages/fp/dist/index.js';
+            // Each expected export must exist and be either a
+            // function (constructors ok/err/some/maybe) or an
+            // object sentinel (none is a const object).
+            for (const name of ['ok', 'err', 'some', 'none', 'maybe']) {
+              const t = typeof m[name];
+              if (t !== 'function' && t !== 'object') {
+                throw new Error('expected export missing or wrong type: ' + name + ' (got ' + t + ')');
+              }
+            }
+            console.log('smoke OK');
+          "
+
+  publish:
+    name: Publish
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      # Trusted Publishing requires npm CLI >= 11.5.1; the image
+      # ships with an older npm, so we upgrade explicitly.
+      - run: npm install -g npm@latest
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Publish packages
+        run: pnpm changeset publish --tag latest
+
+  release:
+    name: Git tag and GitHub Release
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Create git tag
+        run: |
+          VER=$(node -p "require('./packages/fp/package.json').version")
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${VER}" -m "Release v${VER}"
+          # If the tag already exists (e.g. from a previous partial publish run),
+          # fail loudly rather than overwrite. The publish job anti-republish
+          # guard should catch this earlier in validate, but defense in depth.
+          if git rev-parse "v${VER}" >/dev/null 2>&1; then
+            echo "::error::Tag v${VER} already exists. Did the previous run partially succeed?"
+            exit 1
+          fi
+          git push origin "v${VER}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v$(node -p "require('./packages/fp/package.json').version")
+          generate_release_notes: true
