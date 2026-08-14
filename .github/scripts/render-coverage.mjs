@@ -1,48 +1,48 @@
 #!/usr/bin/env node
 /**
  * Render coverage-summary.json into a markdown table for the PR
- * comment. Reads packages/fp/coverage/coverage-summary.json (the v8
- * reporter output) and emits a markdown document to stdout. The CI
- * workflow captures that output and posts it as a sticky PR comment.
+ * comment. Reads packages/fp/coverage/coverage-summary.json (produced
+ * by the json-summary reporter) and emits a markdown document to
+ * stdout. The CI workflow captures that output and posts it as a
+ * sticky PR comment.
  *
  * Total row plus one row per file, sorted by file path. Per-file
  * thresholds are 100% on statements / branches / functions / lines
  * (rule 0001 / ADR 0002).
- *
- * Files with no branches (e.g. type-only modules) render the
- * branch column as `n/a` so the table is not misleading.
  */
 
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { resolve, relative, sep } from 'node:path';
 
 const summaryPath = resolve('packages/fp/coverage/coverage-summary.json');
-const summary = JSON.parse(readFileSync(summaryPath, 'utf8'));
+const summary = JSON.parse(readFileSync(summaryPath, "utf8"));
+const repoRoot = resolve(".");
 
-const fmt = (n) => (typeof n === 'number' ? `${n.toFixed(2)}%` : '—');
+const fmt = (entry) => (entry && typeof entry.pct === "number" ? `${entry.pct.toFixed(2)}%` : "—");
 const branchCell = (entry) => {
-  if (!entry || typeof entry.total !== 'number') return '—';
-  if (entry.total === 0) return 'n/a';
-  return fmt(entry.pct);
+  if (!entry || typeof entry.total !== "number") return "—";
+  if (entry.total === 0) return "n/a";
+  return fmt(entry);
 };
 
 const lines = [];
-lines.push('## Coverage report');
-lines.push('');
-lines.push('| File | % Stmts | % Branch | % Funcs | % Lines |');
-lines.push('| --- | ---: | ---: | ---: | ---: |');
+lines.push("## Coverage report");
+lines.push("");
+lines.push("| File | % Stmts | % Branch | % Funcs | % Lines |");
+lines.push("| --- | ---: | ---: | ---: | ---: |");
 
 const total = summary.total ?? {};
-lines.push(`| **Total** | **${fmt(total.statements?.pct)}** | **${branchCell(total.branches)}** | **${fmt(total.functions?.pct)}** | **${fmt(total.lines?.pct)}** |`);
+lines.push(`| **Total** | **${fmt(total.statements)}** | **${fmt(total.branches)}** | **${fmt(total.functions)}** | **${fmt(total.lines)}** |`);
 
 const fileKeys = Object.keys(summary).filter((k) => k !== 'total').sort();
 for (const key of fileKeys) {
   const file = summary[key];
-  lines.push(`| ${key} | ${fmt(file.statements?.pct)} | ${branchCell(file.branches)} | ${fmt(file.functions?.pct)} | ${fmt(file.lines?.pct)} |`);
+  const rel = relative(repoRoot, key).split(sep).join("/");
+  lines.push(`| ${rel} | ${fmt(file.statements)} | ${branchCell(file.branches)} | ${fmt(file.functions)} | ${fmt(file.lines)} |`);
 }
 
-lines.push('');
-lines.push('_Per-file thresholds: 100% on statements / branches / functions / lines. Files with no branches render `n/a` in the Branch column._');
-lines.push('');
+lines.push("");
+lines.push("_Per-file thresholds: 100% on statements / branches / functions / lines (ADR 0002). Files with no branches render `n/a` in the Branch column. The threshold gate is disabled in this PR and lands with the full method × variant test matrix in a follow-up._");
+lines.push("");
 
 process.stdout.write(lines.join('\n'));
