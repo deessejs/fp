@@ -45,4 +45,7 @@ lines.push("");
 lines.push("_Per-file thresholds: 100% on statements / branches / functions / lines (ADR 0002). Files with no branches render `n/a` in the Branch column. The threshold gate is disabled in this PR and lands with the full method × variant test matrix in a follow-up._");
 lines.push("");
 
-process.stdout.write(lines.join('\n'));
+import { writeFileSync } from 'node:fs';
+// Write the comment to a known path so the workflow can pass it
+// via `path:` to the sticky-pull-request-comment action.
+writeFileSync('coverage-comment.md', lines.join('\n'));
