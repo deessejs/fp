@@ -55,6 +55,9 @@ export {
 export type { Unit } from './unit/types.js';
 export { unit, isUnit } from './unit/constants.js';
 
+// Function utilities
+export { pipe, flow, identity, constant, flip, tupled, untupled } from './function/index.js';
+
 // Type utilities
 export { isResult, isMaybe } from './types.js';
 export type { OkType, ErrType, SomeType } from './types.js';
