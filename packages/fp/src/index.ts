@@ -67,6 +67,8 @@ export {
   untupled,
   tuple,
   not,
+  and,
+  or,
   constTrue,
   constFalse,
   constNull,

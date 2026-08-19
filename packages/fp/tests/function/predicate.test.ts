@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { not, type Predicate, type Refinement } from '@deessejs/fp';
+import { not, and, or, type Predicate, type Refinement } from '@deessejs/fp';
 
 describe('Predicate', () => {
   it('narrows the parameter type to A', () => {
@@ -35,5 +35,73 @@ describe('not', () => {
     const isShort = not(isLong);
     expect(isShort('hi')).toBe(true);
     expect(isShort('hello')).toBe(false);
+  });
+});
+
+describe('and', () => {
+  it('returns true when both predicates are true', () => {
+    const isPositive = (n: number) => n > 0;
+    const isEven = (n: number) => n % 2 === 0;
+    const isPositiveEven = and(isPositive, isEven);
+    expect(isPositiveEven(2)).toBe(true);
+  });
+
+  it('returns false when the left predicate is false', () => {
+    const isPositive = (n: number) => n > 0;
+    const isEven = (n: number) => n % 2 === 0;
+    const isPositiveEven = and(isPositive, isEven);
+    expect(isPositiveEven(-2)).toBe(false);
+  });
+
+  it('returns false when the right predicate is false', () => {
+    const isPositive = (n: number) => n > 0;
+    const isEven = (n: number) => n % 2 === 0;
+    const isPositiveEven = and(isPositive, isEven);
+    expect(isPositiveEven(3)).toBe(false);
+  });
+
+  it('short-circuits — right predicate is not called when left is false', () => {
+    let rightCalls = 0;
+    const isPositive = (_n: number) => false;
+    const isEven = (_n: number) => {
+      rightCalls++;
+      return true;
+    };
+    and(isPositive, isEven)(1);
+    expect(rightCalls).toBe(0);
+  });
+});
+
+describe('or', () => {
+  it('returns true when the left predicate is true', () => {
+    const isPositive = (n: number) => n > 0;
+    const isZero = (n: number) => n === 0;
+    const isNonNegative = or(isZero, isPositive);
+    expect(isNonNegative(0)).toBe(true);
+  });
+
+  it('returns true when the right predicate is true', () => {
+    const isPositive = (n: number) => n > 0;
+    const isZero = (n: number) => n === 0;
+    const isNonNegative = or(isZero, isPositive);
+    expect(isNonNegative(5)).toBe(true);
+  });
+
+  it('returns false when both predicates are false', () => {
+    const isPositive = (n: number) => n > 0;
+    const isZero = (n: number) => n === 0;
+    const isNonNegative = or(isZero, isPositive);
+    expect(isNonNegative(-1)).toBe(false);
+  });
+
+  it('short-circuits — right predicate is not called when left is true', () => {
+    let rightCalls = 0;
+    const isPositive = (_n: number) => true;
+    const isEven = (_n: number) => {
+      rightCalls++;
+      return true;
+    };
+    or(isPositive, isEven)(1);
+    expect(rightCalls).toBe(0);
   });
 });
