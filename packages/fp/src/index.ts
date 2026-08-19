@@ -56,7 +56,25 @@ export type { Unit } from './unit/types.js';
 export { unit, isUnit } from './unit/constants.js';
 
 // Function utilities
-export { pipe, flow, identity, constant, flip, tupled, untupled } from './function/index.js';
+export {
+  pipe,
+  flow,
+  compose,
+  identity,
+  constant,
+  flip,
+  tupled,
+  untupled,
+  tuple,
+  not,
+  constTrue,
+  constFalse,
+  constNull,
+  constUndefined,
+  constVoid,
+} from './function/index.js';
+
+export type { Lazy, Predicate, Refinement, Endomorphism, FunctionN } from './function/index.js';
 
 // Type utilities
 export { isResult, isMaybe } from './types.js';
