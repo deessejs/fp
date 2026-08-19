@@ -5,82 +5,53 @@
  */
 
 // Result exports
-export type { Ok, Err, Result } from './result/types.js';
-export { ok, err } from './result/constants.js';
+export type { Ok, Err, Result } from "./result/types.js";
+export { ok, err } from "./result/constants.js";
 export {
-  map,
-  flatMap,
-  mapError,
-  filter,
-  tap,
-  tapAsync,
-  flatMapAsync,
-  match,
-  fold,
-  getOrElse,
-  getOrThrow,
-  getOrNull,
-  getOrUndefined,
-  toMaybe,
-  toOption,
-  isOk,
-  isErr,
-} from './result/functions.js';
+  map, flatMap, mapError, filter, tap, tapAsync, flatMapAsync,
+  match, fold, getOrElse, getOrThrow, getOrNull, getOrUndefined,
+  toMaybe, toOption, isOk, isErr,
+} from "./result/functions.js";
 
 // Maybe exports
-export type { Some, None, Maybe } from './maybe/types.js';
-export { some, none, maybe } from './maybe/constants.js';
+export type { Some, None, Maybe } from "./maybe/types.js";
+export { some, none, maybe } from "./maybe/constants.js";
 export {
-  map as mapMaybe,
-  flatMap as flatMapMaybe,
-  filter as filterMaybe,
-  filterMap,
-  tap as tapMaybe,
-  tapAsync as tapAsyncMaybe,
-  match as matchMaybe,
-  fold as foldMaybe,
-  getOrElse as getOrElseMaybe,
-  getOrThrow as getOrThrowMaybe,
-  getOrNull as getOrNullMaybe,
-  getOrUndefined as getOrUndefinedMaybe,
-  get as getMaybe,
-  toResult,
-  toArray,
-  toIterable,
-  isSome,
-  isNone,
-} from './maybe/functions.js';
+  map as mapMaybe, flatMap as flatMapMaybe, filter as filterMaybe,
+  filterMap, tap as tapMaybe, tapAsync as tapAsyncMaybe,
+  match as matchMaybe, fold as foldMaybe,
+  getOrElse as getOrElseMaybe, getOrThrow as getOrThrowMaybe,
+  getOrNull as getOrNullMaybe, getOrUndefined as getOrUndefinedMaybe,
+  get as getMaybe, toResult, toArray, toIterable,
+  isSome, isNone,
+} from "./maybe/functions.js";
 
 // Unit exports
-export type { Unit } from './unit/types.js';
-export { unit, isUnit } from './unit/constants.js';
+export type { Unit } from "./unit/types.js";
+export { unit, isUnit } from "./unit/constants.js";
 
 // Function utilities
 export {
-  pipe,
-  flow,
-  compose,
-  identity,
-  constant,
-  flip,
-  tupled,
-  untupled,
-  tuple,
-  not,
-  and,
-  or,
-  constTrue,
-  constFalse,
-  constNull,
-  constUndefined,
-  constVoid,
-} from './function/index.js';
-
-export type { Lazy, Predicate, Refinement, Endomorphism, FunctionN } from './function/index.js';
+  pipe, flow, compose, identity, constant, flip,
+  tupled, untupled, tuple, not, and, or,
+  constTrue, constFalse, constNull, constUndefined, constVoid,
+} from "./function/index.js";
+export type { Lazy, Predicate, Refinement, Endomorphism, FunctionN } from "./function/index.js";
 
 // Type utilities
-export { isResult, isMaybe } from './types.js';
-export type { OkType, ErrType, SomeType } from './types.js';
+export { isResult, isMaybe } from "./types.js";
+export type { OkType, ErrType, SomeType } from "./types.js";
 
 // Forward-looking additions are tracked in the ADR under
 // docs/engineering/architecture/decisions/, not as inline TODOs.
+
+// Async utilities
+export {
+  sleep, timeout, TimeoutError, retry,
+  exponential, linear, constantDelay, jitter, queue,
+} from "./async/index.js";
+export type {
+  SleepOptions, RetryConfig,
+  ExponentialOptions, LinearOptions, ConstantDelayOptions, JitterOptions,
+  Queue, QueueConfig, AddOptions,
+} from "./async/index.js";
