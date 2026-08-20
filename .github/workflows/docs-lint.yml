@@ -1,7 +1,12 @@
 name: Docs lint (Vale)
 
 # Runs Vale on the public documentation site only.
-# Scope is intentionally narrow:
+# Scope is intentionally narrow: we install Vale ourselves (the
+# `errata-ai/vale-action` does not support an explicit file list —
+# it falls back to scanning the whole repo) and invoke it with the
+# exact MDX pages we want to lint.
+#
+# Linted pages:
 #   - apps/web/content/docs/{index,getting-started,result,maybe,unit}.mdx
 #
 # Excluded for phase 1:
@@ -48,16 +53,26 @@ jobs:
       - name: Install mdx2vast
         run: npm install -g mdx2vast
 
+      - name: Install Vale
+        run: |
+          set -euo pipefail
+          # Pinned Vale version. The asset name follows the
+          # errata-ai/vale release convention. We extract the `vale`
+          # binary into /usr/local/bin so the next step can call it
+          # directly without going through the action.
+          curl -sSfL \
+            -o /tmp/vale.tar.gz \
+            https://github.com/errata-ai/vale/releases/download/v3.17.1/vale_3.17.1_Linux_64-bit.tar.gz
+          tar -xz -C /usr/local/bin -f /tmp/vale.tar.gz vale
+          vale --version
+
       - name: Run Vale
-        uses: errata-ai/vale-action@v2.1.1
-        with:
-          # Explicit file list keeps Vale from walking the rest of the
-          # repo (notably .claude/agent-memory/*.md, which Vale
-          # mistakes for MDX because of the YAML frontmatter).
-          files: >-
-            apps/web/content/docs/index.mdx
-            apps/web/content/docs/getting-started.mdx
-            apps/web/content/docs/result.mdx
-            apps/web/content/docs/maybe.mdx
+        run: |
+          set -euo pipefail
+          vale \
+            --output=line \
+            apps/web/content/docs/index.mdx \
+            apps/web/content/docs/getting-started.mdx \
+            apps/web/content/docs/result.mdx \
+            apps/web/content/docs/maybe.mdx \
             apps/web/content/docs/unit.mdx
-          reporter: github
