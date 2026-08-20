@@ -1,16 +1,14 @@
 name: Docs lint (Vale)
 
-# Runs Vale on every .mdx file under apps/web/content plus meta.json.
+# Runs Vale on the public documentation site only.
+# Scope: the entire `apps/web/content` directory.
 #
-# Excluded for phase 1:
+# Excluded (because the bundled MDX parser cannot handle them yet):
 #   - apps/web/content/docs/api-reference.mdx
-#     The MDX parser bundled with mdx2vast fails on generic type
-#     parameters that contain commas inside fenced TypeScript code
-#     blocks (e.g. `interface Ok<T, E = never> { ... }`). The parser
-#     sees the comma as an unexpected JSX attribute character. Re-
-#     enabling the file is tracked separately: either bump mdx2vast
-#     to a version that handles generics, or rewrite the offending
-#     blocks in a way that does not trip the parser.
+#     mdx2vast fails on generic type parameters that contain commas
+#     (e.g. `interface Ok<T, E = never> { ... }`). The parser sees the
+#     comma as an unexpected JSX attribute character. Re-enable once
+#     mdx2vast supports it, or rewrite the offending blocks.
 #
 # Out of scope (handled by other tools or processes):
 #   - packages/fp/src/**    (JSDoc; tracked by a follow-up lint:jsdoc script)
@@ -54,15 +52,13 @@ jobs:
       - name: Vale
         uses: vale-cli/vale-action@v3.0.0
         with:
-          files: |
-            [
-              "apps/web/content/docs/index.mdx",
-              "apps/web/content/docs/getting-started.mdx",
-              "apps/web/content/docs/result.mdx",
-              "apps/web/content/docs/maybe.mdx",
-              "apps/web/content/docs/unit.mdx",
-              "apps/web/content/docs/meta.json"
-            ]
+          # Point Vale at the whole directory. Vale walks every file
+          # under apps/web/content and lints it via .vale.ini. The
+          # `filter` input then excludes api-reference.mdx (which the
+          # bundled mdx2vast cannot parse) without changing the
+          # walker.
+          files: apps/web/content
+          filter: '!(apps/web/content/docs/api-reference.mdx)'
           # Pin to the repo's .vale.ini so the action cannot pick up a
           # different config from the runner environment.
           config: .vale.ini
