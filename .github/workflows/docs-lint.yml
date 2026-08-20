@@ -2,10 +2,10 @@ name: Docs lint (Vale)
 
 # Runs Vale on the public documentation site only.
 # Scope is intentionally narrow: we invoke Vale directly so we have
-# full control over which files get walked. vale-action's `files`
-# input does not prevent Vale from also parsing the rest of the
-# repo (notably the .claude/agent-memory/*.md files that have a
-# YAML-like frontmatter Vale mistakes for MDX).
+# full control over which files get walked and which Vale flags we
+# pass. vale-action's `files` input does not prevent Vale from
+# also parsing the rest of the repo (notably .claude/agent-memory/
+# *.md, which has a YAML-like frontmatter Vale mistakes for MDX).
 #
 # Linted pages:
 #   - apps/web/content/docs/{index,getting-started,result,maybe,unit}.mdx
@@ -55,19 +55,13 @@ jobs:
         run: npm install -g mdx2vast
 
       - name: Install Vale
-        run: |
-          set -euo pipefail
-          VERSION=$(curl -sSf https://api.github.com/repos/errata-ai/vale/releases/latest \
-            | grep -o '"tag_name": *"v[^"]*"' \
-            | head -1 \
-            | sed -E 's/.*"v([^"]+)".*/\1/')
-          echo "Installing Vale v${VERSION}"
-          curl -sSfL "https://github.com/errata-ai/vale/releases/download/v${VERSION}/vale_${VERSION}_Linux_64-bit.tar.gz" \
-            | tar -xz -C /usr/local/bin vale
+        uses: jdkato/vale-action@2.2.0
+        with:
+          # Pin to a specific Vale release so the install is reproducible
+          # and we do not depend on GitHub's "latest" endpoint.
+          version: 3.17.1
 
       - name: Run Vale
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           vale \
