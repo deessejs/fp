@@ -1,60 +1,160 @@
 /**
- * Ok variant of Result - represents a successful computation
+ * Result — public type contract.
+ *
+ * The class implementations live in `./internal/`. They are not exported.
+ * The public types are `type` aliases (rule 0012) pointing at the
+ * internal classes.
+ *
+ * @see rule 0014 — Functions Over Classes for Public API.
+ * @see rule 0012 — Prefer `type` Over `interface`.
  */
-export interface Ok<T, E = never> {
-  readonly _tag: 'Ok';
-  readonly value: T;
 
-  // Instance methods
-  map<B>(fn: (value: T) => B): Result<B, E>;
-  flatMap<B, E2>(fn: (value: T) => Result<B, E2>): Result<B, E | E2>;
-  mapError<E2>(_fn: (error: never) => E2): Result<T, E2>;
-  filter(predicate: (value: T) => boolean, _errorFn?: (value: T) => E): Result<T, E>;
-  tap(fn: (value: T) => unknown): Result<T, E>;
-  tapAsync(fn: (value: T) => Promise<unknown>): Promise<Result<T, E>>;
-  flatMapAsync<B, E2>(fn: (value: T) => Promise<Result<B, E2>>): Promise<Result<B, E | E2>>;
-  match<U>(handlers: { ok: (value: T) => U; err: (error: E) => U }): U;
-  fold<U>(onOk: (value: T) => U, _onErr: (error: E) => U): U;
-  getOrElse(_defaultValue: T): T;
-  getOrThrow(_message?: string): T;
-  getOrNull(): T | null;
-  getOrUndefined(): T | undefined;
-  toMaybe(): Maybe<T>;
-  toOption(): Maybe<T>;
-  isOk(): this is Ok<T, E>;
-  isErr(): this is Err<T, E>;
-}
+import type { OkImpl } from './internal/ok-impl.js';
+import type { ErrImpl } from './internal/err-impl.js';
 
 /**
- * Err variant of Result - represents a failed computation
+ * Ok variant of Result — represents a successful computation.
  */
-export interface Err<T = never, E = never> {
-  readonly _tag: 'Err';
-  readonly error: E;
-
-  // Instance methods
-  map<B>(_fn: (value: never) => B): Result<B, E>;
-  flatMap<B, E2>(_fn: (value: never) => Result<B, E2>): Result<B, E | E2>;
-  mapError<E2>(fn: (error: E) => E2): Result<T, E2>;
-  filter(_predicate: (value: never) => boolean, _errorFn?: (value: never) => E): Result<T, E>;
-  tap(_fn: (value: never) => unknown): Result<T, E>;
-  tapAsync(_fn: (value: never) => Promise<unknown>): Promise<Result<T, E>>;
-  flatMapAsync<B, E2>(_fn: (value: never) => Promise<Result<B, E2>>): Promise<Result<B, E | E2>>;
-  match<U>(handlers: { ok: (value: never) => U; err: (error: E) => U }): U;
-  fold<U>(_onOk: (value: never) => U, onErr: (error: E) => U): U;
-  getOrElse(defaultValue: T): T;
-  getOrThrow(message?: string): never;
-  getOrNull(): null;
-  getOrUndefined(): undefined;
-  toMaybe(): Maybe<T>;
-  toOption(): Maybe<T>;
-  isOk(): this is Ok<T, E>;
-  isErr(): this is Err<T, E>;
-}
+export type Ok<T, E = never> = OkImpl<T, E>;
 
 /**
- * Discriminated union of Ok and Err
+ * Err variant of Result — represents a failed computation.
+ */
+export type Err<T = never, E = never> = ErrImpl<T, E>;
+
+/**
+ * Discriminated union of Ok and Err.
  */
 export type Result<T, E> = Ok<T, E> | Err<T, E>;
 
-import type { Maybe } from '../maybe/types.js';
+/**
+ * Wrapper placed in the `error` field of an `Err` when a throwing
+ * function is wrapped with the thunk-only overload of
+ * `fromThrowable` / `fromAsyncThrowable` (no `onError` mapper
+ * supplied).
+ */
+export interface UnhandledException {
+  readonly _tag: 'UnhandledException';
+  readonly cause: unknown;
+}
+
+/**
+ * Configuration passed to {@link attempt}.
+ *
+ * `retry` is reserved for forward compatibility with a future retry
+ * helper; the current implementation performs at most one re-attempt
+ * when `retry.shouldRetry(cause)` returns `true`.
+ */
+export interface AttemptConfig<T> {
+  readonly onSuccess: () => T | Promise<T>;
+  readonly client?: boolean;
+  readonly retry?: RetryConfig<unknown>;
+  readonly normalize?: (e: unknown) => unknown;
+}
+
+/**
+ * The object returned by {@link attempt}.
+ *
+ * - `execute()` returns a {@link Result} carrying the original
+ *   (possibly normalised) error.
+ * - `clientSafe()` returns a {@link Result} where every error is
+ *   mapped to a {@link NormalizedError} safe for HTTP responses.
+ */
+export interface Attempt<T> {
+  execute(): Promise<Result<T, unknown>>;
+  clientSafe(): Promise<Result<T, NormalizedError>>;
+}
+
+/**
+ * Error shape safe for exposing to a public-facing client.
+ *
+ * Built by `clientSafe()` from any thrown value. The `public` flag
+ * distinguishes errors that are intentionally surfaced (4xx) from
+ * errors that escaped and should be hidden behind a 500.
+ */
+export interface NormalizedError {
+  readonly code: string;
+  readonly message: string;
+  readonly status: number;
+  readonly public: boolean;
+}
+
+/**
+ * Retry configuration. Reserved for forward compatibility with a
+ * future retry helper. The current implementation only inspects
+ * `shouldRetry` and performs at most one re-attempt inside
+ * {@link attempt}.
+ */
+export interface RetryConfig<E> {
+  readonly attempts: number;
+  readonly delay: DelayStrategy;
+  readonly onRetry?: (error: E, attempt: number) => void;
+  readonly shouldRetry?: (error: E) => boolean;
+}
+
+/**
+ * Tagged union describing a delay schedule. Reserved for forward
+ * compatibility — no delay helper is shipped yet.
+ */
+export type DelayStrategy =
+  | { readonly kind: 'exponential'; readonly baseMs: number }
+  | { readonly kind: 'linear'; readonly baseMs: number }
+  | { readonly kind: 'constant'; readonly baseMs: number };
+
+/**
+ * Pluggable sink for error events. Used by {@link withReporting}.
+ */
+export interface ErrorReporter {
+  report(error: unknown, context: ErrorContext): void;
+}
+
+/**
+ * Metadata attached to a reported error event.
+ */
+export interface ErrorContext {
+  readonly timestamp: number;
+  readonly operation: string;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+/**
+ * Structured error returned by {@link withReporting} when the
+ * wrapped operation throws. The original cause is preserved in the
+ * `cause` field for debugging, while `message` carries a flat string
+ * safe to render to a caller.
+ */
+export interface ReportableError {
+  readonly _tag: 'ReportableError';
+  readonly message: string;
+  readonly cause?: unknown;
+}
+
+/**
+ * Outcome of {@link classifyError}. `'retryable'` means the caller
+ * should attempt the operation again; `'non-retryable'` means the
+ * caller should propagate the error.
+ */
+export type ErrorClassification = 'retryable' | 'non-retryable';
+
+/**
+ * One entry in the rule list passed to {@link classifyError}.
+ *
+ * `error` is matched against the thrown value with `instanceof`.
+ */
+export interface ClassificationRule {
+  readonly error: ErrorConstructor;
+  readonly classification: ErrorClassification;
+}
+
+/**
+ * TypeScript-friendly `Error` constructor type. Use it for fields
+ * that name an `Error` subclass by reference (e.g. in
+ * {@link ClassificationRule}).
+ *
+ * The parameter list is `unknown[]` because the runtime never
+ * instantiates these constructors — it only matches existing
+ * instances with `instanceof`. `unknown[]` is wider than the
+ * standard `any[]` and satisfies the project's lint policy without
+ * weakening the public contract.
+ */
+export type ErrorConstructor = abstract new (...args: unknown[]) => Error;
