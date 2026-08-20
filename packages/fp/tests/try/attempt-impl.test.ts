@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { attempt, success, failure } from '@deessejs/fp';
+import { attempt } from '@deessejs/fp';
 
 class BoomError extends Error {
   constructor(msg: string) {
@@ -8,12 +8,16 @@ class BoomError extends Error {
   }
 }
 
-describe('attempt', () => {
+/**
+ * Impl-focused coverage. The public surface (factory + return shape)
+ * is already covered by `attempt.test.ts`; this file pins down the
+ * internal class behaviour so that future refactors of the impl do
+ * not silently regress coverage.
+ */
+describe('AttemptImpl', () => {
   describe('execute()', () => {
     it('returns Ok when the operation succeeds', async () => {
-      const a = attempt<number>({
-        onSuccess: () => 10,
-      });
+      const a = attempt<number>({ onSuccess: () => 10 });
       const out = await a.execute();
       expect(out.isOk()).toBe(true);
       if (out.isOk()) expect(out.value).toBe(10);
@@ -93,6 +97,23 @@ describe('attempt', () => {
       expect(attempts).toBe(1);
     });
 
+    it('does not retry when retry config exists but has no shouldRetry predicate', async () => {
+      let attempts = 0;
+      const a = attempt<number>({
+        onSuccess: () => {
+          attempts++;
+          throw new BoomError('boom');
+        },
+        retry: {
+          attempts: 3,
+          delay: { kind: 'exponential', baseMs: 10 },
+        },
+      });
+      const out = await a.execute();
+      expect(attempts).toBe(1);
+      expect(out.isErr()).toBe(true);
+    });
+
     it('retried failure returns Err with the normalised second-attempt cause', async () => {
       let attempts = 0;
       const a = attempt<string>({
@@ -133,13 +154,20 @@ describe('attempt', () => {
       expect(out.isErr()).toBe(true);
       if (out.isErr()) expect(out.error).toBe(second);
     });
+
+    it('runs an async onSuccess', async () => {
+      const a = attempt<number>({
+        onSuccess: async () => 10,
+      });
+      const out = await a.execute();
+      expect(out.isOk()).toBe(true);
+      if (out.isOk()) expect(out.value).toBe(10);
+    });
   });
 
   describe('clientSafe()', () => {
     it('returns Ok on success', async () => {
-      const a = attempt<number>({
-        onSuccess: () => 10,
-      });
+      const a = attempt<number>({ onSuccess: () => 10 });
       const out = await a.clientSafe();
       expect(out.isOk()).toBe(true);
       if (out.isOk()) expect(out.value).toBe(10);
@@ -196,12 +224,72 @@ describe('attempt', () => {
         expect(out.error.code).toBe('INTERNAL_ERROR');
       }
     });
+
+    it('falls back to default when normalize returns a primitive', async () => {
+      const a = attempt<number>({
+        onSuccess: () => {
+          throw new BoomError('boom');
+        },
+        normalize: () => 'string-not-an-error',
+      });
+      const out = await a.clientSafe();
+      expect(out.isErr()).toBe(true);
+      if (out.isErr()) {
+        expect(out.error.code).toBe('INTERNAL_ERROR');
+      }
+    });
+
+    it('falls back to default when normalize returns null', async () => {
+      const a = attempt<number>({
+        onSuccess: () => {
+          throw new BoomError('boom');
+        },
+        normalize: () => null,
+      });
+      const out = await a.clientSafe();
+      expect(out.isErr()).toBe(true);
+      if (out.isErr()) {
+        expect(out.error.code).toBe('INTERNAL_ERROR');
+      }
+    });
+
+    it('runs an async onSuccess and rejects', async () => {
+      const a = attempt<number>({
+        onSuccess: async () => {
+          throw new BoomError('async-boom');
+        },
+      });
+      const out = await a.clientSafe();
+      expect(out.isErr()).toBe(true);
+      if (out.isErr()) {
+        expect(out.error.code).toBe('INTERNAL_ERROR');
+      }
+    });
   });
 
-  describe('cross-module smoke', () => {
-    it('references success and failure', () => {
-      expect(success(1).isSuccess()).toBe(true);
-      expect(failure('e').isFailure()).toBe(true);
+  describe('laziness', () => {
+    it('does not run onSuccess when attempt() is called', () => {
+      let called = false;
+      attempt<number>({
+        onSuccess: () => {
+          called = true;
+          return 10;
+        },
+      });
+      expect(called).toBe(false);
+    });
+
+    it('runs onSuccess on each execute() call', async () => {
+      let calls = 0;
+      const a = attempt<number>({
+        onSuccess: () => {
+          calls++;
+          return calls;
+        },
+      });
+      await a.execute();
+      await a.execute();
+      expect(calls).toBe(2);
     });
   });
 });
