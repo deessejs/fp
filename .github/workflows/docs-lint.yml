@@ -1,0 +1,43 @@
+name: Docs lint (Vale)
+
+# Runs Vale on the public documentation site only.
+# Scope is intentionally narrow:
+#   - apps/web/content/**   (Fumadocs MDX pages)
+# Out of scope for this job (handled by other tools or processes):
+#   - packages/fp/src/**    (JSDoc; tracked by a follow-up lint:jsdoc script)
+#   - docs/engineering/**   (internal docs; Vale can be extended later)
+#   - .changeset/**         (changesets; not prose)
+#   - the GitHub wiki       (separate repository)
+#
+# The job is gated on `paths` so it does not run on PRs that do not
+# touch the public documentation.
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web/content/**'
+      - '.vale.ini'
+      - '.vale/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-lint-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  vale:
+    name: Vale (apps/web/content)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Vale
+        uses: errata-ai/vale-action@v2.1.1
+        with:
+          files: apps/web/content
+          # `reporter` defaults to "console". Switch to "github" once the
+          # job is wired into the required status checks.
+          reporter: github
