@@ -1,34 +1,25 @@
 ---
-'@deessejs/fp': minor
+"@deessejs/fp": minor
 ---
 
-refactor(fp): unify error handling on `Result`, retire the `Try` type
+refactor(fp): unify error handling on Result, retire the Try module
 
-The previous Try module is gone. `Success<T,E>` / `Failure<T,E>` /
-`Try<T,E>` / `UnhandledException` are no longer public types. The
-underlying reasoning is `Result<T,E>` end-to-end — there is one
-machine of states, one set of pipeables (`map`, `flatMap`,
-`mapError`, `match`, `getOrElse`, …), one vocabulary.
+The standalone Try type is gone. Wrapping throwing functions is now part of the Result surface.
 
-What stays at the top level:
+New public API:
+- Result.fromThrowable(thunk or { onSuccess, onError }) returns Result<T, E>
+- Result.fromAsyncThrowable(thunk or { onSuccess, onError }) returns Promise<Result<T, E>>
+- UnhandledException, AttemptConfig, Attempt, NormalizedError, RetryConfig, DelayStrategy, ErrorReporter, ErrorContext, ReportableError, ErrorClassification, ClassificationRule, ErrorConstructor types live on Result
+- attempt, withReporting, classifyError are top-level exports backed by result/ modules
 
-- `Result.fromThrowable` and `Result.fromAsyncThrowable` — the
-  canonical entry points for wrapping throwing functions. Both
-  support two overloads (thunk-only and `{ onSuccess, onError }`)
-  and return `Result<T, E>` directly.
-- `try_` and `tryPromise` — kept as aliases of `fromThrowable` and
-  `fromAsyncThrowable` so consumers who already imported them from
-  `@deessejs/fp` keep working unchanged. They now produce `Result`,
-  not `Try`.
-- `attempt`, `withReporting`, `classifyError` — moved into
-  `result/` and unchanged in shape.
+Removed (no aliases; the previous Try PR was never published to npm):
+- Success, Failure, Try types
+- success, failure factories
+- try_, tryPromise aliases
+- mapTry, flatMapTry, matchTry, isSuccess, isFailure pipeables (and 11 others)
+- _tag Success / Failure discriminants
+- The src/try/ directory entirely
 
-The 15 `*Try` pipeable aliases (`mapTry`, `flatMapTry`,
-`matchTry`, `isSuccess`, `isFailure`, …) are removed. Use the
-unprefixed `Result` pipeables directly.
+Coverage stays at 100% on lines / branches / functions / statements.
 
-Coverage 100% on lines / branches / functions / statements across
-the consolidated surface.
-
-See `docs/internal/product/features/result.md` for the canonical
-documentation.
+See docs/internal/product/features/result.md for the canonical documentation, including a new Wrapping Throwing Functions section.

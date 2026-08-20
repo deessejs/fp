@@ -21,13 +21,13 @@ export type {
   ErrorClassification,
   ClassificationRule,
   ErrorConstructor,
-} from './result/types.js';
+} from "./result/types.js";
 export {
   ok,
   err,
   fromThrowable,
   fromAsyncThrowable,
-} from './result/constants.js';
+} from "./result/constants.js";
 export {
   map,
   flatMap,
@@ -46,17 +46,13 @@ export {
   toOption,
   isOk,
   isErr,
-} from './result/functions.js';
+} from "./result/functions.js";
 
-// Wrapping helpers — top-level aliases preserved for consumers who
-// already imported `try_` / `tryPromise`. New code should prefer the
-// `Result.fromThrowable` / `Result.fromAsyncThrowable` re-exports
-// above; the underlying reasoning is one and the same.
-export { try_, tryPromise } from './try/index.js';
+export { attempt, withReporting, classifyError } from "./result/index.js";
 
 // Maybe exports
-export type { Some, None, Maybe } from './maybe/types.js';
-export { some, none, maybe } from './maybe/constants.js';
+export type { Some, None, Maybe } from "./maybe/types.js";
+export { some, none, maybe } from "./maybe/constants.js";
 export {
   map as mapMaybe,
   flatMap as flatMapMaybe,
@@ -76,11 +72,11 @@ export {
   toIterable,
   isSome,
   isNone,
-} from './maybe/functions.js';
+} from "./maybe/functions.js";
 
 // Unit exports
-export type { Unit } from './unit/types.js';
-export { unit, isUnit } from './unit/constants.js';
+export type { Unit } from "./unit/types.js";
+export { unit, isUnit } from "./unit/constants.js";
 
 // Function utilities
 export {
@@ -101,16 +97,12 @@ export {
   constNull,
   constUndefined,
   constVoid,
-} from './function/index.js';
-
-export type { Lazy, Predicate, Refinement, Endomorphism, FunctionN } from './function/index.js';
-
-// Advanced wrappers (Result-based).
-export { attempt, withReporting, classifyError } from './try/index.js';
+} from "./function/index.js";
+export type { Lazy, Predicate, Refinement, Endomorphism, FunctionN } from "./function/index.js";
 
 // Type utilities
-export { isResult, isMaybe } from './types.js';
-export type { OkType, ErrType, SomeType } from './types.js';
+export { isResult, isMaybe } from "./types.js";
+export type { OkType, ErrType, SomeType } from "./types.js";
 
 // Forward-looking additions are tracked in the ADR under
 // docs/engineering/architecture/decisions/, not as inline TODOs.

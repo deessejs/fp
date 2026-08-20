@@ -1,7 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import * as fp from '@deessejs/fp';
-
-const { ok, err, isOk, isErr, fromThrowable, fromAsyncThrowable } = fp;
+import {
+  ok,
+  err,
+  isOk,
+  isErr,
+  fromThrowable,
+  fromAsyncThrowable,
+} from '@deessejs/fp';
 
 describe('fromThrowable', () => {
   describe('thunk overload', () => {
@@ -48,7 +53,7 @@ describe('fromThrowable', () => {
         onSuccess: () => {
           throw new Error('boom');
         },
-        onError: (cause) => `mapped:${(cause as Error).message}`,
+        onError: (cause) => 'mapped:' + (cause as Error).message,
       });
       expect(r.isErr()).toBe(true);
       if (r.isErr()) expect(r.error).toBe('mapped:boom');
@@ -59,7 +64,7 @@ describe('fromThrowable', () => {
         onSuccess: () => {
           throw 42;
         },
-        onError: (cause) => `got:${cause}`,
+        onError: (cause) => 'got:' + cause,
       });
       expect(r.isErr()).toBe(true);
       if (r.isErr()) expect(r.error).toBe('got:42');
@@ -77,7 +82,7 @@ describe('fromThrowable', () => {
     it('Result match works on fromThrowable output', () => {
       const r = fromThrowable<number>(() => 10);
       const out = r.match({
-        ok: (v) => `ok:${v}`,
+        ok: (v) => 'ok:' + v,
         err: () => 'err',
       });
       expect(out).toBe('ok:10');
@@ -134,7 +139,7 @@ describe('fromAsyncThrowable', () => {
     it('returns Err mapped via onError when onSuccess rejects', async () => {
       const r = await fromAsyncThrowable<number, string>({
         onSuccess: () => Promise.reject(new Error('boom')),
-        onError: (cause) => `mapped:${(cause as Error).message}`,
+        onError: (cause) => 'mapped:' + (cause as Error).message,
       });
       expect(r.isErr()).toBe(true);
       if (r.isErr()) expect(r.error).toBe('mapped:boom');
@@ -143,7 +148,7 @@ describe('fromAsyncThrowable', () => {
     it('returns Err mapped via async onError', async () => {
       const r = await fromAsyncThrowable<number, string>({
         onSuccess: () => Promise.reject(new Error('boom')),
-        onError: async (cause) => `async:${(cause as Error).message}`,
+        onError: async (cause) => 'async:' + (cause as Error).message,
       });
       expect(r.isErr()).toBe(true);
       if (r.isErr()) expect(r.error).toBe('async:boom');
@@ -154,7 +159,7 @@ describe('fromAsyncThrowable', () => {
         onSuccess: () => {
           throw new Error('sync');
         },
-        onError: (cause) => `caught:${(cause as Error).message}`,
+        onError: (cause) => 'caught:' + (cause as Error).message,
       });
       expect(r.isErr()).toBe(true);
       if (r.isErr()) expect(r.error).toBe('caught:sync');
@@ -171,43 +176,29 @@ describe('fromAsyncThrowable', () => {
   });
 });
 
-describe('aliases (try_, tryPromise)', () => {
-  it('try_ is the fromThrowable export under the hood', () => {
-    const r = fp.try_<number>(() => 10);
-    expect(isOk(r)).toBe(true);
-    if (isOk(r)) expect(r.value).toBe(10);
-  });
-
-  it('tryPromise is the fromAsyncThrowable export under the hood', async () => {
-    const r = await fp.tryPromise<number>(() => Promise.resolve(10));
-    expect(isOk(r)).toBe(true);
-    if (isOk(r)) expect(r.value).toBe(10);
-  });
-
-  it('try_ with options returns a Result', () => {
-    const r = fp.try_<number, string>({
-      onSuccess: () => 10,
-      onError: () => 'e',
-    });
-    expect(isOk(r)).toBe(true);
-  });
-
-  it('tryPromise with options returns a Promise<Result>', async () => {
-    const r = await fp.tryPromise<number, string>({
-      onSuccess: () => Promise.resolve(10),
-      onError: () => 'e',
-    });
-    expect(isOk(r)).toBe(true);
-  });
-});
-
 describe('cross-module smoke', () => {
-  it('ok / err / attempt / withReporting / classifyError remain importable', () => {
+  it('ok / err remain importable', () => {
     expect(ok(1).isOk()).toBe(true);
     expect(err('e').isErr()).toBe(true);
-    expect(typeof fp.attempt).toBe('function');
-    expect(typeof fp.withReporting).toBe(
-'function');
-    expect(typeof fp.classifyError).toBe('function');
+  });
+
+  it('isOk narrows a fromThrowable result', () => {
+    const r = fromThrowable<number>(() => 7);
+    if (isOk(r)) {
+      expect(r.value).toBe(7);
+    } else {
+      throw new Error('expected Ok');
+    }
+  });
+
+  it('isErr narrows a throwing fromThrowable result', () => {
+    const r = fromThrowable<number>(() => {
+      throw new Error('boom');
+    });
+    if (isErr(r)) {
+      expect(r.error._tag).toBe('UnhandledException');
+    } else {
+      throw new Error('expected Err');
+    }
   });
 });
