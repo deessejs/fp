@@ -1,13 +1,7 @@
 name: Docs lint (Vale)
 
 # Runs Vale on the public documentation site only.
-# Scope is intentionally narrow: we invoke Vale directly so we have
-# full control over which files get walked and which Vale flags we
-# pass. vale-action's `files` input does not prevent Vale from
-# also parsing the rest of the repo (notably .claude/agent-memory/
-# *.md, which has a YAML-like frontmatter Vale mistakes for MDX).
-#
-# Linted pages:
+# Scope is intentionally narrow:
 #   - apps/web/content/docs/{index,getting-started,result,maybe,unit}.mdx
 #
 # Excluded for phase 1:
@@ -54,20 +48,16 @@ jobs:
       - name: Install mdx2vast
         run: npm install -g mdx2vast
 
-      - name: Install Vale
-        uses: jdkato/vale-action@2.2.0
-        with:
-          # Pin to a specific Vale release so the install is reproducible
-          # and we do not depend on GitHub's "latest" endpoint.
-          version: 3.17.1
-
       - name: Run Vale
-        run: |
-          set -euo pipefail
-          vale \
-            --output=line \
-            apps/web/content/docs/index.mdx \
-            apps/web/content/docs/getting-started.mdx \
-            apps/web/content/docs/result.mdx \
-            apps/web/content/docs/maybe.mdx \
+        uses: errata-ai/vale-action@v2.1.1
+        with:
+          # Explicit file list keeps Vale from walking the rest of the
+          # repo (notably .claude/agent-memory/*.md, which Vale
+          # mistakes for MDX because of the YAML frontmatter).
+          files: >-
+            apps/web/content/docs/index.mdx
+            apps/web/content/docs/getting-started.mdx
+            apps/web/content/docs/result.mdx
+            apps/web/content/docs/maybe.mdx
             apps/web/content/docs/unit.mdx
+          reporter: github
