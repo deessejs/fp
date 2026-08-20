@@ -1,15 +1,8 @@
 name: Docs lint (Vale)
 
-# Runs Vale on the public documentation site only.
-# Scope is intentionally narrow:
-#   - apps/web/content/docs/{index,getting-started,result,maybe,unit}.mdx
-#
-# Excluded for phase 1:
-#   - apps/web/content/docs/api-reference.mdx
-#     The MDX parser bundled with mdx2vast fails on the
-#     `<TypeTable type={...}>` blocks (commas inside JSX attribute
-#     values are not accepted by the current parser version). Re-
-#     enabling it is tracked separately.
+# Runs Vale on every file under apps/web/content.
+# `meta.json` is plain JSON; Vale lints it via the `[*.{md,mdx}]`
+# section by extension matching.
 #
 # Out of scope (handled by other tools or processes):
 #   - packages/fp/src/**    (JSDoc; tracked by a follow-up lint:jsdoc script)
@@ -59,7 +52,9 @@ jobs:
               "apps/web/content/docs/getting-started.mdx",
               "apps/web/content/docs/result.mdx",
               "apps/web/content/docs/maybe.mdx",
-              "apps/web/content/docs/unit.mdx"
+              "apps/web/content/docs/unit.mdx",
+              "apps/web/content/docs/api-reference.mdx",
+              "apps/web/content/docs/meta.json"
             ]
           # Pin to the repo's .vale.ini so the action cannot pick up a
           # different config from the runner environment.
