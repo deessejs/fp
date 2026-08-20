@@ -1,9 +1,11 @@
 /**
- * Result constructors: ok(), err().
+ * Result constructors: ok(), err(), fromThrowable(),
+ * fromAsyncThrowable().
  *
- * Each factory is the only public entry point into the corresponding
- * internal class. Consumers cannot `new OkImpl(...)` directly because
- * the class is not exported.
+ * `ok` and `err` are the only public entry points into the
+ * `OkImpl` / `ErrImpl` classes. `fromThrowable` and
+ * `fromAsyncThrowable` are thin wrappers that catch thrown values
+ * and surface them as `Err`.
  *
  * @see rule 0014 — Functions Over Classes for Public API.
  */
@@ -11,6 +13,8 @@
 import type { Ok, Err } from './types.js';
 import { OkImpl } from './internal/ok-impl.js';
 import { ErrImpl } from './internal/err-impl.js';
+
+export { fromThrowable, fromAsyncThrowable } from './wrapping.js';
 
 /**
  * Create an Ok result.

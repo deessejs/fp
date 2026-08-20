@@ -5,8 +5,29 @@
  */
 
 // Result exports
-export type { Ok, Err, Result } from './result/types.js';
-export { ok, err } from './result/constants.js';
+export type {
+  Ok,
+  Err,
+  Result,
+  UnhandledException,
+  AttemptConfig,
+  Attempt,
+  NormalizedError,
+  RetryConfig,
+  DelayStrategy,
+  ErrorReporter,
+  ErrorContext,
+  ReportableError,
+  ErrorClassification,
+  ClassificationRule,
+  ErrorConstructor,
+} from "./result/types.js";
+export {
+  ok,
+  err,
+  fromThrowable,
+  fromAsyncThrowable,
+} from "./result/constants.js";
 export {
   map,
   flatMap,
@@ -25,11 +46,13 @@ export {
   toOption,
   isOk,
   isErr,
-} from './result/functions.js';
+} from "./result/functions.js";
+
+export { attempt, withReporting, classifyError } from "./result/index.js";
 
 // Maybe exports
-export type { Some, None, Maybe } from './maybe/types.js';
-export { some, none, maybe } from './maybe/constants.js';
+export type { Some, None, Maybe } from "./maybe/types.js";
+export { some, none, maybe } from "./maybe/constants.js";
 export {
   map as mapMaybe,
   flatMap as flatMapMaybe,
@@ -49,11 +72,11 @@ export {
   toIterable,
   isSome,
   isNone,
-} from './maybe/functions.js';
+} from "./maybe/functions.js";
 
 // Unit exports
-export type { Unit } from './unit/types.js';
-export { unit, isUnit } from './unit/constants.js';
+export type { Unit } from "./unit/types.js";
+export { unit, isUnit } from "./unit/constants.js";
 
 // Function utilities
 export {
@@ -74,13 +97,12 @@ export {
   constNull,
   constUndefined,
   constVoid,
-} from './function/index.js';
-
-export type { Lazy, Predicate, Refinement, Endomorphism, FunctionN } from './function/index.js';
+} from "./function/index.js";
+export type { Lazy, Predicate, Refinement, Endomorphism, FunctionN } from "./function/index.js";
 
 // Type utilities
-export { isResult, isMaybe } from './types.js';
-export type { OkType, ErrType, SomeType } from './types.js';
+export { isResult, isMaybe } from "./types.js";
+export type { OkType, ErrType, SomeType } from "./types.js";
 
 // Forward-looking additions are tracked in the ADR under
 // docs/engineering/architecture/decisions/, not as inline TODOs.

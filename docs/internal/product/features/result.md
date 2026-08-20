@@ -517,4 +517,137 @@ function deserialize<T, E>(value: unknown): Result<T, E | DeserializationError>;
 
 // Partition array of Results
 function partition<T, E>(results: readonly Result<T, E>[]): [T[], E[]];
+```\n## Wrapping Throwing Functions\n\nResult is also the home for wrapping throwing code. The fromThrowable and fromAsyncThrowable factories catch exceptions and surface them as Err, so every throwing boundary in your codebase becomes a typed Result<T, E>.\n\n### fromThrowable\n\n```typescript\nfunction fromThrowable<T>(thunk: () => T): Result<T, UnhandledException>;\nfunction fromThrowable<T, E>(options: {\n  onSuccess: () => T;\n  onError: (cause: unknown) => E;\n}): Result<T, E>;\n```\n\nTwo overloads:\n\n- fromThrowable(thunk) â€” captures any thrown value into an UnhandledException carrying the original cause.\n- fromThrowable({ onSuccess, onError }) â€” runs onSuccess inside a try/catch; thrown values are mapped through onError.\n\n```typescript\nimport { fromThrowable, ok, err, getOrElse } from "@deessejs/fp";\n\nconst config = getOrElse(defaultConfig)(\n  fromThrowable<Config, Error>({\n    onSuccess: () => readConfigSync(path),\n    onError: (e) => e instanceof Error ? e : new Error(String(e)),\n  }),\n);\n```\n\n### fromAsyncThrowable\n\n```typescript\nfunction fromAsyncThrowable<T>(thunk: () => Promise<T>): Promise<Result<T, UnhandledException>>;\nfunction fromAsyncThrowable<T, E>(options: {\n  onSuccess: () => Promise<T>;\n  onError: (cause: unknown) => E | Promise<E>;\n}): Promise<Result<T, E>>;\n```\n\nSame shape, async. Rejects and sync throws are captured; the onError mapper may itself return a Promise.\n\n```typescript\nimport { pipe, map, getOrElse, fromAsyncThrowable } from "@deessejs/fp";\n\nconst templates = await pipe(\n  fromAsyncThrowable(() => orpc.templates.list(undefined, liveCache)),\n  map((list) => list.templates),\n  getOrElse([]),\n);\n```\n\n### UnhandledException\n\n```typescript\ninterface UnhandledException {\n  readonly _tag: "UnhandledException";\n  readonly cause: unknown;\n}\n```\n\nWrapper placed in the Err.error field when the thunk-only overload of fromThrowable / fromAsyncThrowable is used and no onError mapper is supplied. The original thrown value is preserved in cause.\n\n### attempt\n\n```typescript\nfunction attempt<T>(config: AttemptConfig<T>): Attempt<T>;\n\ninterface AttemptConfig<T> {\n  readonly onSuccess: () => T | Promise<T>;\n  readonly retry?: RetryConfig<unknown>;\n  readonly normalize?: (e: unknown) => unknown;\n}\n\ninterface Attempt<T> {\n  execute(): Promise<Result<T, unknown>>;\n  clientSafe(): Promise<Result<T, NormalizedError>>;\n}\n```\n\nA lazy wrapper around a throwing operation. attempt() does not invoke onSuccess; the wrapped operation runs only when execute() or clientSafe() is called. A single re-attempt is performed when config.retry.shouldRetry(cause) returns true. clientSafe() returns Result<T, NormalizedError> with a safe-shape error suitable for HTTP responses.\n\n### withReporting\n\n```typescript\nfunction withReporting<T>(\n  onSuccess: () => T | Promise<T>,\n  operationName: string,\n  reporter: ErrorReporter,\n  metadata?: Readonly<Record<string, unknown>>,\n): Promise<Result<T, ReportableError>>;\n\ninterface ErrorReporter {\n  report(error: unknown, context: ErrorContext): void;\n}\ninterface ErrorContext {\n  readonly timestamp: number;\n  readonly operation: string;\n  readonly metadata?: Readonly<Record<string, unknown>>;\n}\ninterface ReportableError {\n  readonly _tag: "ReportableError";\n  readonly message: string;\n  readonly cause?: unknown;\n}\n```\n\nWraps a sync or async operation. On failure, the original cause is forwarded to the ErrorReporter, and a Result<T, ReportableError> is returned. The ReportableError preserves the original cause in its cause field.\n\n### classifyError\n\n```typescript\nfunction classifyError(\n  e: unknown,\n  rules: ClassificationRule[],\n): ErrorClassification;\n\ntype ErrorClassification = "retryable" | "non-retryable";\n\ninterface ClassificationRule {\n  readonly error: ErrorConstructor;\n  readonly classification: ErrorClassification;\n}\n\ntype ErrorConstructor = abstract new (...args: unknown[]) => Error;\n```\n\nMatches a thrown value against a list of Error constructors with instanceof and returns the classification of the first matching rule, or non-retryable when the value is not an Error or no rule matches.\n'
+echo "result.md: $(wc -l < /c/Users/dpereira/.t3/worktrees/fp/t3code-ca972007/docs/internal/product/features/result.md) lines"
+APPEND_EOF_DUMMY
+echo "result.md: $(wc -l < /c/Users/dpereira/.t3/worktrees/fp/t3code-ca972007/docs/internal/product/features/result.md) lines"
+
+
+## Wrapping Throwing Functions
+
+Result is also the home for wrapping throwing code. The fromThrowable and fromAsyncThrowable factories catch exceptions and surface them as Err, so every throwing boundary in your codebase becomes a typed Result<T, E>.
+
+### fromThrowable
+
+```typescript
+function fromThrowable<T>(thunk: () => T): Result<T, UnhandledException>;
+function fromThrowable<T, E>(options: {
+  onSuccess: () => T;
+  onError: (cause: unknown) => E;
+}): Result<T, E>;
 ```
+
+Two overloads:
+
+- fromThrowable(thunk) — captures any thrown value into an UnhandledException carrying the original cause.
+- fromThrowable({ onSuccess, onError }) — runs onSuccess inside a try/catch; thrown values are mapped through onError.
+
+```typescript
+import { fromThrowable, ok, err, getOrElse } from "@deessejs/fp";
+
+const config = getOrElse(defaultConfig)(
+  fromThrowable<Config, Error>({
+    onSuccess: () => readConfigSync(path),
+    onError: (e) => e instanceof Error ? e : new Error(String(e)),
+  }),
+);
+```
+
+### fromAsyncThrowable
+
+```typescript
+function fromAsyncThrowable<T>(thunk: () => Promise<T>): Promise<Result<T, UnhandledException>>;
+function fromAsyncThrowable<T, E>(options: {
+  onSuccess: () => Promise<T>;
+  onError: (cause: unknown) => E | Promise<E>;
+}): Promise<Result<T, E>>;
+```
+
+Same shape, async. Rejects and sync throws are captured; the onError mapper may itself return a Promise.
+
+```typescript
+import { pipe, map, getOrElse, fromAsyncThrowable } from "@deessejs/fp";
+
+const templates = await pipe(
+  fromAsyncThrowable(() => orpc.templates.list(undefined, liveCache)),
+  map((list) => list.templates),
+  getOrElse([]),
+);
+```
+
+### UnhandledException
+
+```typescript
+interface UnhandledException {
+  readonly _tag: "UnhandledException";
+  readonly cause: unknown;
+}
+```
+
+Wrapper placed in the Err.error field when the thunk-only overload of fromThrowable / fromAsyncThrowable is used and no onError mapper is supplied. The original thrown value is preserved in cause.
+
+### attempt
+
+```typescript
+function attempt<T>(config: AttemptConfig<T>): Attempt<T>;
+
+interface AttemptConfig<T> {
+  readonly onSuccess: () => T | Promise<T>;
+  readonly retry?: RetryConfig<unknown>;
+  readonly normalize?: (e: unknown) => unknown;
+}
+
+interface Attempt<T> {
+  execute(): Promise<Result<T, unknown>>;
+  clientSafe(): Promise<Result<T, NormalizedError>>;
+}
+```
+
+A lazy wrapper around a throwing operation. attempt() does not invoke onSuccess; the wrapped operation runs only when execute() or clientSafe() is called. A single re-attempt is performed when config.retry.shouldRetry(cause) returns true. clientSafe() returns Result<T, NormalizedError> with a safe-shape error suitable for HTTP responses.
+
+### withReporting
+
+```typescript
+function withReporting<T>(
+  onSuccess: () => T | Promise<T>,
+  operationName: string,
+  reporter: ErrorReporter,
+  metadata?: Readonly<Record<string, unknown>>,
+): Promise<Result<T, ReportableError>>;
+
+interface ErrorReporter {
+  report(error: unknown, context: ErrorContext): void;
+}
+interface ErrorContext {
+  readonly timestamp: number;
+  readonly operation: string;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+interface ReportableError {
+  readonly _tag: "ReportableError";
+  readonly message: string;
+  readonly cause?: unknown;
+}
+```
+
+Wraps a sync or async operation. On failure, the original cause is forwarded to the ErrorReporter, and a Result<T, ReportableError> is returned. The ReportableError preserves the original cause in its cause field.
+
+### classifyError
+
+```typescript
+function classifyError(
+  e: unknown,
+  rules: ClassificationRule[],
+): ErrorClassification;
+
+type ErrorClassification = "retryable" | "non-retryable";
+
+interface ClassificationRule {
+  readonly error: ErrorConstructor;
+  readonly classification: ErrorClassification;
+}
+
+type ErrorConstructor = abstract new (...args: unknown[]) => Error;
+```
+
+Matches a thrown value against a list of Error constructors with instanceof and returns the classification of the first matching rule, or non-retryable when the value is not an Error or no rule matches.
