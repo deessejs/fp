@@ -34,10 +34,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Vale 3.x needs an external parser for MDX files. We install
+      # `mdx2vast` (the official Vale companion) and point Vale at it
+      # via `vale_flags`. Without this step, the lint fails with
+      # `mdx2vast not found` as soon as it hits the first .mdx file.
+      - name: Install mdx2vast
+        run: npm install -g mdx2vast
+
       - name: Run Vale
         uses: errata-ai/vale-action@v2.1.1
         with:
           files: apps/web/content
-          # `reporter` defaults to "console". Switch to "github" once the
-          # job is wired into the required status checks.
           reporter: github
+          vale_flags: "--config=$(pwd)/.vale.ini"
