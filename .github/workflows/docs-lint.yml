@@ -3,13 +3,14 @@ name: Docs lint (Vale)
 # Runs Vale on the public documentation site only.
 # Scope: the entire `apps/web/content` directory.
 #
-# Excluded (because the bundled MDX parser cannot handle them yet):
+# Excluded (because the bundled MDX parser cannot handle it yet):
 #   - apps/web/content/docs/api-reference.mdx
 #     mdx2vast fails on generic type parameters that contain commas
 #     (e.g. `interface Ok<T, E = never> { ... }`). The parser sees the
 #     comma as an unexpected JSX attribute character. Re-enable once
 #     mdx2vast supports it, or rewrite the offending blocks. The
-#     exclusion lives in `.vale.ini` (`IgnoredPaths`), not here.
+#     exclusion lives in `.vale.ini` (`[!api-reference.mdx]` block),
+#     not here.
 #
 # Out of scope (handled by other tools or processes):
 #   - packages/fp/src/**    (JSDoc; tracked by a follow-up lint:jsdoc script)
