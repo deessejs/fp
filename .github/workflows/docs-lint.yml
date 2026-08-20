@@ -1,15 +1,14 @@
 name: Docs lint (Vale)
 
 # Runs Vale on the public documentation site only.
-# Scope is intentionally narrow: we lint each page explicitly so the
-# MDX parser does not have to walk files that fail to parse.
+# Scope is intentionally narrow: we invoke Vale directly so we have
+# full control over which files get walked. vale-action's `files`
+# input does not prevent Vale from also parsing the rest of the
+# repo (notably the .claude/agent-memory/*.md files that have a
+# YAML-like frontmatter Vale mistakes for MDX).
 #
 # Linted pages:
-#   - apps/web/content/docs/index.mdx
-#   - apps/web/content/docs/getting-started.mdx
-#   - apps/web/content/docs/result.mdx
-#   - apps/web/content/docs/maybe.mdx
-#   - apps/web/content/docs/unit.mdx
+#   - apps/web/content/docs/{index,getting-started,result,maybe,unit}.mdx
 #
 # Excluded for phase 1:
 #   - apps/web/content/docs/api-reference.mdx
@@ -55,13 +54,26 @@ jobs:
       - name: Install mdx2vast
         run: npm install -g mdx2vast
 
+      - name: Install Vale
+        run: |
+          set -euo pipefail
+          VERSION=$(curl -sSf https://api.github.com/repos/errata-ai/vale/releases/latest \
+            | grep -o '"tag_name": *"v[^"]*"' \
+            | head -1 \
+            | sed -E 's/.*"v([^"]+)".*/\1/')
+          echo "Installing Vale v${VERSION}"
+          curl -sSfL "https://github.com/errata-ai/vale/releases/download/v${VERSION}/vale_${VERSION}_Linux_64-bit.tar.gz" \
+            | tar -xz -C /usr/local/bin vale
+
       - name: Run Vale
-        uses: errata-ai/vale-action@v2.1.1
-        with:
-          files: >-
-            apps/web/content/docs/index.mdx
-            apps/web/content/docs/getting-started.mdx
-            apps/web/content/docs/result.mdx
-            apps/web/content/docs/maybe.mdx
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          vale \
+            --output=line \
+            apps/web/content/docs/index.mdx \
+            apps/web/content/docs/getting-started.mdx \
+            apps/web/content/docs/result.mdx \
+            apps/web/content/docs/maybe.mdx \
             apps/web/content/docs/unit.mdx
-          reporter: github
