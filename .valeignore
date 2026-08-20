@@ -1,0 +1,9 @@
+# Paths Vale should skip, relative to the project root.
+# One pattern per line, glob-style.
+#
+# apps/web/content/docs/api-reference.mdx is excluded because the
+# MDX parser bundled with mdx2vast fails on generic type parameters
+# that contain commas (e.g. `interface Ok<T, E = never> { ... }`).
+# Re-enable once mdx2vast supports generics, or rewrite the
+# offending blocks.
+apps/web/content/docs/api-reference.mdx
