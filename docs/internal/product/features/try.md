@@ -1,27 +1,47 @@
 # Try
 
-Wraps synchronous or asynchronous operations that may throw. Converts exceptions into `Result`.
+Wraps synchronous or asynchronous operations that may throw, converting
+exceptions into a `Try<T, E>` value. The error is part of the type
+signature, so callers can see every failure mode without reading the
+implementation.
 
 ## Why Try?
 
-Never let exceptions escape silently. Every throwing function should be wrapped with `try_` or `tryPromise`.
+Never let exceptions escape silently. Every throwing function should be
+wrapped with `try_` or `tryPromise` before it crosses a trust
+boundary.
 
 ```typescript
-// Without Try - exception might slip through
-function parseConfig(json: string) {
+// Without Try — exceptions may slip through
+function parseConfig(json: string): AppConfig {
   return JSON.parse(json); // throws on invalid JSON
 }
 
-// With Try - errors are explicit
-function parseConfig(json: string) {
-  return try_(() => JSON.parse(json));
+// With Try — errors are explicit in the type
+function parseConfig(json: string): Try<AppConfig, ParseError> {
+  return try_({
+    onSuccess: () => JSON.parse(json) as AppConfig,
+    onError: (cause) => ParseError({ cause }),
+  });
 }
 ```
 
 ## Installation
 
 ```typescript
-import { try_, tryPromise } from '@deessejs/fp';
+import {
+  try_,
+  tryPromise,
+  attempt,
+  withReporting,
+  classifyError,
+  success,
+  failure,
+  mapTry,
+  flatMapTry,
+  matchTry,
+  toResultTry,
+} from '@deessejs/fp';
 ```
 
 ## Real-World Examples
@@ -29,7 +49,7 @@ import { try_, tryPromise } from '@deessejs/fp';
 ### JSON Configuration File
 
 ```typescript
-import { try_, tryPromise } from '@deessejs/fp';
+import { try_, tryPromise, matchTry } from '@deessejs/fp';
 import { error } from '@deessejs/errors';
 
 const ConfigError = error({
@@ -44,14 +64,22 @@ const ParseError = error({
 
 // Read and parse config file
 async function loadConfig(path: string): Promise<Result<AppConfig, ConfigError>> {
-  return tryPromise(() => fs.readFile(path, 'utf-8'))
-    .mapError(e => ConfigError({ reason: `Cannot read ${path}: ${e}` }))
-    .flatMap(content => try_({
-      try: () => JSON.parse(content) as unknown,
-      catch: e => ParseError({ cause: e }),
-    }))
-    .map(data => validateConfigSchema(data))
-    .mapError(e => ConfigError({ reason: `Invalid config: ${e.message}` }));
+  const content = await tryPromise(() => fs.readFile(path, 'utf-8'));
+  const parsed = pipe(
+    content,
+    flatMapTry((raw) =>
+      try_({
+        onSuccess: () => JSON.parse(raw) as unknown,
+        onError: (cause) => ParseError({ cause }),
+      }),
+    ),
+  );
+  return pipe(
+    parsed,
+    toResultTry(),
+    map((data) => validateConfigSchema(data)),
+    mapError((e) => ConfigError({ reason: `Invalid config: ${e.message}` })),
+  );
 }
 
 // Validate schema
@@ -59,20 +87,16 @@ function validateConfigSchema(data: unknown): Result<AppConfig, ConfigError> {
   if (!data || typeof data !== 'object') {
     return err(ConfigError({ reason: 'Config must be an object' }));
   }
-
   const obj = data as Record<string, unknown>;
-
   if (typeof obj.port !== 'number') {
     return err(ConfigError({ reason: 'port must be a number' }));
   }
-
   return ok(obj as AppConfig);
 }
 
 // Usage
 app.start(async () => {
   const config = await loadConfig('./config.json');
-
   config.match({
     ok: (cfg) => {
       app.listen(cfg.port);
@@ -86,10 +110,10 @@ app.start(async () => {
 });
 ```
 
-### API Request with Error Handling
+### API Request with Typed Error Handling
 
 ```typescript
-import { tryPromise, retry, exponential, timeout } from '@deessejs/fp';
+import { tryPromise, withReporting } from '@deessejs/fp';
 import { error } from '@deessejs/errors';
 
 const ApiError = error({
@@ -102,53 +126,45 @@ const NetworkError = error({
   message: 'Network error: {reason}',
 });
 
-// Robust API client
 async function apiRequest<T>(
   url: string,
-  options?: RequestInit
+  options?: RequestInit,
 ): Promise<Result<T, ApiError | NetworkError>> {
-  const robustFetch = retry({
-    attempts: 3,
-    delay: exponential(100),
-    shouldRetry: (e) => e.message.includes('ECONNRESET'),
-  });
-
-  return timeout(10000, () =>
-    robustFetch(() => fetch(url, options))
-  ).mapError(e => {
-    if (e instanceof TimeoutError) {
-      return NetworkError({ reason: 'Request timed out' });
-    }
-    return NetworkError({ reason: e.message });
-  }).flatMap(async response => {
-    if (!response.ok) {
-      const body = await response.text().catch(() => 'Unknown error');
-      return err(ApiError({ cause: `HTTP ${response.status}: ${body}` }));
-    }
-
-    return tryPromise(() => response.json() as Promise<T>)
-      .mapError(e => ApiError({ cause: e }));
-  });
+  const fetched = await tryPromise(() => fetch(url, options));
+  return pipe(
+    fetched,
+    flatMapTry(async (response) => {
+      if (!response.ok) {
+        const body = await response.text().catch(() => 'Unknown error');
+        return err<T, ApiError | NetworkError>(
+          ApiError({ cause: `HTTP ${response.status}: ${body}` }),
+        );
+      }
+      const json = await tryPromise(() => response.json() as Promise<T>);
+      return pipe(
+        json,
+        mapTry((value) => value),
+        toResultTry(),
+        mapError((e) => ApiError({ cause: e })),
+      );
+    }),
+  );
 }
 
-// Get user with error handling
 async function getUser(userId: string): Promise<Result<User, ApiError | NetworkError>> {
   return apiRequest<User>(`/api/users/${userId}`);
 }
 
-// Usage
 app.get('/users/:id', async (req, res) => {
-  const result = await getUser(req.params.id);
-
+  const result = await withReporting(
+    () => getUser(req.params.id),
+    'getUser',
+    { report: (e, ctx) => metrics.increment('error', { op: ctx.operation }) },
+    { userId: req.params.id },
+  );
   result.match({
     ok: (user) => res.json(user),
-    err: (e) => {
-      if (is(e, NetworkError)) {
-        res.status(503).json({ error: 'Service unavailable' });
-      } else {
-        res.status(500).json({ error: 'Internal error' });
-      }
-    },
+    err: (e) => res.status(500).json({ error: 'Internal error' }),
   });
 });
 ```
@@ -156,7 +172,7 @@ app.get('/users/:id', async (req, res) => {
 ### Database Operations
 
 ```typescript
-import { try_, tryPromise } from '@deessejs/fp';
+import { tryPromise } from '@deessejs/fp';
 import { error } from '@deessejs/errors';
 
 const DatabaseError = error({
@@ -169,419 +185,62 @@ const QueryError = error({
   message: 'Query error: {reason}',
 });
 
-// Safe database query
 async function safeQuery<T>(
   query: string,
-  params?: unknown[]
-): Promise<Result<T[], DatabaseError>> {
-  return tryPromise(() => db.query(query, params))
-    .mapError(e => DatabaseError({ cause: e }));
+  params?: unknown[],
+): Promise<Result<T, DatabaseError>> {
+  const result = await tryPromise({
+    onSuccess: () => db.query(query, params),
+    onError: (e) => DatabaseError({ cause: e }),
+  });
+  return toResultTry()(result);
 }
 
-// Safe transaction
+// Safe transaction with explicit cleanup on failure
 async function safeTransaction<T>(
-  fn: (client: DbClient) => Promise<T>
+  fn: (client: DbClient) => Promise<T>,
 ): Promise<Result<T, DatabaseError>> {
-  return tryPromise(async () => {
-    const client = await db.connect();
-    try {
-      const result = await fn(client);
-      await client.commit();
-      return result;
-    } catch (e) {
-      await client.rollback();
-      throw e;
-    } finally {
-      client.release();
-    }
-  }).mapError(e => DatabaseError({ cause: e }));
+  const attempted = await tryPromise({
+    onSuccess: async () => {
+      const client = await db.connect();
+      try {
+        const result = await fn(client);
+        await client.commit();
+        return result;
+      } catch (e) {
+        await client.rollback();
+        throw e;
+      } finally {
+        client.release();
+      }
+    },
+    onError: (e) => DatabaseError({ cause: e }),
+  });
+  return toResultTry()(attempted);
 }
 
 // Safe insert with validation
 async function insertUser(
-  data: unknown
+  data: unknown,
 ): Promise<Result<User, DatabaseError | QueryError>> {
-  return try_({
-    try: () => validateUserData(data),
-    catch: (e) => QueryError({ reason: e.message }),
-  }).flatMap(validData =>
-    safeQuery<User>(
+  const validated = try_({
+    onSuccess: () => validateUserData(data),
+    onError: (e) => QueryError({ reason: e.message }),
+  });
+  return pipe(
+    validated,
+    flatMapTry((valid) => safeQuery<User>(
       'INSERT INTO users (email, name) VALUES ($1, $2) RETURNING *',
-      [validData.email, validData.name]
-    ).map(rows => rows[0])
+      [valid.email, valid.name],
+    ).then((r) => (r.isOk() ? ok<User, DatabaseError | QueryError>(r.value[0]) : r))),
   );
 }
-
-// Usage
-app.post('/users', async (req, res) => {
-  const result = await insertUser(req.body);
-
-  result.match({
-    ok: (user) => res.status(201).json(user),
-    err: (e) => {
-      if (is(e, QueryError)) {
-        res.status(400).json({ error: e.message });
-      } else {
-        res.status(500).json({ error: 'Database error' });
-      }
-    },
-  });
-});
-```
-
-### Client-Safe Error Handling
-
-Never expose raw internal errors to clients. Normalize them to safe, public-facing types.
-
-```typescript
-import { try_, tryPromise, attempt } from '@deessejs/fp';
-import { error } from '@deessejs/errors';
-
-// Internal errors (never expose to clients)
-const InternalError = error({
-  name: 'InternalError',
-  message: 'Internal error: {cause}',
-});
-
-const DatabaseError = error({
-  name: 'DatabaseError',
-  message: 'Database error: {cause}',
-});
-
-// Public errors (safe to expose)
-const PublicError = error({
-  name: 'PublicError',
-  message: '{message}',
-});
-
-// Normalize internal errors to public ones
-function toPublicError(e: unknown): PublicError {
-  if (is(e, DatabaseError)) {
-    return PublicError({ message: 'Service temporarily unavailable' });
-  }
-  if (is(e, InternalError)) {
-    return PublicError({ message: 'An unexpected error occurred' });
-  }
-  // Unknown errors get sanitized
-  if (e instanceof Error) {
-    return PublicError({ message: 'An error occurred' });
-  }
-  return PublicError({ message: 'Unknown error' });
-}
-
-// Client-safe API wrapper
-async function clientSafe<T>(
-  operation: () => Promise<T>
-): Promise<Result<T, PublicError>> {
-  return tryPromise(operation).mapError(toPublicError);
-}
-
-// Usage in API handler
-app.get('/api/data', async (req, res) => {
-  const result = await clientSafe(() => fetchData(req.params.id));
-
-  res.json(serialize(result));
-  // Client receives: { status: "error", error: { name: "PublicError", message: "..." } }
-  // Never: { status: "error", error: { name: "DatabaseError", cause: ConnectionRefused, stack: "..." } }
-});
-```
-
-### Error Normalization Interface
-
-Define a consistent normalization strategy for your entire application.
-
-```typescript
-import { tryPromise } from '@deessejs/fp';
-import { error } from '@deessejs/errors';
-
-// Define your error taxonomy
-const NetworkError = error({
-  name: 'NetworkError',
-  message: 'Network error: {reason}',
-});
-
-const AuthError = error({
-  name: 'AuthError',
-  message: 'Authentication failed: {reason}',
-});
-
-const ValidationError = error({
-  name: 'ValidationError',
-  message: 'Validation failed: {reason}',
-});
-
-// Normalizer maps internal errors to public responses
-type ErrorNormalizer<E> = (e: E) => NormalizedError;
-
-interface NormalizedError {
-  code: string;
-  message: string;
-  status: number;
-  public: boolean;
-}
-
-const normalizers: Record<string, ErrorNormalizer<unknown>> = {
-  NetworkError: (e) => ({
-    code: 'NETWORK_ERROR',
-    message: 'Unable to connect. Please check your connection.',
-    status: 503,
-    public: true,
-  }),
-  AuthError: (e) => ({
-    code: 'AUTH_ERROR',
-    message: 'Authentication required.',
-    status: 401,
-    public: true,
-  }),
-  ValidationError: (e) => ({
-    code: 'VALIDATION_ERROR',
-    message: e.message,
-    status: 400,
-    public: true,
-  }),
-};
-
-// Generic safe wrapper with normalization
-async function safeApi<T>(
-  operation: () => Promise<T>
-): Promise<Result<T, NormalizedError>> {
-  return tryPromise(operation).mapError((e) => {
-    const normalizer = normalizers[e.constructor.name];
-    return normalizer ? normalizer(e) : {
-      code: 'INTERNAL_ERROR',
-      message: 'An unexpected error occurred.',
-      status: 500,
-      public: false,
-    };
-  });
-}
-```
-
-### Server/Client Error Boundaries
-
-Different error handling strategies for server and client contexts.
-
-```typescript
-import { try_, tryPromise } from '@deessejs/fp';
-import { error } from '@deessejs/errors';
-
-// Server-side: rich error tracking
-const ServerError = error({
-  name: 'ServerError',
-  message: 'Server error: {cause}',
-});
-
-async function serverOperation<T>(
-  operation: () => Promise<T>,
-  context: { requestId: string; userId?: string }
-): Promise<Result<T, ServerError>> {
-  return tryPromise(operation)
-    .mapError(e => ServerError({
-      cause: e,
-    }))
-    .tap(result => {
-      // Log for monitoring
-      if (result.isErr()) {
-        logger.error({
-          requestId: context.requestId,
-          userId: context.userId,
-          error: result.error,
-          stack: result.error.cause instanceof Error
-            ? result.error.cause.stack
-            : undefined,
-        });
-      }
-    });
-}
-
-// Client-side: safe error display
-const ClientError = error({
-  name: 'ClientError',
-  message: '{message}',
-});
-
-async function clientOperation<T>(
-  operation: () => Promise<T>
-): Promise<Result<T, ClientError>> {
-  return tryPromise(operation).mapError(e => {
-    // Extract safe message, never expose internals
-    if (e instanceof Error) {
-      return ClientError({ message: sanitizeMessage(e.message) });
-    }
-    return ClientError({ message: 'Something went wrong' });
-  });
-}
-
-// Shared safe wrapper for cross-platform code
-async function safe<T>(
-  operation: () => Promise<T>,
-  options?: {
-    onError?: (e: unknown) => void;
-    context?: 'server' | 'client';
-  }
-): Promise<Result<T, ClientError | ServerError>> {
-  return tryPromise(operation).mapError(e => {
-    options?.onError?.(e);
-
-    if (options?.context === 'server') {
-      return ServerError({ cause: e });
-    }
-
-    // Default to client-safe
-    return ClientError({
-      message: e instanceof Error
-        ? sanitizeMessage(e.message)
-        : 'Unknown error',
-    });
-  });
-}
-```
-
-### Retry with Error Classification
-
-Combine retry with error classification to selectively retry only recoverable errors.
-
-```typescript
-import { tryPromise, retry, exponential, constant } from '@deessejs/fp';
-import { error } from '@deessejs/errors';
-
-const NetworkError = error({
-  name: 'NetworkError',
-  message: 'Network error: {reason}',
-});
-
-const TimeoutError = error({
-  name: 'TimeoutError',
-  message: 'Request timed out: {reason}',
-});
-
-const AuthError = error({
-  name: 'AuthError',
-  message: 'Authentication failed: {reason}',
-});
-
-// Classify errors for retry decisions
-type RetryableError = NetworkError | TimeoutError;
-type NonRetryableError = AuthError;
-
-function classifyError(e: unknown): 'retryable' | 'non-retryable' {
-  if (is(e, AuthError)) return 'non-retryable';
-  if (is(e, NetworkError) || is(e, TimeoutError)) return 'retryable';
-  // Unknown errors: retry once
-  return 'retryable';
-}
-
-// Smart retry with error classification
-async function smartRetry<T>(
-  operation: () => Promise<T>
-): Promise<Result<T, RetryableError | NonRetryableError>> {
-  return retry({
-    attempts: 3,
-    delay: exponential(100),
-    shouldRetry: (e) => classifyError(e) === 'retryable',
-    onRetry: (e, attempt) => {
-      console.warn(`Retry ${attempt}:`, e.message);
-    },
-  })(operation);
-}
-
-// Usage
-async function fetchWithSmartRetry(url: string) {
-  return smartRetry(() => fetch(url)).mapError(e => {
-    if (is(e, NetworkError)) {
-      return NetworkError({ reason: `Failed to fetch ${url}` });
-    }
-    return e;
-  });
-}
-```
-
-### Custom Error Reporters
-
-Attach metadata and context to errors for better debugging.
-
-```typescript
-import { try_, tryPromise } from '@deessejs/fp';
-import { error } from '@deessejs/errors';
-
-const ReportableError = error({
-  name: 'ReportableError',
-  message: '{message}',
-});
-
-// Error reporter interface
-interface ErrorReporter {
-  report(error: unknown, context: ErrorContext): void;
-}
-
-interface ErrorContext {
-  timestamp: number;
-  operation: string;
-  metadata?: Record<string, unknown>;
-}
-
-// Console reporter for development
-const consoleReporter: ErrorReporter = {
-  report(error, context) {
-    console.error(`[${context.operation}]`, {
-      error,
-      ...context.metadata,
-      timestamp: new Date(context.timestamp).toISOString(),
-    });
-  },
-};
-
-// Metrics reporter for production
-const metricsReporter: ErrorReporter = {
-  report(error, context) {
-    metrics.increment('error.count', {
-      operation: context.operation,
-      error_type: error instanceof Error ? error.name : 'unknown',
-    });
-  },
-};
-
-// Combined reporter
-const reporter: ErrorReporter = {
-  report(error, context) {
-    consoleReporter.report(error, context);
-    if (process.env.NODE_ENV === 'production') {
-      metricsReporter.report(error, context);
-    }
-  },
-};
-
-// Wrapper with reporting
-function withReporting<T>(
-  operation: () => Promise<T>,
-  operationName: string,
-  metadata?: Record<string, unknown>
-): Promise<Result<T, ReportableError>> {
-  return tryPromise(operation)
-    .mapError(e => {
-      reporter.report(e, {
-        timestamp: Date.now(),
-        operation: operationName,
-        metadata,
-      });
-      return ReportableError({
-        message: e instanceof Error ? e.message : 'Operation failed',
-      });
-    });
-}
-
-// Usage
-const result = await withReporting(
-  () => processPayment(order),
-  'processPayment',
-  { orderId: order.id, amount: order.total }
-);
 ```
 
 ### File System Operations
 
 ```typescript
-import { try_, tryPromise } from '@deessejs/fp';
+import { tryPromise } from '@deessejs/fp';
 import { error } from '@deessejs/errors';
 
 const FileError = error({
@@ -589,65 +248,54 @@ const FileError = error({
   message: 'File operation failed: {cause}',
 });
 
-// Read file safely
-async function readFile(path: string): Promise<Result<string, FileError>> {
-  return tryPromise(() => fs.readFile(path, 'utf-8'))
-    .mapError(e => FileError({ reason: `Cannot read ${path}: ${e}` }));
-}
-
-// Write file safely
-async function writeFile(
-  path: string,
-  content: string
-): Promise<Result<void, FileError>> {
-  return tryPromise(() => fs.writeFile(path, content, 'utf-8'))
-    .mapError(e => FileError({ reason: `Cannot write ${path}: ${e}` }));
-}
-
-// Atomic write (write to temp, then rename)
-async function atomicWrite(
-  path: string,
-  content: string
-): Promise<Result<void, FileError>> {
-  const tempPath = `${path}.${Date.now()}.tmp`;
-
-  return writeFile(tempPath, content)
-    .flatMap(() => tryPromise(() => fs.rename(tempPath, path))
-      .mapError(e => FileError({ reason: `Cannot rename ${tempPath}: ${e}` }))
-    );
-}
-
-// Read multiple files
-async function readConfigFiles(
-  paths: string[]
-): Promise<Result<Record<string, string>, FileError>> {
-  const results = await Promise.all(
-    paths.map(p => readFile(p).catch(() => err(FileError({ reason: `Failed: ${p}` }))))
-  );
-
-  const [oks, errs] = partition(results);
-
-  if (errs.length > 0) {
-    return err(errs[0].error);
-  }
-
-  const config: Record<string, string> = {};
-  paths.forEach((path, i) => {
-    config[path] = oks[i].value;
+function readFile(path: string): Promise<Result<string, FileError>> {
+  const t = tryPromise({
+    onSuccess: () => fs.readFile(path, 'utf-8'),
+    onError: (e) => FileError({ reason: `Cannot read ${path}: ${e}` }),
   });
-
-  return ok(config);
+  return t.then(toResultTry());
 }
 
-// Usage
-async function loadSettings() {
-  const result = await readConfigFiles([
-    './default-settings.json',
-    './user-settings.json',
-    process.env.SETTINGS_PATH ?? '',
-  ].filter(Boolean));
+function writeFile(
+  path: string,
+  content: string,
+): Promise<Result<void, FileError>> {
+  const t = tryPromise({
+    onSuccess: () => fs.writeFile(path, content, 'utf-8'),
+    onError: (e) => FileError({ reason: `Cannot write ${path}: ${e}` }),
+  });
+  return t.then(toResultTry());
+}
+```
 
-  return result.map(configs => mergeConfigs(...Object.values(configs)));
+### Classifying Errors for Retry Decisions
+
+```typescript
+import { classifyError, tryPromise } from '@deessejs/fp';
+
+class NetworkError extends Error {}
+class TimeoutError extends Error {}
+class AuthError extends Error {}
+
+const rules = [
+  { error: NetworkError, classification: 'retryable' as const },
+  { error: TimeoutError, classification: 'retryable' as const },
+  { error: AuthError, classification: 'non-retryable' as const },
+];
+
+async function smartFetch(url: string): Promise<Result<Response, Error>> {
+  const t = await tryPromise(() => fetch(url));
+  return pipe(
+    t,
+    matchTry({
+      success: (response) => ok<Response, Error>(response),
+      failure: (cause) => {
+        const kind = classifyError(cause, rules);
+        // the caller decides whether to retry based on `kind`
+        return err<Response, Error>(cause);
+      },
+    }),
+  );
 }
 ```
 
@@ -658,148 +306,168 @@ async function loadSettings() {
 Wraps a synchronous function that may throw.
 
 ```typescript
-// Simple form
-function try_<A>(thunk: () => A): Result<A, UnhandledException>;
+// Simple form — captures the cause inside an UnhandledException
+function try_<T>(thunk: () => T): Try<T, UnhandledException>;
 
-// With custom error handler
-function try_<A, E>(options: {
-  try: () => A;
-  catch: (cause: unknown) => E;
-}): Result<A, E>;
+// With a custom error mapper
+function try_<T, E>(options: {
+  readonly onSuccess: () => T;
+  readonly onError: (cause: unknown) => E;
+}): Try<T, E>;
 ```
 
 ### tryPromise
 
-Wraps an async function that may reject.
+Wraps an asynchronous function that may reject.
 
 ```typescript
 // Simple form
-function tryPromise<A>(
-  thunk: () => Promise<A>
-): Promise<Result<A, UnhandledException>>;
+function tryPromise<T>(thunk: () => Promise<T>): Promise<Try<T, UnhandledException>>;
 
-// With custom error handler
-function tryPromise<A, E>(options: {
-  try: () => Promise<A>;
-  catch: (cause: unknown) => E | Promise<E>;
-}): Promise<Result<A, E>>;
-
-// With retry
-function tryPromise<A, E>(
-  thunk: () => Promise<A>,
-  config: RetryConfig<E>
-): Promise<Result<A, E>>;
+// With a custom error mapper (onError may itself be async)
+function tryPromise<T, E>(options: {
+  readonly onSuccess: () => Promise<T>;
+  readonly onError: (cause: unknown) => E | Promise<E>;
+}): Promise<Try<T, E>>;
 ```
 
-### attempt (Advanced)
+### success / failure
 
-Creates a configured attempt with options for client-safe errors, retry, and normalization.
+Construct a `Try<T, E>` directly. The `success()` and `failure()`
+factories are the only public entry points into the internal
+`SuccessImpl` / `FailureImpl` classes.
 
 ```typescript
-// Create attempt with options
-function attempt<T>(config: AttemptConfig<T>): Attempt<T>;
+function success<T, E = never>(value: T): Success<T, E>;
+function failure<T = never, E = never>(cause: E): Failure<T, E>;
+```
 
-// Attempt configuration
+### Pipeable functions
+
+Each pipeable has the shape `(args) => (operand) => result` and
+delegates to the corresponding instance method on `Success` /
+`Failure`.
+
+| Pipeable | Behaviour |
+|---|---|
+| `mapTry(fn)` | Maps the Success value; passes Failure through. |
+| `flatMapTry(fn)` | Binds through a function returning a `Try`. |
+| `mapErrorTry(fn)` | Maps the Failure cause; passes Success through. |
+| `tapTry(fn)` | Runs a side effect on Success; passes through. |
+| `tapAsyncTry(fn)` | Async side effect on Success. |
+| `flatMapAsyncTry(fn)` | Binds through a `Promise<Try>`. |
+| `matchTry({ success, failure })` | Pattern matching. |
+| `foldTry(onSuccess, onFailure)` | Pick one of two functions. |
+| `getOrElseTry(default)` | Default value on Failure. |
+| `getOrThrowTry(message?)` | Throw on Failure. |
+| `getOrNullTry()` / `getOrUndefinedTry()` | Coerce Failure to `null` / `undefined`. |
+| `toResultTry()` | Convert to `Result<T, E>`. |
+| `isSuccess(t)` / `isFailure(t)` | Type guards. |
+
+### attempt
+
+Create a configured attempt with options for error normalization and a
+single retry.
+
+```typescript
 interface AttemptConfig<T> {
-  try: () => T | Promise<T>;
-  client?: boolean; // Normalize errors for client exposure
-  retry?: RetryConfig<unknown>;
-  normalize?: (e: unknown) => unknown;
+  readonly onSuccess: () => T | Promise<T>;
+  readonly client?: boolean;
+  readonly retry?: RetryConfig<unknown>;
+  readonly normalize?: (e: unknown) => unknown;
 }
 
-// Attempt result
 interface Attempt<T> {
   execute(): Promise<Result<T, unknown>>;
   clientSafe(): Promise<Result<T, NormalizedError>>;
 }
 
-// Normalized error for client-safe responses
 interface NormalizedError {
-  code: string;
-  message: string;
-  status: number;
-  public: boolean;
-}
-```
-
-### Error Normalization
-
-```typescript
-// Error normalizer function
-type ErrorNormalizer<E> = (e: E) => NormalizedError;
-
-// Sanitize error message for clients
-function sanitizeMessage(message: string): string;
-
-// Create client-safe error
-function toClientSafe<T>(
-  operation: () => Promise<T>,
-  normalizer: ErrorNormalizer<unknown>
-): Promise<Result<T, NormalizedError>>;
-```
-
-### Error Classification
-
-```typescript
-// Classify error for retry decisions
-type ErrorClassification = 'retryable' | 'non-retryable';
-
-function classifyError(
-  e: unknown,
-  rules: ClassificationRule[]
-): ErrorClassification;
-
-interface ClassificationRule {
-  error: ErrorFactory;
-  classification: ErrorClassification;
-}
-```
-
-### Error Reporting
-
-```typescript
-// Error reporter interface
-interface ErrorReporter {
-  report(error: unknown, context: ErrorContext): void;
+  readonly code: string;
+  readonly message: string;
+  readonly status: number;
+  readonly public: boolean;
 }
 
-interface ErrorContext {
-  timestamp: number;
-  operation: string;
-  metadata?: Record<string, unknown>;
-}
-
-// Wrap operation with reporting
-function withReporting<T>(
-  operation: () => Promise<T>,
-  operationName: string,
-  reporter: ErrorReporter,
-  metadata?: Record<string, unknown>
-): Promise<Result<T, ReportableError>>;
-```
-
-### Retry Configuration
-
-```typescript
 interface RetryConfig<E> {
-  attempts: number;
-  delay: DelayStrategy;
-  onRetry?: (error: E, attempt: number) => void;
-  shouldRetry?: (error: E) => boolean;
+  readonly attempts: number;
+  readonly delay: DelayStrategy;
+  readonly onRetry?: (error: E, attempt: number) => void;
+  readonly shouldRetry?: (error: E) => boolean;
 }
 
 type DelayStrategy =
-  | typeof exponential(baseMs: number)
-  | typeof linear(baseMs: number)
-  | typeof constant(baseMs: number);
+  | { readonly kind: 'exponential'; readonly baseMs: number }
+  | { readonly kind: 'linear'; readonly baseMs: number }
+  | { readonly kind: 'constant'; readonly baseMs: number };
+
+function attempt<T>(config: AttemptConfig<T>): Attempt<T>;
 ```
+
+`attempt().execute()` performs at most one retry when
+`retry.shouldRetry(cause)` returns `true`. A retry loop is not
+implemented; the `RetryConfig` / `DelayStrategy` types ship for
+forward compatibility.
+
+### withReporting
+
+Wrap an operation so that any caught error is forwarded to a
+caller-supplied reporter.
+
+```typescript
+interface ErrorReporter {
+  report(error: unknown, context: ErrorContext): void;
+}
+interface ErrorContext {
+  readonly timestamp: number;
+  readonly operation: string;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+interface ReportableError {
+  readonly _tag: 'ReportableError';
+  readonly message: string;
+  readonly cause?: unknown;
+}
+
+function withReporting<T>(
+  onSuccess: () => T | Promise<T>,
+  operationName: string,
+  reporter: ErrorReporter,
+  metadata?: Readonly<Record<string, unknown>>,
+): Promise<Result<T, ReportableError>>;
+```
+
+### classifyError
+
+Match a thrown value against a list of rules and return a
+classification for retry decisions.
+
+```typescript
+type ErrorClassification = 'retryable' | 'non-retryable';
+interface ClassificationRule {
+  readonly error: ErrorConstructor;
+  readonly classification: ErrorClassification;
+}
+type ErrorConstructor = abstract new (...args: unknown[]) => Error;
+
+function classifyError(
+  e: unknown,
+  rules: ClassificationRule[],
+): ErrorClassification;
+```
+
+The default for an unknown error is `'non-retryable'`. Add a final
+catch-all rule if you need the opposite.
 
 ### UnhandledException
 
 ```typescript
-// Error when no custom handler is provided
 interface UnhandledException {
-  readonly name: 'UnhandledException';
+  readonly _tag: 'UnhandledException';
   readonly cause: unknown;
 }
 ```
+
+The shape placed in the `cause` field of a `Failure` when the
+thunk-only overload of `try_` / `tryPromise` is used and the operation
+throws without an explicit mapper.

@@ -78,6 +78,44 @@ export {
 
 export type { Lazy, Predicate, Refinement, Endomorphism, FunctionN } from './function/index.js';
 
+// Try exports
+export type {
+  Success,
+  Failure,
+  Try,
+  UnhandledException,
+  AttemptConfig,
+  Attempt,
+  NormalizedError,
+  RetryConfig,
+  DelayStrategy,
+  ErrorReporter,
+  ErrorContext,
+  ReportableError,
+  ErrorClassification,
+  ClassificationRule,
+  ErrorConstructor,
+} from './try/types.js';
+export { success, failure, try_, tryPromise } from './try/constants.js';
+export {
+  map as mapTry,
+  flatMap as flatMapTry,
+  mapError as mapErrorTry,
+  tap as tapTry,
+  tapAsync as tapAsyncTry,
+  flatMapAsync as flatMapAsyncTry,
+  match as matchTry,
+  fold as foldTry,
+  getOrElse as getOrElseTry,
+  getOrThrow as getOrThrowTry,
+  getOrNull as getOrNullTry,
+  getOrUndefined as getOrUndefinedTry,
+  toResult as toResultTry,
+  isSuccess,
+  isFailure,
+} from './try/functions.js';
+export { attempt, withReporting, classifyError } from './try/index.js';
+
 // Type utilities
 export { isResult, isMaybe } from './types.js';
 export type { OkType, ErrType, SomeType } from './types.js';
