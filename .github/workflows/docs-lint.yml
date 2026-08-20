@@ -7,12 +7,17 @@ name: Docs lint (Vale)
 #   - apps/web/content/docs/api-reference.mdx
 #     mdx2vast fails on generic type parameters that contain commas
 #     (e.g. `interface Ok<T, E = never> { ... }`). The parser sees
-#     the comma as an unexpected JSX attribute character. Re-enable
-#     once mdx2vast supports it, or rewrite the offending blocks.
-#     The exclusion lives in `.valeignore` (Vale's walker-scope
-#     ignore file), not in `.vale.ini` — Vale parses every file
-#     before applying its config, so only the walker can keep the
-#     file out.
+#     the comma as an unexpected JSX attribute character and aborts
+#     before any rule can run.
+#
+#     Vale parses every file before applying any config-level
+#     exclusion, so the only way to keep the file out of the walker
+#     is to remove it from the filesystem before invoking Vale and
+#     restore it afterwards. This is implemented as a wrapper shell
+#     step below.
+#
+#     Re-enable once mdx2vast supports generics, or rewrite the
+#     offending blocks.
 #
 # Out of scope (handled by other tools or processes):
 #   - packages/fp/src/**    (JSDoc; tracked by a follow-up lint:jsdoc script)
@@ -29,7 +34,6 @@ on:
       - 'apps/web/content/**'
       - '.vale.ini'
       - '.vale/**'
-      - '.valeignore'
   workflow_dispatch:
 
 permissions:
@@ -54,14 +58,27 @@ jobs:
       - name: Install mdx2vast
         run: npm install -g mdx2vast
 
+      - name: Temporarily exclude api-reference.mdx
+        run: |
+          set -euo pipefail
+          F="apps/web/content/docs/api-reference.mdx"
+          if [ -f "$F" ]; then
+            mv "$F" "${F}.lint-skip"
+          fi
+          echo "F=${F}.lint-skip" >> "$GITHUB_ENV"
+
       - name: Vale
         uses: vale-cli/vale-action@v3.0.0
         with:
-          # Point Vale at the whole directory. `.valeignore` decides
-          # which files the walker skips.
           files: apps/web/content
-          # Pin to the repo's .vale.ini so the action cannot pick up a
-          # different config from the runner environment.
           config: .vale.ini
           reporter: github-pr-check
           fail_on_error: false
+
+      - name: Restore api-reference.mdx
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ -f "${F}.lint-skip" ]; then
+            mv "${F}.lint-skip" "${F}"
+          fi
