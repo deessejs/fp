@@ -1,0 +1,84 @@
+name: Docs lint (Vale)
+
+# Runs Vale on the public documentation site only.
+# Scope: the entire `apps/web/content` directory.
+#
+# Excluded (because the bundled MDX parser cannot handle it yet):
+#   - apps/web/content/docs/api-reference.mdx
+#     mdx2vast fails on generic type parameters that contain commas
+#     (e.g. `interface Ok<T, E = never> { ... }`). The parser sees
+#     the comma as an unexpected JSX attribute character and aborts
+#     before any rule can run.
+#
+#     Vale parses every file before applying any config-level
+#     exclusion, so the only way to keep the file out of the walker
+#     is to remove it from the filesystem before invoking Vale and
+#     restore it afterwards. This is implemented as a wrapper shell
+#     step below.
+#
+#     Re-enable once mdx2vast supports generics, or rewrite the
+#     offending blocks.
+#
+# Out of scope (handled by other tools or processes):
+#   - packages/fp/src/**    (JSDoc; tracked by a follow-up lint:jsdoc script)
+#   - docs/engineering/**   (internal docs; Vale can be extended later)
+#   - .changeset/**         (changesets; not prose)
+#   - the GitHub wiki       (separate repository)
+#
+# The job is gated on `paths` so it does not run on PRs that do not
+# touch the public documentation.
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web/content/**'
+      - '.vale.ini'
+      - '.vale/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-lint-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  vale:
+    name: Vale (apps/web/content)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      # Vale 3.x needs an external parser for MDX files. The action
+      # installs Vale and reviewdog, but does not pull `mdx2vast`
+      # automatically. Without it, the lint fails with
+      # `mdx2vast not found` on the first .mdx file.
+      - name: Install mdx2vast
+        run: npm install -g mdx2vast
+
+      - name: Temporarily exclude api-reference.mdx
+        run: |
+          set -euo pipefail
+          F="apps/web/content/docs/api-reference.mdx"
+          if [ -f "$F" ]; then
+            mv "$F" "${F}.lint-skip"
+          fi
+          echo "F=${F}.lint-skip" >> "$GITHUB_ENV"
+
+      - name: Vale
+        uses: vale-cli/vale-action@v3.0.0
+        with:
+          files: apps/web/content
+          config: .vale.ini
+          reporter: github-pr-check
+          fail_on_error: false
+
+      - name: Restore api-reference.mdx
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ -f "${F}.lint-skip" ]; then
+            mv "${F}.lint-skip" "${F}"
+          fi
