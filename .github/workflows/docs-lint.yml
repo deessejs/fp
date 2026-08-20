@@ -2,8 +2,13 @@ name: Docs lint (Vale)
 
 # Runs Vale on the public documentation site only.
 # Scope is intentionally narrow:
-#   - apps/web/content/**   (Fumadocs MDX pages)
-# Out of scope for this job (handled by other tools or processes):
+#   - apps/web/content/docs/{index,getting-started,result,maybe,unit}.mdx
+# Out of scope:
+#   - apps/web/content/docs/api-reference.mdx
+#     The MDX parser (mdx2vast) fails on the `<TypeTable type={...}>`
+#     blocks that contain commas inside JSX attributes. Fixing the
+#     parser compat is tracked separately; for phase 1 we exclude the
+#     file so the rest of the site can be linted.
 #   - packages/fp/src/**    (JSDoc; tracked by a follow-up lint:jsdoc script)
 #   - docs/engineering/**   (internal docs; Vale can be extended later)
 #   - .changeset/**         (changesets; not prose)
@@ -43,5 +48,9 @@ jobs:
       - name: Run Vale
         uses: errata-ai/vale-action@v2.1.1
         with:
+          # `filter` accepts a Vale filter expression (a glob-style
+          # selector). `apps/web/content/docs/{index,getting-started,result,maybe,unit}.mdx`
+          # picks up every public page except api-reference.mdx.
+          filter: 'apps/web/content/docs/{index,getting-started,result,maybe,unit}.mdx'
           files: apps/web/content
           reporter: github
