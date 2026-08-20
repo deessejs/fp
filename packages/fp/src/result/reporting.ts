@@ -12,8 +12,8 @@
  * @see rule 0014 — Functions Over Classes for Public API.
  */
 
-import { ok, err } from '../result/constants.js';
-import type { Result } from '../result/types.js';
+import { ok, err } from './constants.js';
+import type { Result } from './types.js';
 import type { ErrorReporter, ErrorContext, ReportableError } from './types.js';
 
 /**

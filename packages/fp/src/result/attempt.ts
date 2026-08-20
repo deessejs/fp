@@ -30,8 +30,8 @@ import { AttemptImpl } from './internal/attempt-impl.js';
  *
  * @example
  * const getConfig = attempt({
- *   onSuccess: () => fetch('/api/config').then(r => r.json()),
- *   normalize: (e) => e instanceof Error ? e.message : 'unknown',
+ *   onSuccess: () => fetch('/api/config').then((r) => r.json()),
+ *   normalize: (e) => (e instanceof Error ? e.message : 'unknown'),
  * });
  *
  * const result = await getConfig.execute();

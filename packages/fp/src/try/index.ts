@@ -1,50 +1,11 @@
 /**
- * Try module exports.
- *
- * Public API: types, factories, pipeable functions, and the
- * higher-level helpers `attempt`, `withReporting`, `classifyError`.
- *
- * @see rule 0014 — Functions Over Classes for Public API.
+ * @deprecated Use {@link Result.fromThrowable} /
+ * {@link Result.fromAsyncThrowable} from `result/` directly. This
+ * facade is kept as a stable alias surface so consumers can keep
+ * importing `try_` / `tryPromise` from `@deessejs/fp` while the
+ * underlying reasoning is unified on `Result`.
  */
 
-export type {
-  Success,
-  Failure,
-  Try,
-  UnhandledException,
-  AttemptConfig,
-  Attempt,
-  NormalizedError,
-  RetryConfig,
-  DelayStrategy,
-  ErrorReporter,
-  ErrorContext,
-  ReportableError,
-  ErrorClassification,
-  ClassificationRule,
-  ErrorConstructor,
-} from './types.js';
+export { fromThrowable as try_, fromAsyncThrowable as tryPromise } from '../result/wrapping.js';
 
-export { success, failure, try_, tryPromise } from './constants.js';
-
-export {
-  map,
-  flatMap,
-  mapError,
-  tap,
-  tapAsync,
-  flatMapAsync,
-  match,
-  fold,
-  getOrElse,
-  getOrThrow,
-  getOrNull,
-  getOrUndefined,
-  toResult,
-  isSuccess,
-  isFailure,
-} from './functions.js';
-
-export { attempt } from './attempt.js';
-export { withReporting } from './reporting.js';
-export { classifyError } from './classify.js';
+export { attempt, withReporting, classifyError } from '../result/index.js';

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { attempt } from '@deessejs/fp';
+import { attempt, ok, err } from '@deessejs/fp';
 
 class BoomError extends Error {
   constructor(msg: string) {
@@ -8,12 +8,6 @@ class BoomError extends Error {
   }
 }
 
-/**
- * Impl-focused coverage. The public surface (factory + return shape)
- * is already covered by `attempt.test.ts`; this file pins down the
- * internal class behaviour so that future refactors of the impl do
- * not silently regress coverage.
- */
 describe('AttemptImpl', () => {
   describe('execute()', () => {
     it('returns Ok when the operation succeeds', async () => {
@@ -290,6 +284,13 @@ describe('AttemptImpl', () => {
       await a.execute();
       await a.execute();
       expect(calls).toBe(2);
+    });
+  });
+
+  describe('cross-module smoke', () => {
+    it('references ok and err', () => {
+      expect(ok(1).isOk()).toBe(true);
+      expect(err('e').isErr()).toBe(true);
     });
   });
 });

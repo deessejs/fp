@@ -5,8 +5,29 @@
  */
 
 // Result exports
-export type { Ok, Err, Result } from './result/types.js';
-export { ok, err } from './result/constants.js';
+export type {
+  Ok,
+  Err,
+  Result,
+  UnhandledException,
+  AttemptConfig,
+  Attempt,
+  NormalizedError,
+  RetryConfig,
+  DelayStrategy,
+  ErrorReporter,
+  ErrorContext,
+  ReportableError,
+  ErrorClassification,
+  ClassificationRule,
+  ErrorConstructor,
+} from './result/types.js';
+export {
+  ok,
+  err,
+  fromThrowable,
+  fromAsyncThrowable,
+} from './result/constants.js';
 export {
   map,
   flatMap,
@@ -26,6 +47,12 @@ export {
   isOk,
   isErr,
 } from './result/functions.js';
+
+// Wrapping helpers — top-level aliases preserved for consumers who
+// already imported `try_` / `tryPromise`. New code should prefer the
+// `Result.fromThrowable` / `Result.fromAsyncThrowable` re-exports
+// above; the underlying reasoning is one and the same.
+export { try_, tryPromise } from './try/index.js';
 
 // Maybe exports
 export type { Some, None, Maybe } from './maybe/types.js';
@@ -78,42 +105,7 @@ export {
 
 export type { Lazy, Predicate, Refinement, Endomorphism, FunctionN } from './function/index.js';
 
-// Try exports
-export type {
-  Success,
-  Failure,
-  Try,
-  UnhandledException,
-  AttemptConfig,
-  Attempt,
-  NormalizedError,
-  RetryConfig,
-  DelayStrategy,
-  ErrorReporter,
-  ErrorContext,
-  ReportableError,
-  ErrorClassification,
-  ClassificationRule,
-  ErrorConstructor,
-} from './try/types.js';
-export { success, failure, try_, tryPromise } from './try/constants.js';
-export {
-  map as mapTry,
-  flatMap as flatMapTry,
-  mapError as mapErrorTry,
-  tap as tapTry,
-  tapAsync as tapAsyncTry,
-  flatMapAsync as flatMapAsyncTry,
-  match as matchTry,
-  fold as foldTry,
-  getOrElse as getOrElseTry,
-  getOrThrow as getOrThrowTry,
-  getOrNull as getOrNullTry,
-  getOrUndefined as getOrUndefinedTry,
-  toResult as toResultTry,
-  isSuccess,
-  isFailure,
-} from './try/functions.js';
+// Advanced wrappers (Result-based).
 export { attempt, withReporting, classifyError } from './try/index.js';
 
 // Type utilities

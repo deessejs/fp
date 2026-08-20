@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { withReporting, success, failure } from '@deessejs/fp';
+import { withReporting, ok, err } from '@deessejs/fp';
 import type { ErrorReporter, ErrorContext } from '@deessejs/fp';
 
 describe('withReporting', () => {
@@ -87,9 +87,9 @@ describe('withReporting', () => {
   });
 
   describe('cross-module smoke', () => {
-    it('references success and failure', () => {
-      expect(success(1).isSuccess()).toBe(true);
-      expect(failure('e').isFailure()).toBe(true);
+    it('references ok and err', () => {
+      expect(ok(1).isOk()).toBe(true);
+      expect(err('e').isErr()).toBe(true);
     });
   });
 });
