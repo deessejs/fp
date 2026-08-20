@@ -1,8 +1,16 @@
 name: Docs lint (Vale)
 
-# Runs Vale on every file under apps/web/content.
-# `meta.json` is plain JSON; Vale lints it via the `[*.{md,mdx}]`
-# section by extension matching.
+# Runs Vale on every .mdx file under apps/web/content plus meta.json.
+#
+# Excluded for phase 1:
+#   - apps/web/content/docs/api-reference.mdx
+#     The MDX parser bundled with mdx2vast fails on generic type
+#     parameters that contain commas inside fenced TypeScript code
+#     blocks (e.g. `interface Ok<T, E = never> { ... }`). The parser
+#     sees the comma as an unexpected JSX attribute character. Re-
+#     enabling the file is tracked separately: either bump mdx2vast
+#     to a version that handles generics, or rewrite the offending
+#     blocks in a way that does not trip the parser.
 #
 # Out of scope (handled by other tools or processes):
 #   - packages/fp/src/**    (JSDoc; tracked by a follow-up lint:jsdoc script)
@@ -53,7 +61,6 @@ jobs:
               "apps/web/content/docs/result.mdx",
               "apps/web/content/docs/maybe.mdx",
               "apps/web/content/docs/unit.mdx",
-              "apps/web/content/docs/api-reference.mdx",
               "apps/web/content/docs/meta.json"
             ]
           # Pin to the repo's .vale.ini so the action cannot pick up a
