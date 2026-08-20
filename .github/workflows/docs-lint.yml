@@ -43,10 +43,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # vale-cli/vale-action handles Vale and mdx2vast installation
-      # internally. Passing an explicit JSON file list keeps Vale from
-      # walking the rest of the repo (notably .claude/agent-memory/*.md,
-      # whose YAML frontmatter Vale mistakes for MDX).
+      # Vale 3.x needs an external parser for MDX files. The action
+      # installs Vale and reviewdog, but does not pull `mdx2vast`
+      # automatically. Without it, the lint fails with
+      # `mdx2vast not found` on the first .mdx file.
+      - name: Install mdx2vast
+        run: npm install -g mdx2vast
+
       - name: Vale
         uses: vale-cli/vale-action@v3.0.0
         with:
@@ -58,8 +61,8 @@ jobs:
               "apps/web/content/docs/maybe.mdx",
               "apps/web/content/docs/unit.mdx"
             ]
-          # Use the .vale.ini from the repo root (default discovery
-          # also works, but pinning it makes the wiring explicit).
+          # Pin to the repo's .vale.ini so the action cannot pick up a
+          # different config from the runner environment.
           config: .vale.ini
           reporter: github-pr-check
           fail_on_error: false
