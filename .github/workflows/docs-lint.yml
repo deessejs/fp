@@ -1,14 +1,24 @@
 name: Docs lint (Vale)
 
 # Runs Vale on the public documentation site only.
-# Scope is intentionally narrow:
-#   - apps/web/content/docs/{index,getting-started,result,maybe,unit}.mdx
-# Out of scope:
+# Scope is intentionally narrow: we lint each page explicitly so the
+# MDX parser does not have to walk files that fail to parse.
+#
+# Linted pages:
+#   - apps/web/content/docs/index.mdx
+#   - apps/web/content/docs/getting-started.mdx
+#   - apps/web/content/docs/result.mdx
+#   - apps/web/content/docs/maybe.mdx
+#   - apps/web/content/docs/unit.mdx
+#
+# Excluded for phase 1:
 #   - apps/web/content/docs/api-reference.mdx
-#     The MDX parser (mdx2vast) fails on the `<TypeTable type={...}>`
-#     blocks that contain commas inside JSX attributes. Fixing the
-#     parser compat is tracked separately; for phase 1 we exclude the
-#     file so the rest of the site can be linted.
+#     The MDX parser bundled with mdx2vast fails on the
+#     `<TypeTable type={...}>` blocks (commas inside JSX attribute
+#     values are not accepted by the current parser version). Re-
+#     enabling it is tracked separately.
+#
+# Out of scope (handled by other tools or processes):
 #   - packages/fp/src/**    (JSDoc; tracked by a follow-up lint:jsdoc script)
 #   - docs/engineering/**   (internal docs; Vale can be extended later)
 #   - .changeset/**         (changesets; not prose)
@@ -48,9 +58,10 @@ jobs:
       - name: Run Vale
         uses: errata-ai/vale-action@v2.1.1
         with:
-          # `filter` accepts a Vale filter expression (a glob-style
-          # selector). `apps/web/content/docs/{index,getting-started,result,maybe,unit}.mdx`
-          # picks up every public page except api-reference.mdx.
-          filter: 'apps/web/content/docs/{index,getting-started,result,maybe,unit}.mdx'
-          files: apps/web/content
+          files: >-
+            apps/web/content/docs/index.mdx
+            apps/web/content/docs/getting-started.mdx
+            apps/web/content/docs/result.mdx
+            apps/web/content/docs/maybe.mdx
+            apps/web/content/docs/unit.mdx
           reporter: github
