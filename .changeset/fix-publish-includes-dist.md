@@ -1,5 +1,5 @@
 ---
-"@deessejs/fp": patch
+"@deessejs/fp": major
 ---
 
 fix(fp): include `dist/` in the published tarball
