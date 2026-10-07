@@ -187,6 +187,8 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - run: pnpm --filter @deessejs/fp build
+
       - name: Publish packages
         run: pnpm changeset publish --tag latest
 
