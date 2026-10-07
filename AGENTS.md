@@ -60,7 +60,7 @@ The repo is a pnpm + Turborepo monorepo with two workspaces:
 - `packages/fp/` — the library. The published artifact, ESM-only, no runtime dependencies. All source lives here, all tests live here. This is what the PRs in this repo are about.
 - `apps/web/` — the public documentation site (Next.js + Fumadocs, MDX content). Source of the live docs at `fp.deessejs.com`. Touch this only when the docs need to change to match a library change.
 
-The repo historically started from the [`complete-package-template`](https://github.com/nesalia-inc/complete-package-template) — the scaffolding residue (issue templates, the package-template-shaped `AGENTS.md` text we are replacing right now) is from that origin and is not a load-bearing description of what this project is. If you find other template-shaped artifacts, fix them.
+The repo historically started from the [`complete-package-template`](https://github.com/deessejs/complete-package-template) — the scaffolding residue (issue templates, the package-template-shaped `AGENTS.md` text we are replacing right now) is from that origin and is not a load-bearing description of what this project is. If you find other template-shaped artifacts, fix them.
 
 ## Communication
 
