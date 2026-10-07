@@ -49,7 +49,9 @@ export function tap<T>(fn: (value: T) => unknown): (maybe: Maybe<T>) => Maybe<T>
 /**
  * Side effect on the Some value, async. Passes through unchanged.
  */
-export function tapAsync<T>(fn: (value: T) => Promise<unknown>): (maybe: Maybe<T>) => Promise<Maybe<T>> {
+export function tapAsync<T>(
+  fn: (value: T) => Promise<unknown>
+): (maybe: Maybe<T>) => Promise<Maybe<T>> {
   return (m) => m.tapAsync(fn);
 }
 

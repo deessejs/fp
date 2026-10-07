@@ -9,24 +9,39 @@ type: reference
 ## MDX Components (default, included)
 
 ### Cards
+
 ```mdx
 <Cards>
-  <Card title="Title" href="/path">Description</Card>
-  <Card icon={<Icon />} title="With Icon" href="/">Desc</Card>
+  <Card title="Title" href="/path">
+    Description
+  </Card>
+  <Card icon={<Icon />} title="With Icon" href="/">
+    Desc
+  </Card>
   <Card title="href is optional">Content here</Card>
 </Cards>
 ```
 
 ### Callouts
+
 ```mdx
 <Callout>Default info</Callout>
-<Callout title="Warning" type="warn">Content</Callout>
-<Callout title="Error" type="error">Content</Callout>
-<Callout title="Success" type="success">Content</Callout>
-<Callout title="Idea" type="idea">Content</Callout>
+<Callout title="Warning" type="warn">
+  Content
+</Callout>
+<Callout title="Error" type="error">
+  Content
+</Callout>
+<Callout title="Success" type="success">
+  Content
+</Callout>
+<Callout title="Idea" type="idea">
+  Content
+</Callout>
 ```
 
 ### Steps (remark plugin)
+
 ```mdx
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 
@@ -36,11 +51,13 @@ import { Step, Steps } from 'fumadocs-ui/components/steps';
   <Step>### Deploy</Step>
 </Steps>
 ```
+
 Or via markdown: `### Installation [step]`
 
 ## Additional Components (install with CLI)
 
 ### Tabs
+
 ```mdx
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
@@ -51,6 +68,7 @@ import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 </Tabs>
 
 // Shared value across pages
+
 <Tabs groupId="pkg-manager" items={['npm', 'pnpm']} persist>
   <Tab value="npm">npm install</Tab>
   <Tab value="pnpm">pnpm add</Tab>
@@ -58,6 +76,7 @@ import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 ```
 
 ### Accordion
+
 ```mdx
 import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
 
@@ -68,6 +87,7 @@ import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
 ```
 
 ### Files (file tree)
+
 ```mdx
 import { File, Folder, Files } from 'fumadocs-ui/components/files';
 
@@ -81,6 +101,7 @@ import { File, Folder, Files } from 'fumadocs-ui/components/files';
 ```
 
 ### TypeTable
+
 ```mdx
 import { TypeTable } from 'fumadocs-ui/components/type-table';
 
@@ -96,6 +117,7 @@ import { TypeTable } from 'fumadocs-ui/components/type-table';
 ```
 
 ### ImageZoom
+
 ```tsx
 // In components/mdx.tsx
 import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
@@ -107,6 +129,7 @@ return {
 ```
 
 ### Banner (root layout)
+
 ```tsx
 import { Banner } from 'fumadocs-ui/components/banner';
 
@@ -118,6 +141,7 @@ import { Banner } from 'fumadocs-ui/components/banner';
 ## Code Blocks Features
 
 ### Line Numbers
+
 ````md
 ```ts lineNumbers
 const a = 'Hello';
@@ -126,6 +150,7 @@ console.log(a);
 ````
 
 ### Shiki Transformers
+
 ````md
 ```tsx
 // [!code highlight]  - highlight line
@@ -136,10 +161,12 @@ console.log(a);
 ```
 
 ```ts twoslash  - TypeScript type hover
+
 ```
 ````
 
 ### Tab Groups (built-in)
+
 ````md
 ```ts tab="npm"
 npm install package
@@ -184,6 +211,7 @@ return { ...defaultComponents, ...Twoslash };
 ```
 
 ### Twoslash Annotations
+
 - `// ^?` - hover type
 - `// @ts-err` - expected error
 - comments show inline
@@ -194,7 +222,7 @@ return { ...defaultComponents, ...Twoslash };
 ---
 title: Page Title
 description: SEO description
-icon: HomeIcon  # Lucide icon name
+icon: HomeIcon # Lucide icon name
 ---
 ```
 

@@ -4,8 +4,6 @@
  *
  * `tupled(f)([a, b])` is equivalent to `f(a, b)`.
  */
-export function tupled<A extends readonly unknown[], B>(
-  fn: (...args: A) => B,
-): (args: A) => B {
+export function tupled<A extends readonly unknown[], B>(fn: (...args: A) => B): (args: A) => B {
   return (args: A) => fn(...args);
 }

@@ -36,12 +36,12 @@ src/
 
 ## File Purpose Guidelines
 
-| File | Purpose |
-|------|---------|
-| `types.ts` | Interface definitions, type aliases |
-| `constants.ts` | Constructor functions, constants |
-| `builders.ts` | Complex factory functions (reserved) |
-| `index.ts` | Re-exports for the group |
+| File           | Purpose                              |
+| -------------- | ------------------------------------ |
+| `types.ts`     | Interface definitions, type aliases  |
+| `constants.ts` | Constructor functions, constants     |
+| `builders.ts`  | Complex factory functions (reserved) |
+| `index.ts`     | Re-exports for the group             |
 
 ## Why This Structure
 

@@ -230,21 +230,21 @@ import { serialize, deserialize, partition } from '@deessejs/fp';
 // Process multiple items, serialize results
 async function processBatch(items: Item[]) {
   const results = await Promise.all(
-    items.map(item => processItem(item).catch(e => err(e as Error)))
+    items.map((item) => processItem(item).catch((e) => err(e as Error)))
   );
 
   const [successes, errors] = partition(results);
 
   return {
-    processed: successes.map(r => r.value),
-    failed: errors.map(r => r.error),
+    processed: successes.map((r) => r.value),
+    failed: errors.map((r) => r.error),
     serialized: serialize(results), // For logging/transmission
   };
 }
 
 // Restore from serialized state
 async function restoreBatch(serialized: SerializedResult<Item, Error>[]) {
-  return serialized.map(s => deserialize(s));
+  return serialized.map((s) => deserialize(s));
 }
 
 // Distributed processing
@@ -274,12 +274,12 @@ async function submitJob(job: Job): Promise<string> {
 
 ```typescript
 type SerializedOk<T> = {
-  status: "ok";
+  status: 'ok';
   value: T;
 };
 
 type SerializedErr<E> = {
-  status: "error";
+  status: 'error';
   error: E;
 };
 
@@ -301,9 +301,7 @@ function serialize<T, E>(result: Result<T, E>): SerializedResult<T, E>;
 Rehydrates a serialized Result back into Ok/Err instances.
 
 ```typescript
-function deserialize<T, E>(
-  value: unknown
-): Result<T, E | DeserializationError>;
+function deserialize<T, E>(value: unknown): Result<T, E | DeserializationError>;
 ```
 
 ### Types
@@ -311,13 +309,13 @@ function deserialize<T, E>(
 ```typescript
 // Serialized Ok variant
 type SerializedOk<T> = {
-  status: "ok";
+  status: 'ok';
   value: T;
 };
 
 // Serialized Err variant
 type SerializedErr<E> = {
-  status: "error";
+  status: 'error';
   error: E;
 };
 
@@ -336,7 +334,5 @@ interface DeserializationError {
 Splits an array of Results into successes and failures.
 
 ```typescript
-function partition<T, E>(
-  results: readonly Result<T, E>[]
-): [T[], E[]];
+function partition<T, E>(results: readonly Result<T, E>[]): [T[], E[]];
 ```

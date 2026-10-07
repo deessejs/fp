@@ -11,15 +11,15 @@ This library is the core of an ecosystem - intentionally minimal, fast to learn,
 ## Quick Start
 
 ```typescript
-import { Result, ok, err, pipe, fromThrowable, attempt } from "@deessejs/fp";
+import { Result, ok, err, pipe, fromThrowable, attempt } from '@deessejs/fp';
 
 // Result: represent values that may have failed
 const divide = (a: number, b: number): Result<number, string> =>
-  b === 0 ? err("Division by zero") : ok(a / b);
+  b === 0 ? err('Division by zero') : ok(a / b);
 
 // Wrap a throwing function
 const readFile = fromThrowable({
-  onSuccess: () => fs.readFileSync("config.json", "utf-8"),
+  onSuccess: () => fs.readFileSync('config.json', 'utf-8'),
   onError: (e) => (e instanceof Error ? e : new Error(String(e))),
 });
 ```

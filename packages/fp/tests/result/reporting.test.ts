@@ -20,7 +20,7 @@ describe('withReporting', () => {
       },
       'op',
       reporter,
-      { requestId: 'r-1' },
+      { requestId: 'r-1' }
     );
     expect(out.isErr()).toBe(true);
     expect(report).toHaveBeenCalledTimes(1);
@@ -39,7 +39,7 @@ describe('withReporting', () => {
         throw cause;
       },
       'op',
-      reporter,
+      reporter
     );
     expect(out.isErr()).toBe(true);
     if (out.isErr()) {
@@ -56,7 +56,7 @@ describe('withReporting', () => {
         throw 'string-throw';
       },
       'op',
-      reporter,
+      reporter
     );
     expect(out.isErr()).toBe(true);
     if (out.isErr()) {
@@ -72,7 +72,7 @@ describe('withReporting', () => {
         throw new Error('boom');
       },
       'op',
-      { report },
+      { report }
     );
     expect(out.isErr()).toBe(true);
     const [, ctx] = report.mock.calls[0] as [unknown, ErrorContext];

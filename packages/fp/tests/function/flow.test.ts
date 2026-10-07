@@ -8,7 +8,10 @@ describe('flow', () => {
   });
 
   it('composes two functions left-to-right', () => {
-    const fn = flow((x: number) => x + 1, (x: number) => x * 2);
+    const fn = flow(
+      (x: number) => x + 1,
+      (x: number) => x * 2
+    );
     expect(fn(10)).toBe(22);
   });
 
@@ -22,7 +25,7 @@ describe('flow', () => {
     const slugify = flow(
       (s: string) => s.trim(),
       (s: string) => s.toLowerCase(),
-      (s: string) => s.replace(/\s+/g, '-'),
+      (s: string) => s.replace(/\s+/g, '-')
     );
     expect(slugify('  Hello World  ')).toBe('hello-world');
     expect(slugify('  Foo  Bar  Baz  ')).toBe('foo-bar-baz');

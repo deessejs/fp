@@ -34,15 +34,15 @@ main ← staging ← dev
 
 ## Root Scripts
 
-| Command | Description |
-|---------|-------------|
-| `pnpm build` | Build all packages |
-| `pnpm test` | Run all tests |
-| `pnpm dev` | Dev mode all packages |
-| `pnpm lint` | Lint all packages |
+| Command           | Description             |
+| ----------------- | ----------------------- |
+| `pnpm build`      | Build all packages      |
+| `pnpm test`       | Run all tests           |
+| `pnpm dev`        | Dev mode all packages   |
+| `pnpm lint`       | Lint all packages       |
 | `pnpm type-check` | Type-check all packages |
-| `pnpm changeset` | Manage version changes |
-| `pnpm release` | Build + test + publish |
+| `pnpm changeset`  | Manage version changes  |
+| `pnpm release`    | Build + test + publish  |
 
 ## Communication Rule
 

@@ -14,8 +14,8 @@ const name = user.profile.displayName; // crashes if user is undefined
 // With Maybe - explicit handling
 const user = findUser(id);
 const name = user
-  .map(u => u.profile)
-  .flatMap(p => p.displayName)
+  .map((u) => u.profile)
+  .flatMap((p) => p.displayName)
   .getOrElse('Anonymous');
 ```
 
@@ -58,10 +58,10 @@ function getCountryName(user: User): string {
 function getCountryName(user: User): string {
   return pipe(
     some(user),
-    Maybe.flatMap(u => Maybe.fromNullable(u.address)),
-    Maybe.flatMap(a => Maybe.fromNullable(a.country)),
-    Maybe.map(c => c.name),
-    Maybe.getOrElse('Unknown'),
+    Maybe.flatMap((u) => Maybe.fromNullable(u.address)),
+    Maybe.flatMap((a) => Maybe.fromNullable(a.country)),
+    Maybe.map((c) => c.name),
+    Maybe.getOrElse('Unknown')
   );
 }
 
@@ -94,9 +94,7 @@ function loadConfig(): AppConfig {
 
 // Validate config - return Maybe for optional fields
 function validateDatabaseUrl(config: AppConfig): Maybe<string> {
-  return config.databaseUrl
-    ? some(config.databaseUrl)
-    : none;
+  return config.databaseUrl ? some(config.databaseUrl) : none;
 }
 
 // Use in startup
@@ -104,12 +102,12 @@ const config = loadConfig();
 
 pipe(
   validateDatabaseUrl(config),
-  Maybe.tap(url => console.log(`Connecting to ${url}`)),
-  Maybe.flatMap(url => tryConnect(url)),
+  Maybe.tap((url) => console.log(`Connecting to ${url}`)),
+  Maybe.flatMap((url) => tryConnect(url)),
   Maybe.match({
     some: () => console.log('Connected!'),
     none: () => console.log('No database configured, running in demo mode'),
-  }),
+  })
 );
 ```
 
@@ -138,8 +136,8 @@ interface User {
 function getEffectiveTheme(prefs: Maybe<UserPreferences>): string {
   return pipe(
     prefs,
-    Maybe.flatMap(p => Maybe.fromNullable(p.theme)),
-    Maybe.getOrElse('system'),
+    Maybe.flatMap((p) => Maybe.fromNullable(p.theme)),
+    Maybe.getOrElse('system')
   );
 }
 
@@ -147,9 +145,9 @@ function getEffectiveTheme(prefs: Maybe<UserPreferences>): string {
 function hasPushNotifications(prefs: Maybe<UserPreferences>): boolean {
   return pipe(
     prefs,
-    Maybe.flatMap(p => Maybe.fromNullable(p.notifications)),
-    Maybe.flatMap(n => Maybe.fromNullable(n.push)),
-    Maybe.getOrElse(false),
+    Maybe.flatMap((p) => Maybe.fromNullable(p.notifications)),
+    Maybe.flatMap((n) => Maybe.fromNullable(n.push)),
+    Maybe.getOrElse(false)
   );
 }
 
@@ -157,9 +155,9 @@ function hasPushNotifications(prefs: Maybe<UserPreferences>): boolean {
 function getNotificationFrequency(prefs: Maybe<UserPreferences>): string {
   return pipe(
     prefs,
-    Maybe.flatMap(p => Maybe.fromNullable(p.notifications)),
-    Maybe.flatMap(n => Maybe.fromNullable(n.frequency)),
-    Maybe.getOrElse('daily'),
+    Maybe.flatMap((p) => Maybe.fromNullable(p.notifications)),
+    Maybe.flatMap((n) => Maybe.fromNullable(n.frequency)),
+    Maybe.getOrElse('daily')
   );
 }
 
@@ -251,12 +249,12 @@ interface PaginationOptions {
 function parseQueryParams(params: QueryParams): Maybe<PaginationOptions> {
   return pipe(
     some(params),
-    Maybe.flatMap(p => Maybe.fromNullable(p.page)),
-    Maybe.flatMap(pageStr => {
+    Maybe.flatMap((p) => Maybe.fromNullable(p.page)),
+    Maybe.flatMap((pageStr) => {
       const page = parseInt(pageStr, 10);
       return isNaN(page) ? none : some(page);
     }),
-    Maybe.flatMap(page => {
+    Maybe.flatMap((page) => {
       const limitStr = params.limit;
       if (!limitStr) return some({ page, limit: 20 });
 
@@ -268,7 +266,7 @@ function parseQueryParams(params: QueryParams): Maybe<PaginationOptions> {
       limit,
       sort: params.sort,
       filter: params.filter,
-    })),
+    }))
   );
 }
 
@@ -277,7 +275,7 @@ app.get('/users', (req, res) => {
   const options = parseQueryParams(req.query);
 
   options.match({
-    some: opts => {
+    some: (opts) => {
       const offset = (opts.page - 1) * opts.limit;
       const users = db.users.find({ limit: opts.limit, offset, sort: opts.sort });
       res.json({ users, page: opts.page });
@@ -297,10 +295,13 @@ Same pattern as Result:
 import { Maybe, some, none, pipe } from '@deessejs/fp';
 
 // Instance method style
-const a = some(5).map(n => n * 2); // Some(10)
+const a = some(5).map((n) => n * 2); // Some(10)
 
 // Static data-last (pipeable) style
-const b = pipe(some(5), Maybe.map(n => n * 2)); // Some(10)
+const b = pipe(
+  some(5),
+  Maybe.map((n) => n * 2)
+); // Some(10)
 ```
 
 ## Methods
@@ -310,8 +311,8 @@ const b = pipe(some(5), Maybe.map(n => n * 2)); // Some(10)
 Transforms the value if Some, passes through if None.
 
 ```typescript
-some(5).map(n => n * 2); // Some(10)
-none.map(n => n * 2); // None
+some(5).map((n) => n * 2); // Some(10)
+none.map((n) => n * 2); // None
 ```
 
 ### flatMap (andThen)
@@ -319,7 +320,7 @@ none.map(n => n * 2); // None
 Chains a Maybe-returning function on success.
 
 ```typescript
-some(5).flatMap(n => n > 0 ? some(n) : none); // Some(5)
+some(5).flatMap((n) => (n > 0 ? some(n) : none)); // Some(5)
 ```
 
 ### filter
@@ -327,8 +328,8 @@ some(5).flatMap(n => n > 0 ? some(n) : none); // Some(5)
 Filters the value, returning None if predicate fails.
 
 ```typescript
-some(5).filter(n => n % 2 === 0); // None
-some(4).filter(n => n % 2 === 0); // Some(4)
+some(5).filter((n) => n % 2 === 0); // None
+some(4).filter((n) => n % 2 === 0); // Some(4)
 ```
 
 ### tap
@@ -345,8 +346,8 @@ Transforms both variants to the same type.
 
 ```typescript
 some(5).fold(
-  n => `Got: ${n}`,
-  () => 'Nothing',
+  (n) => `Got: ${n}`,
+  () => 'Nothing'
 ); // "Got: 5"
 ```
 

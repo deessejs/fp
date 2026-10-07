@@ -9,7 +9,10 @@ describe('compose', () => {
 
   it('composes two functions right-to-left', () => {
     // compose(g, f)(x) === g(f(x))
-    const f = compose((x: number) => x + 1, (x: number) => x * 2);
+    const f = compose(
+      (x: number) => x + 1,
+      (x: number) => x * 2
+    );
     expect(f(10)).toBe(21);
   });
 
@@ -17,7 +20,7 @@ describe('compose', () => {
     const f = compose(
       (s: string) => `!${s}!`,
       (s: string) => s.toUpperCase(),
-      (s: string) => s.trim(),
+      (s: string) => s.trim()
     );
     expect(f('  hello  ')).toBe('!HELLO!');
   });

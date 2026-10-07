@@ -9,12 +9,14 @@ type: feedback
 **Why:** Simpler mental model for users. `queue()` instead of `new Queue()`, `context()` instead of `new Context()`, etc.
 
 **How to apply:**
+
 - Public API: functions like `queue()`, `context()`, `sequence()`, `collection()`
 - Internal implementation: can use classes for Ok, Err, Some, None, etc.
 - Documentation examples: use function form, not `new ClassName()`
 - API Reference section: show interfaces and functions, not class definitions
 
 **Examples:**
+
 ```typescript
 // ✅ Correct (function)
 const q = queue({ concurrency: 3 });

@@ -196,7 +196,7 @@ git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
 Each page in this wiki follows the same skeleton:
 
-1. **Bandeau *Last synced*** pointing to the canonical doc in the repo.
+1. **Bandeau _Last synced_** pointing to the canonical doc in the repo.
 2. **TL;DR** in 3-5 sentences, answering "what is this page about" and "what is
    its status (active / future / deprecated)".
 3. **`## Outline`** (heading level 2) listing every section with anchor links.
@@ -228,14 +228,14 @@ prose, and present tense in procedural instructions.
 
 ## Quick reference
 
-| Goal | Command |
-| --- | --- |
-| Check the parent repo's wiki flag | `gh api repos/deessejs/fp --jq .has_wiki` |
-| Clone the wiki | `gh repo clone deessejs/fp.wiki ./fp.wiki` |
-| List pages | `ls ./fp.wiki` |
-| Read a page | `git -C ./fp.wiki show master:Home.md` |
-| Create a page | write the file, `git add`, `git commit`, `git push` |
-| Update a page | edit, `git add`, `git commit`, `git push` |
-| Delete a page | `git rm <file>`, `git commit`, `git push` |
-| Page history | `git -C ./fp.wiki log -- <file>` |
-| Safe automation push | `git pull --rebase && git push` |
+| Goal                              | Command                                             |
+| --------------------------------- | --------------------------------------------------- |
+| Check the parent repo's wiki flag | `gh api repos/deessejs/fp --jq .has_wiki`           |
+| Clone the wiki                    | `gh repo clone deessejs/fp.wiki ./fp.wiki`          |
+| List pages                        | `ls ./fp.wiki`                                      |
+| Read a page                       | `git -C ./fp.wiki show master:Home.md`              |
+| Create a page                     | write the file, `git add`, `git commit`, `git push` |
+| Update a page                     | edit, `git add`, `git commit`, `git push`           |
+| Delete a page                     | `git rm <file>`, `git commit`, `git push`           |
+| Page history                      | `git -C ./fp.wiki log -- <file>`                    |
+| Safe automation push              | `git pull --rebase && git push`                     |

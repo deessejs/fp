@@ -1,5 +1,5 @@
 ---
-"@deessejs/fp": patch
+'@deessejs/fp': patch
 ---
 
 fix(ci): stop publish.yml from treating any package.json change as a release

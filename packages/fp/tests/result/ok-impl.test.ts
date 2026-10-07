@@ -12,13 +12,21 @@ describe('OkImpl', () => {
 
   describe('map', () => {
     it('applies the function', () => {
-      expect(ok(10).map((x) => x * 2).getOrNull()).toBe(20);
+      expect(
+        ok(10)
+          .map((x) => x * 2)
+          .getOrNull()
+      ).toBe(20);
     });
   });
 
   describe('flatMap', () => {
     it('binds to a Result', () => {
-      expect(ok(10).flatMap((x) => ok<number, string>(x + 1)).getOrNull()).toBe(11);
+      expect(
+        ok(10)
+          .flatMap((x) => ok<number, string>(x + 1))
+          .getOrNull()
+      ).toBe(11);
     });
 
     it('binds to a Result.Err', () => {
@@ -38,17 +46,28 @@ describe('OkImpl', () => {
 
   describe('filter', () => {
     it('returns Ok when predicate passes', () => {
-      expect(ok(10).filter((x) => x > 5).isOk()).toBe(true);
+      expect(
+        ok(10)
+          .filter((x) => x > 5)
+          .isOk()
+      ).toBe(true);
     });
 
     it('returns Err(errorFn(value)) when predicate fails and errorFn supplied', () => {
-      const out = ok<number, string>(3).filter((x) => x % 2 === 0, (x) => `odd:${x}`);
+      const out = ok<number, string>(3).filter(
+        (x) => x % 2 === 0,
+        (x) => `odd:${x}`
+      );
       expect(out.isErr()).toBe(true);
       if (out.isErr()) expect(out.error).toBe('odd:3');
     });
 
     it('returns Ok when predicate fails and no errorFn supplied', () => {
-      expect(ok<number, string>(3).filter((x) => x % 2 === 0).isOk()).toBe(true);
+      expect(
+        ok<number, string>(3)
+          .filter((x) => x % 2 === 0)
+          .isOk()
+      ).toBe(true);
     });
   });
 
@@ -93,7 +112,7 @@ describe('OkImpl', () => {
         ok(10).match({
           ok: (v) => v * 2,
           err: () => 0,
-        }),
+        })
       ).toBe(20);
     });
   });
@@ -103,8 +122,8 @@ describe('OkImpl', () => {
       expect(
         ok(10).fold(
           (v) => v + 1,
-          () => 0,
-        ),
+          () => 0
+        )
       ).toBe(11);
     });
   });

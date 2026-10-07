@@ -13,36 +13,39 @@ pnpm outdated --recursive
 
 ## Output columns
 
-| Column | Meaning |
-|--------|---------|
-| Package | Dependency name |
-| Current | Currently installed version |
-| Wanted | Max version allowed by semver range (^, ~, etc.) |
-| Latest | Most recent release on npm |
+| Column  | Meaning                                          |
+| ------- | ------------------------------------------------ |
+| Package | Dependency name                                  |
+| Current | Currently installed version                      |
+| Wanted  | Max version allowed by semver range (^, ~, etc.) |
+| Latest  | Most recent release on npm                       |
 
 ## Interpretation guide
 
-| Status | Meaning | Action |
-|--------|---------|--------|
-| **Wanted = Latest** | Up to date within semver | None |
-| **Current < Wanted** | Update available within semver range | Generally safe to update |
-| **Wanted < Latest** | Major version available | Review changelog for breaking changes |
+| Status               | Meaning                              | Action                                |
+| -------------------- | ------------------------------------ | ------------------------------------- |
+| **Wanted = Latest**  | Up to date within semver             | None                                  |
+| **Current < Wanted** | Update available within semver range | Generally safe to update              |
+| **Wanted < Latest**  | Major version available              | Review changelog for breaking changes |
 
 ## Safe update commands
 
 ### Update specific package
+
 ```bash
 pnpm update <package-name>
 # Example: pnpm update lodash
 ```
 
 ### Update all minor/patch versions
+
 ```bash
 pnpm update
 # Respects semver ranges (^4.1.7 → won't jump to 5.0.0)
 ```
 
 ### Force latest version
+
 ```bash
 pnpm update --latest
 # May introduce breaking changes — review first
@@ -58,6 +61,7 @@ pnpm update --latest
 ## Filter by package
 
 To check a specific package:
+
 ```bash
 pnpm outdated --filter <package-name>
 ```

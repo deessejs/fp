@@ -34,18 +34,18 @@
 
 ## What's included
 
-| Layer | What you get | Why it matters |
-|---|---|---|
-| **`Result<T, E>`** | `ok`, `err`, pattern matching, sequencing | Type-safe error handling without exceptions or nulls. |
-| **`Maybe<T>`** | `some`, `none`, `maybe`, `map`, `getOrElse` | Optional values that compose. |
-| **`Try<T>`** | `try`, `tryAsync`, conversion to `Result` | Wrap throwing functions in a typed shell. |
-| **`Unit`** | The unit type for void-returning operations | Express "no value" without `null` or `undefined`. |
-| **Functional utilities** | `pipe`, `flow`, `identity`, `constant`, `flip`, `tupled` | Compose functions without ad-hoc helpers. |
-| **Async utilities** | `sleep`, `retry`, `timeout`, `Queue` | Time-based primitives that compose with `Result`. |
-| **Predicate utilities** | `Predicate`, `Refinement`, `not`, `and`, `or` | First-class predicates and type guards. |
-| **Collection types** | `Context`, `Sequence`, `Collection`, async iterator helpers | Sequence operations over various sources. |
-| **Generator composition** | `gen()` with `yield*` | Async flow control that reads like sync code. |
-| **[`@deessejs/errors`](https://github.com/deessejs/errors) integration** | All `Result` constructors accept `@deessejs/errors` | No string-error footguns — use real error types. |
+| Layer                                                                    | What you get                                                | Why it matters                                        |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------- | ----------------------------------------------------- |
+| **`Result<T, E>`**                                                       | `ok`, `err`, pattern matching, sequencing                   | Type-safe error handling without exceptions or nulls. |
+| **`Maybe<T>`**                                                           | `some`, `none`, `maybe`, `map`, `getOrElse`                 | Optional values that compose.                         |
+| **`Try<T>`**                                                             | `try`, `tryAsync`, conversion to `Result`                   | Wrap throwing functions in a typed shell.             |
+| **`Unit`**                                                               | The unit type for void-returning operations                 | Express "no value" without `null` or `undefined`.     |
+| **Functional utilities**                                                 | `pipe`, `flow`, `identity`, `constant`, `flip`, `tupled`    | Compose functions without ad-hoc helpers.             |
+| **Async utilities**                                                      | `sleep`, `retry`, `timeout`, `Queue`                        | Time-based primitives that compose with `Result`.     |
+| **Predicate utilities**                                                  | `Predicate`, `Refinement`, `not`, `and`, `or`               | First-class predicates and type guards.               |
+| **Collection types**                                                     | `Context`, `Sequence`, `Collection`, async iterator helpers | Sequence operations over various sources.             |
+| **Generator composition**                                                | `gen()` with `yield*`                                       | Async flow control that reads like sync code.         |
+| **[`@deessejs/errors`](https://github.com/deessejs/errors) integration** | All `Result` constructors accept `@deessejs/errors`         | No string-error footguns — use real error types.      |
 
 ## Why this stack
 
@@ -80,8 +80,7 @@ npm install @deessejs/fp @deessejs/errors
 import { ok, err, some, none, maybe, pipe } from '@deessejs/fp';
 
 // Result: represent values that may have failed
-const divide = (a: number, b: number) =>
-  b === 0 ? err('Division by zero') : ok(a / b);
+const divide = (a: number, b: number) => (b === 0 ? err('Division by zero') : ok(a / b));
 
 const result = divide(10, 2);
 result.match({
@@ -103,11 +102,11 @@ const processed = pipe('  hello  ', trim, uppercase);
 
 ### Engine compatibility
 
-| Runtime | Minimum version |
-|---|---|
-| Node.js | 22.14.0 |
-| pnpm | 10 (for development) |
-| TypeScript | 6.0 |
+| Runtime    | Minimum version      |
+| ---------- | -------------------- |
+| Node.js    | 22.14.0              |
+| pnpm       | 10 (for development) |
+| TypeScript | 6.0                  |
 
 ESM-only. Consumers using a CJS resolver need to use dynamic `import()` or migrate to ESM.
 
@@ -115,45 +114,45 @@ ESM-only. Consumers using a CJS resolver need to use dynamic `import()` or migra
 
 ### Workspace (root)
 
-| Command | What it does |
-|---|---|
-| `pnpm build` | Build every workspace |
-| `pnpm test` | Run all tests in watch mode |
-| `pnpm test:run` | Run all tests once |
-| `pnpm lint` | Lint every workspace |
-| `pnpm type-check` | Type-check every workspace |
-| `pnpm format` | Format with Prettier |
+| Command           | What it does                |
+| ----------------- | --------------------------- |
+| `pnpm build`      | Build every workspace       |
+| `pnpm test`       | Run all tests in watch mode |
+| `pnpm test:run`   | Run all tests once          |
+| `pnpm lint`       | Lint every workspace        |
+| `pnpm type-check` | Type-check every workspace  |
+| `pnpm format`     | Format with Prettier        |
 
 ### Package: `@deessejs/fp`
 
-| Command | What it does |
-|---|---|
-| `pnpm --filter @deessejs/fp build` | Build `dist/` |
-| `pnpm --filter @deessejs/fp test` | Run vitest in watch mode |
-| `pnpm --filter @deessejs/fp test:run` | Run vitest once |
-| `pnpm --filter @deessejs/fp type-check` | `tsc --noEmit` |
-| `pnpm --filter @deessejs/fp lint` | Run ESLint |
+| Command                                 | What it does             |
+| --------------------------------------- | ------------------------ |
+| `pnpm --filter @deessejs/fp build`      | Build `dist/`            |
+| `pnpm --filter @deessejs/fp test`       | Run vitest in watch mode |
+| `pnpm --filter @deessejs/fp test:run`   | Run vitest once          |
+| `pnpm --filter @deessejs/fp type-check` | `tsc --noEmit`           |
+| `pnpm --filter @deessejs/fp lint`       | Run ESLint               |
 
 ### App: `web`
 
-| Command | What it does |
-|---|---|
-| `pnpm --filter web dev` | Start the docs site in dev mode |
-| `pnpm --filter web build` | Build the docs site |
+| Command                   | What it does                    |
+| ------------------------- | ------------------------------- |
+| `pnpm --filter web dev`   | Start the docs site in dev mode |
+| `pnpm --filter web build` | Build the docs site             |
 
 ## Compatibility
 
 ### Peer dependencies
 
-| Package | Required | Notes |
-|---|---|---|
+| Package                                                  | Required                 | Notes                                                                                         |
+| -------------------------------------------------------- | ------------------------ | --------------------------------------------------------------------------------------------- |
 | [`@deessejs/errors`](https://github.com/deessejs/errors) | Optional, peer `>=1.0.0` | Required if you want `err()` to accept typed errors. Listed as a `devDependency` for testing. |
 
 ### Engines
 
-| Field | Value |
-|---|---|
-| `engines.node` | `>=22.14.0` |
+| Field            | Value          |
+| ---------------- | -------------- |
+| `engines.node`   | `>=22.14.0`    |
 | `packageManager` | `pnpm@10.30.3` |
 
 ## Project structure
@@ -183,13 +182,13 @@ ESM-only. Consumers using a CJS resolver need to use dynamic `import()` or migra
 
 Releases are fully automated via Changesets + npm Trusted Publishing (OIDC). No long-lived `NPM_TOKEN` is required.
 
-| What | How |
-|---|---|
-| Bump version | Add a `.changeset/<topic>.md` file with semver + description |
-| Open the release PR | `changesets-version.yml` opens / updates a "Version Packages" PR from staging to main |
-| Publish | Merge the Version Packages PR → `publish.yml` runs → version bump committed → Trusted Publishing publishes to npm with provenance attestation |
-| Hotfix | Push a tag `vX.Y.Z` to main → same workflow runs for the hotfix path |
-| Rollback or deprecate | Planned: see `docs/engineering/plans/release-pipeline-github-ui-setup.md` |
+| What                  | How                                                                                                                                           |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bump version          | Add a `.changeset/<topic>.md` file with semver + description                                                                                  |
+| Open the release PR   | `changesets-version.yml` opens / updates a "Version Packages" PR from staging to main                                                         |
+| Publish               | Merge the Version Packages PR → `publish.yml` runs → version bump committed → Trusted Publishing publishes to npm with provenance attestation |
+| Hotfix                | Push a tag `vX.Y.Z` to main → same workflow runs for the hotfix path                                                                          |
+| Rollback or deprecate | Planned: see `docs/engineering/plans/release-pipeline-github-ui-setup.md`                                                                     |
 
 For the full pipeline design, see [`docs/engineering/plans/release-pipeline.md`](docs/engineering/plans/release-pipeline.md).
 

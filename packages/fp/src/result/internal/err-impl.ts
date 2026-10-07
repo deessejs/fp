@@ -14,9 +14,9 @@
  */
 
 import type { Result } from '../types.js';
-import type { Maybe } from '../../maybe/types.js';
+import type { Maybe, None } from '../../maybe/types.js';
+import type { OkImpl } from './ok-impl.js';
 import { none } from '../../maybe/constants.js';
-import { OkImpl } from './ok-impl.js';
 
 export class ErrImpl<T = never, E = never> {
   readonly _tag = 'Err' as const;
