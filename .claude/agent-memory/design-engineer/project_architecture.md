@@ -12,7 +12,7 @@ fp/
 ├── apps/
 │   └── web/           # Next.js documentation site
 ├── package.json       # Root: pnpm workspace + turbo config
-└── CLAUDE.md          # Project instructions
+└── AGENTS.md          # Project instructions (CLAUDE.md redirects here)
 ```
 
 ## Monorepo Tech Stack
@@ -46,7 +46,7 @@ main ← staging ← dev
 
 ## Communication Rule
 
-**Always communicate in English** in code and documentation (per CLAUDE.md).
+**Always communicate in English** in code and documentation (per AGENTS.md).
 
 ## Web Search
 

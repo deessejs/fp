@@ -14,7 +14,7 @@
 3. Keep the release decision **human-gated** while automating every mechanical step (versioning, changelog, tagging, publishing).
 4. Apply **defense in depth**: independent gates must all fail closed before a package becomes `latest` on npm.
 5. Support **stable releases**, **canary snapshots** per PR, **pre-release cycles** (`next`/`beta`), and **hotfixes**, without divergent tooling.
-6. Stay consistent with `CLAUDE.md` (`main <- staging <- dev`) by making the branch strategy **executable**, not only documented. **All developer PRs target `staging`.** `main` is updated through a reviewable PR (the "Version Packages" PR, or a hotfix PR) — there is **no bypass on `main`**; every merge goes through PR review.
+6. Stay consistent with `AGENTS.md` (`main <- staging <- dev`) by making the branch strategy **executable**, not only documented. **All developer PRs target `staging`.** `main` is updated through a reviewable PR (the "Version Packages" PR, or a hotfix PR) — there is **no bypass on `main`**; every merge goes through PR review.
 
 ## 2. Non-Goals
 
@@ -30,7 +30,7 @@
 | Authentication                                  | `NPM_TOKEN` (secret)                                       | Long-lived, leak-prone                                                      |
 | Provenance                                      | None                                                       | No verifiable build link                                                    |
 | Release trigger                                 | `workflow_dispatch` OR PR closed with label `version bump` | Label is easy to forget; no human review on the version diff                |
-| Branch strategy                                 | `main <- staging <- dev` documented in `CLAUDE.md`         | Not enforced by any CI workflow                                             |
+| Branch strategy                                 | `main <- staging <- dev` documented in `AGENTS.md`         | Not enforced by any CI workflow                                             |
 | Default PR target                               | Whatever GitHub offers (today: `main`)                     | Developers can land features directly on `main`, bypassing `staging` review |
 | PR template                                     | No changeset checkbox                                      | Easy to merge a feat without a changeset                                    |
 | Environment protection                          | None                                                       | Any push to `main` with secret access can publish                           |
@@ -360,7 +360,7 @@ The following questions were resolved during planning review on 2026-08-03:
 3. **Linked groups in Changesets**: not anticipated now. Configure `linked`/`fixed` only when the second package is ready to be published.
 4. **Hotfix trigger**: PR-only. The tag `v*.*.*` is pushed from the merged PR into `main`. Direct tag pushes are rejected by tag protection rules.
 5. **Release engineer identity**: no dedicated team, no bypass. The release engineer is a **role** — whoever opens the "Version Packages" PR from `staging` and shepherds its merge. Everyone merges `main` through a regular PR with a reviewer; there is no shortcut for "release engineers".
-6. **`dev` branch**: not materialized. `feature/*` and `fix/*` branches target `staging` directly. The model `main <- staging <- dev` documented in `CLAUDE.md` is preserved as a conceptual model where `dev` is the collective name for the per-feature work-in-progress, not a long-lived branch.
+6. **`dev` branch**: not materialized. `feature/*` and `fix/*` branches target `staging` directly. The model `main <- staging <- dev` documented in `AGENTS.md` is preserved as a conceptual model where `dev` is the collective name for the per-feature work-in-progress, not a long-lived branch.
 
 ## 14. Revisit Later
 

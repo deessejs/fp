@@ -120,7 +120,7 @@ When deep expertise is needed:
 
 ## Release Resources
 
-- **Check `CLAUDE.md`** for project-specific guidance and branching strategy.
+- **Check `AGENTS.md`** for project-specific guidance and branching strategy.
 - **Reference `turbo.json`** for the build pipeline configuration.
 - **Reference `package.json`** at root for workspace scripts.
 - **Reference `.github/workflows/release.yml`** for the release process.

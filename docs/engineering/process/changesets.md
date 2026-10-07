@@ -80,7 +80,7 @@ level_ of their change at code time; the tool rolls them up later.
 
 ## 2. The branch flow
 
-We follow the branching model in [`CLAUDE.md`](../../../CLAUDE.md):
+We follow the branching model in [`AGENTS.md`](../../../AGENTS.md):
 
 ```text
 main  <-  staging  <-  dev
