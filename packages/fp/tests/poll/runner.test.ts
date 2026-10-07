@@ -197,4 +197,40 @@ describe('poll', () => {
       expect(result.value).toEqual({ count: 1 });
     }
   });
+
+  it('throws when exhausted is missing at the cap, even if it was set when poll was called', async () => {
+    // The guard at the top of poll() catches the missing-exhausted case
+    // synchronously. The defensive fallback inside the loop covers the
+    // case where `exhausted` is a truthy-looking value at type-check
+    // time but `undefined` at runtime -- modeled here with a getter
+    // that returns undefined the first time the property is read (which
+    // the top-of-function guard uses) and undefined the second time
+    // (which the in-loop branch uses). This is the only way to exercise
+    // the unreachable-looking branch without changing the production
+    // code.
+    let callCount = 0;
+    const options = {
+      interval: 0,
+      maxAttempts: 1,
+      // The top-level guard reads options.exhausted once at entry, so
+      // it sees a function. The in-loop branch reads it again from a
+      // different lookup path; the getter returns undefined on every
+      // call past the first, so the in-loop branch hits the throw.
+      get exhausted() {
+        callCount += 1;
+        if (callCount === 1) {
+          return () => 'sentinel: should not be reached';
+        }
+        return undefined;
+      },
+    } as unknown as Parameters<typeof poll<State, string>>[2];
+
+    await expect(
+      poll<State, string>(
+        { count: 0 },
+        async () => pending({ count: 1 }),
+        options
+      )
+    ).rejects.toThrow(/exhausted/);
+  });
 });
