@@ -171,7 +171,7 @@ ESM-only. Consumers using a CJS resolver need to use dynamic `import()` or migra
 │   ├── internal/          # Engineering plans, runbooks
 │   │   ├── product/
 │   │   └── versions/
-│   └── CLAUDE.md          # Claude / agent guidance
+│   └── AGENTS.md          # Agent guidance (CLAUDE.md redirects here)
 ├── pnpm-workspace.yaml
 ├── turbo.json             # Turborepo pipelines
 ├── .changeset/            # Changesets for versioning
