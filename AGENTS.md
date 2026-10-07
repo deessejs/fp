@@ -53,7 +53,9 @@ If you genuinely believe a CI rule is wrong, open a separate PR that argues the 
 
 ## Project Purpose
 
-This repository hosts **`@deessejs/fp`**, a functional programming library for TypeScript. The goal is small, type-safe, dependency-free primitives (`Result`, `Maybe`, `Poll`, `Unit`, `pipe`, predicates) that compose well and integrate natively with the sibling [`@deessejs/errors`](https://github.com/deessejs/errors) package for typed error handling.
+This repository hosts **`@deessejs/fp`**, a functional programming library for TypeScript. The goal is small, type-safe, dependency-free primitives (`Result`, `Maybe`, `Poll`, `Unit`, `pipe`, predicates) that compose well.
+
+The library is developed in **direct coordination with [`@deessejs/errors`](https://github.com/deessejs/errors)**. `@deessejs/errors` is a first-class interop partner, not a downstream consumer: the goal is native, type-safe support for its error classes throughout `Result`, `Maybe`, `Poll`, and the upcoming `Try` facade. When you change a public type or a runtime contract in this repo, ask whether the change affects the contract `@deessejs/errors` expects, and vice versa. See the dedicated section below.
 
 The repo is a pnpm + Turborepo monorepo with two workspaces:
 
@@ -61,6 +63,18 @@ The repo is a pnpm + Turborepo monorepo with two workspaces:
 - `apps/web/` — the public documentation site (Next.js + Fumadocs, MDX content). Source of the live docs at `fp.deessejs.com`. Touch this only when the docs need to change to match a library change.
 
 The repo historically started from the [`complete-package-template`](https://github.com/deessejs/complete-package-template) — the scaffolding residue (issue templates, the package-template-shaped `AGENTS.md` text we are replacing right now) is from that origin and is not a load-bearing description of what this project is. If you find other template-shaped artifacts, fix them.
+
+## Interop with `@deessejs/errors`
+
+`@deessejs/errors` (the sibling repo) is **first-class**, not a downstream consumer. The teams are in direct contact, and breaking changes are coordinated. Concretely:
+
+- **Typed errors everywhere.** A `Result<T, E>` should accept `@deessejs/errors` error classes (and any class implementing the expected error shape) without forcing the caller to wrap. The `err()` constructor and the `fromThrowable` / `fromAsyncThrowable` helpers must support `@deessejs/errors` instances as the `E` value, not just strings. Verify this when touching the Result surface.
+- **No parallel error hierarchies.** If you find yourself reaching for a local `MyError` class in `packages/fp`, stop and ask whether the equivalent already exists in `@deessejs/errors`. If it does not, the fix is to add it there first, then consume it from here — not to fork the hierarchy in this repo.
+- **Changeset coordination.** A change to a public type that `@deessejs/errors` consumes (e.g. `Result<T, E>` shape, `fromThrowable` signatures, the `UnhandledException` tag) is a coordinated release. Mention the interop impact in the PR description and the changeset, and coordinate the version bump with the other repo's release.
+- **Tests for the interop.** If you add or change an interop code path, add a test that constructs a real `@deessejs/errors` instance and runs it through the relevant helper. Do not test the interop with a stub class.
+- **Web search before changing the contract.** `@deessejs/errors` has its own release cadence. Before changing a shared contract, search the other repo's recent changesets and open issues to confirm you are not about to break an in-flight change there.
+
+If you are unsure whether a change crosses the boundary, ask the tech lead. Do not guess.
 
 ## Communication
 
