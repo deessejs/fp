@@ -53,15 +53,14 @@ If you genuinely believe a CI rule is wrong, open a separate PR that argues the 
 
 ## Project Purpose
 
-This is a **TypeScript package template**. Use this as a starting point when creating new TypeScript packages.
+This repository hosts **`@deessejs/fp`**, a functional programming library for TypeScript. The goal is small, type-safe, dependency-free primitives (`Result`, `Maybe`, `Poll`, `Unit`, `pipe`, predicates) that compose well and integrate natively with the sibling [`@deessejs/errors`](https://github.com/deessejs/errors) package for typed error handling.
 
-### Working with this Template
+The repo is a pnpm + Turborepo monorepo with two workspaces:
 
-There are two ways to work with this project:
+- `packages/fp/` — the library. The published artifact, ESM-only, no runtime dependencies. All source lives here, all tests live here. This is what the PRs in this repo are about.
+- `apps/web/` — the public documentation site (Next.js + Fumadocs, MDX content). Source of the live docs at `fp.deessejs.com`. Touch this only when the docs need to change to match a library change.
 
-1. **Developing the template itself**: You are working directly on this repository to improve or maintain it.
-
-2. **Using the template for a new project**: You have cloned this template to start a new project. If you encounter a bug, have an idea for a new feature, or notice something that should be fixed in the template, **create an issue on the template repository** (https://github.com/nesalia-inc/complete-package-template/issues) so the template can be improved for everyone. Use the issue templates located in `.github/ISSUE_TEMPLATE/` when creating issues.
+The repo historically started from the [`complete-package-template`](https://github.com/nesalia-inc/complete-package-template) — the scaffolding residue (issue templates, the package-template-shaped `AGENTS.md` text we are replacing right now) is from that origin and is not a load-bearing description of what this project is. If you find other template-shaped artifacts, fix them.
 
 ## Communication
 
