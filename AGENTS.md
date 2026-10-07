@@ -76,6 +76,33 @@ The repo historically started from the [`complete-package-template`](https://git
 
 If you are unsure whether a change crosses the boundary, ask the tech lead. Do not guess.
 
+## Snapshot of `@deessejs/errors`
+
+What you need to know about the sibling repo to coordinate changes. **Verify before relying on any of this** — versions and exports move fast.
+
+| Field                       | Value (as of latest published `@deessejs/errors` 1.4.0)                                                                                                                                                                                                            |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| npm name                    | `@deessejs/errors`                                                                                                                                                                                                                                                 |
+| Homepage / docs             | `https://errors.deessejs.com`                                                                                                                                                                                                                                      |
+| GitHub                      | `github.com/nesalia-inc/errors` (the `deessejs/errors` alias may or may not resolve; treat the `nesalia-inc/` URL as canonical until the org is fully migrated)                                                                                                    |
+| Module type                 | ESM-only (`"type": "module"`, `"sideEffects": false`)                                                                                                                                                                                                              |
+| Entry points                | `dist/index.js` / `dist/index.d.ts` (re-export barrel), plus per-module subpaths: `error/`, `is/`, `raise/`, `format/`                                                                                                                                             |
+| Runtime dependencies        | One: `@standard-schema/spec` ^1.1.0 (Standard Schema for the validated-field support)                                                                                                                                                                              |
+| Public surface (conceptual) | `error()` factory, `.from()` cause chaining, `is()` runtime type check (with inheritance), `raise()` (throw helper, `never`-typed), `addNote()` for context, message templates with `{field}` placeholders and modifiers, hierarchical inheritance via `inherits:` |
+| Tooling                     | TypeScript, Vitest, tsc build, ESLint (this repo is on oxlint/oxfmt; that is a deliberate divergence, not a mistake)                                                                                                                                               |
+| License                     | MIT                                                                                                                                                                                                                                                                |
+| Author (npm)                | Nesalia Inc. (legacy metadata — the team is deessejs; the npm field has not been updated)                                                                                                                                                                          |
+| Publishing                  | OIDC Trusted Publishing (`publishConfig.provenance: true`)                                                                                                                                                                                                         |
+| Cadence                     | ~7 published versions in 2 months. The library is moving fast. **Do not hard-pin to a specific version in this repo without checking the other repo's recent changesets.**                                                                                         |
+
+How to verify any of the above:
+
+- For the latest published version and tarball contents: `npm view @deessejs/errors` and `npm pack @deessejs/errors --dry-run`.
+- For the in-flight API surface: clone the GitHub repo and read `src/` directly, or fetch `https://errors.deessejs.com` (the published docs).
+- For breaking-change coordination: read the other repo's `.changeset/` directory and open issues, especially anything tagged interop / fp.
+
+The npm author field and the GitHub org name are both legacy and will be cleaned up on the other side. **Do not let either of those legacy strings leak into a new file in this repo** — when you need to reference the other repo, use the canonical npm name (`@deessejs/errors`) and the homepage (`https://errors.deessejs.com`), not the GitHub URL.
+
 ## Communication
 
 - **Always communicate in English.** All explanations, comments, and documentation must be in English.
