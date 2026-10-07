@@ -1,5 +1,23 @@
 # @deessejs/fp
 
+## 5.0.0
+
+### Major Changes
+
+- Reset the published version to clear the previous npm history.
+
+  The 1.x and 2.x versions on the npm registry were published from a different but related codebase (the same author, but a separate source tree with a different shape). That history is preserved on npm; this release does not unpublish it. Consumers pinning `^1.x` or `^2.x` (or `^3.x` / `^4.x`, also published by the same author from a third codebase) keep their current install.
+
+  Consumers who want the current source-of-truth from this repository install `@deessejs/fp@5.0.0` (or later). The 5.0.0 release matches the code on `main` at the merge of #449.
+
+  This release also makes the `@deessejs/fp` npm package reachable from this repository for the first time. The 1.x and 2.0.1 work that was prepared on this branch but never reached npm (see the 2.0.0 / 2.0.1 entries below) is folded into 5.0.0:
+
+  - The `poll` helper added in 2.0.0, with the config-object signature refactored in the same release.
+  - The provenance fix from 2.0.1 (npm publish no longer requires OIDC).
+  - The structural changes from PR #448: `Result` and `Maybe` exposed via internal classes, `pipe` / `flow` / `identity` / `constant` / `flip` / `tupled` / `untupled`, the `fromThrowable` / `fromAsyncThrowable` / `attempt` / `withReporting` / `classifyError` family.
+  - The migration from ESLint+Prettier to oxlint+oxfmt (PR #444).
+  - The rename of the agent guidance file from `CLAUDE.md` to `AGENTS.md` (PR #447), with a senior-engineer persona and the rules for `@deessejs/errors` interop, including the new `Poll` / `Result` / `Maybe` surface.
+
 ## 2.0.1
 
 ### Patch Changes
