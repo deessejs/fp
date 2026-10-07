@@ -2,6 +2,16 @@
 @import 'fumadocs-ui/css/black.css';
 @import 'fumadocs-ui/css/preset.css';
 
+/* Expose --border as a raw CSS variable so non-Tailwind
+   references (e.g. the diagonal-stripe column in
+   components/layouts/global-layout.tsx) resolve to the same token
+   Tailwind v4 uses internally. Mirrors the deessejs SaaS template
+   convention; without it the pattern renders with a transparent
+   gradient. */
+@theme {
+  --border: var(--color-border);
+}
+
 html {
   scrollbar-gutter: stable;
 }
