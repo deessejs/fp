@@ -99,5 +99,9 @@ export type { Lazy, Predicate, Refinement, Endomorphism, FunctionN } from './fun
 export { isResult, isMaybe } from './types.js';
 export type { OkType, ErrType, SomeType } from './types.js';
 
+// Poll exports
+export type { Pending, Done, Failed, Poll, PollOptions } from './poll/index.js';
+export { pending, done, failed, poll } from './poll/index.js';
+
 // Forward-looking additions are tracked in the ADR under
 // docs/engineering/architecture/decisions/, not as inline TODOs.
