@@ -2,7 +2,6 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { CodeBlock } from '@/components/code-block';
 import { CtaCard } from '@/components/cta-card';
-import { Footer } from '@/components/footer';
 import { baseUrl } from '@/lib/shared';
 
 export const metadata: Metadata = {
@@ -268,8 +267,6 @@ export default function HomePage() {
 
         {/* CTA Section */}
         <CtaCard />
-
-        <Footer />
       </main>
     </>
   );
