@@ -5,6 +5,10 @@
     "allow": ["Read(*)", "Write(*)", "Edit(*)", "Bash(*)", "Read(//tmp/**)"],
 
     "deny": [
+      "Write(//tmp/**)",
+      "Edit(//tmp/**)",
+      "Bash(rm */tmp/*)",
+
       "Bash(kill *)",
       "Bash(pkill *)",
       "Bash(killall *)",
