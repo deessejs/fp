@@ -1,12 +1,7 @@
 import * as React from 'react';
 
 /**
- * Global page wrapper for every public surface on `apps/web`.
- *
- * Applied once at `apps/web/src/app/layout.tsx` so it frames every
- * route rendered under `<main>` uniformly. Pages do not need to
- * import or wrap with this component themselves; the layout root
- * does it.
+ * Marketing page wrapper, used by the home page only.
  *
  * Provides:
  *   - Outer container (padding + responsive widths via the `container`
@@ -20,9 +15,18 @@ import * as React from 'react';
  * on 10x10 px tiles. The width of each column is 40 px (`w-10`). The
  * columns are `xl:block` (visible at >= 1280 px viewport width).
  *
- * Mirrors the pattern from `deessejs/deessejs`
- * (apps/web/src/components/layouts/global-layout.tsx) so the fp
- * docs site reads as part of the deessejs SaaS product surface.
+ * Scope: the home route only. Other surfaces (docs, etc.) are not
+ * wrapped with this component; their layout is the default
+ * fumadocs-ui one. The component lives in `components/marketing/`
+ * because it is part of the marketing surface identity, not a
+ * generic app shell.
+ *
+ * The file name `global-layout` is kept (rather than renamed) for
+ * continuity with the deessejs/deessejs source it mirrors.
+ *
+ * Mirrors `apps/web/src/components/layouts/global-layout.tsx` in
+ * `deessejs/deessejs` so the fp marketing surface reads as part of
+ * the deessejs SaaS product surface.
  */
 export function GlobalLayout({ children }: { children: React.ReactNode }) {
   return (
