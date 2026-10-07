@@ -1,14 +1,14 @@
 /**
- * `poll` — run a step function repeatedly until it resolves, with
+ * `poll` — run a handler repeatedly until it resolves, with
  * optional backoff and stop conditions. Returns a {@link Result} of
  * the final state.
  *
- * The step function is called once per attempt. It receives the
- * current state and returns a {@link Poll} outcome:
+ * The handler is called once per attempt. It receives the current
+ * state and returns a {@link Poll} outcome:
  *
- * - `pending` — sleep for the current interval, then call `step` again.
- *   If a `backoff` function is configured, the new interval is computed
- *   from the state.
+ * - `pending` — sleep for the current interval, then call `handler`
+ *   again. If a `backoff` function is configured, the new interval
+ *   is computed from the state.
  * - `done` — return `Result.ok(value)`. Done.
  * - `failed` — return `Result.err(error)`. Done.
  *
@@ -19,14 +19,19 @@
  * If `maxAttempts` is supplied and reached, the runner returns
  * `Result.err(exhausted(state, attempts))`.
  *
- * Exceptions thrown by `step` propagate to the caller. The runner does
- * not catch them — `step` is expected to return a `failed` outcome
- * rather than throw, which keeps error handling declarative.
+ * Exceptions thrown by `handler` propagate to the caller. The runner
+ * does not catch them — `handler` is expected to return a `failed`
+ * outcome rather than throw, which keeps error handling declarative.
+ *
+ * The argument is a single {@link PollConfig} object: initial state,
+ * handler, and loop options at the same level, named. This is the
+ * replacement for the earlier positional signature
+ * `poll(initial, step, options)`; the latter is a hard break.
  *
  * @example
- * const tokens = await poll(
- *   { code, interval: 5_000, attempts: 0 },
- *   async (state) => {
+ * const tokens = await poll({
+ *   initial: { code, attempts: 0, interval: 5_000 },
+ *   handler: async (state) => {
  *     const response = await authClient.device.token({ current: state.code });
  *     if ('access_token' in response) return done({ ...state, tokens: response });
  *     if (response.error === 'authorization_pending') return pending(state);
@@ -35,14 +40,12 @@
  *     }
  *     return failed(new CliError('device_flow_error', response.error));
  *   },
- *   {
- *     interval: 5_000,
- *     backoff: (state) => Math.min(state.interval * 2, 60_000),
- *     maxAttempts: 60,
- *     exhausted: (state, attempts) =>
- *       new CliError('device_flow_timeout', `gave up after ${attempts} attempts`),
- *   }
- * );
+ *   interval: 5_000,
+ *   backoff: (state) => Math.min(state.interval * 2, 60_000),
+ *   maxAttempts: 60,
+ *   exhausted: (state, attempts) =>
+ *     new CliError('device_flow_timeout', `gave up after ${attempts} attempts`),
+ * });
  *
  * @see rule 0014 — Functions Over Classes for Public API.
  */
@@ -50,52 +53,34 @@
 import { ok, err } from '../result/constants.js';
 import type { Result } from '../result/types.js';
 import { sleep } from './internal/sleep.js';
-import type { Poll, PollOptions } from './types.js';
+import type { PollConfig } from './types.js';
 
 /**
- * Run `step` repeatedly until it resolves, fails, or hits a stop
- * condition. The function is curried: `poll(initial)(step)(options)`
- * or `poll(initial, step, options)`. The two- and three-argument
- * overloads are equivalent.
+ * Run `handler` repeatedly until it resolves, fails, or hits a stop
+ * condition. The single argument is a {@link PollConfig} bundling the
+ * initial state, the handler, and the loop options.
  */
-export function poll<S, E>(
-  initial: S,
-  step: (state: S) => Promise<Poll<S, E>>,
-  options: PollOptions<S, E>
-): Promise<Result<S, E>>;
-export function poll<S, E>(
-  initial: S
-): (
-  step: (state: S) => Promise<Poll<S, E>>
-) => (options: PollOptions<S, E>) => Promise<Result<S, E>>;
-export function poll<S, E>(
-  initial: S,
-  step?: (state: S) => Promise<Poll<S, E>>,
-  options?: PollOptions<S, E>
-):
-  | Promise<Result<S, E>>
-  | ((
-      step: (state: S) => Promise<Poll<S, E>>
-    ) => (options: PollOptions<S, E>) => Promise<Result<S, E>>) {
-  if (step === undefined || options === undefined) {
-    const curriedStep = step as unknown as (state: S) => Promise<Poll<S, E>>;
-    return (s: typeof curriedStep) => (o: PollOptions<S, E>) => runPoll(initial, s, o);
-  }
-  return runPoll(initial, step, options);
+export function poll<S, E>(config: PollConfig<S, E>): Promise<Result<S, E>> {
+  return runPoll(config);
 }
 
-async function runPoll<S, E>(
-  initial: S,
-  step: (state: S) => Promise<Poll<S, E>>,
-  options: PollOptions<S, E>
-): Promise<Result<S, E>> {
-  let state: S = initial;
-  let interval = options.interval;
-  let attempts = 0;
-
-  if (options.maxAttempts !== undefined && options.exhausted === undefined) {
+async function runPoll<S, E>(config: PollConfig<S, E>): Promise<Result<S, E>> {
+  // Pre-flight check: maxAttempts requires an exhausted factory. Done
+  // before the destructure so the rest of the function can rely on
+  // the invariant.
+  if (config.maxAttempts !== undefined && config.exhausted === undefined) {
     throw new Error('poll: maxAttempts is set but exhausted factory is not provided');
   }
+
+  const { initial, handler, interval: initialInterval, backoff, until, maxAttempts } = config;
+  // Bind `exhausted` to a local const so TypeScript narrows it after
+  // the entry check. The invariant is enforced above; the local
+  // binding is what makes the in-loop call type-check.
+  const exhausted = config.exhausted as Exclude<typeof config.exhausted, undefined>;
+
+  let state: S = initial;
+  let interval = initialInterval;
+  let attempts = 0;
 
   // The awaits below are intentional: this is a sequential poll loop, not
   // a parallel batch. Each iteration depends on the previous outcome
@@ -104,7 +89,7 @@ async function runPoll<S, E>(
   /* eslint-disable no-await-in-loop */
   for (;;) {
     attempts += 1;
-    const outcome = await step(state);
+    const outcome = await handler(state);
 
     switch (outcome._tag) {
       case 'Done':
@@ -116,23 +101,20 @@ async function runPoll<S, E>(
       case 'Pending': {
         state = outcome.state;
 
-        if (options.until?.(state) === true) {
+        if (until?.(state) === true) {
           return ok(state);
         }
 
-        if (options.maxAttempts !== undefined && attempts >= options.maxAttempts) {
-          const factory = options.exhausted;
-          if (factory === undefined) {
-            // Unreachable: the guard at the top of the function catches this.
-            // Defensive fallback in case the guard is ever loosened.
-            throw new Error('poll: exhausted factory missing');
-          }
-          return err(factory(state, attempts));
+        if (maxAttempts !== undefined && attempts >= maxAttempts) {
+          // `exhausted` is bound at function entry after the pre-flight
+          // check. It is guaranteed to be defined here. No runtime
+          // re-check is needed.
+          return err(exhausted(state, attempts));
         }
 
         await sleep(interval);
-        if (options.backoff !== undefined) {
-          interval = options.backoff(state);
+        if (backoff !== undefined) {
+          interval = backoff(state);
         }
         continue;
       }

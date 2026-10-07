@@ -65,3 +65,22 @@ export interface PollOptions<S, E> {
   readonly maxAttempts?: number;
   readonly exhausted?: (state: S, attempts: number) => E;
 }
+
+/**
+ * Configuration for {@link poll}. Bundles the initial state, the step
+ * function, and the loop options into a single argument so the call
+ * site reads as one block instead of three positional arguments.
+ *
+ * - `initial` — the state the runner starts with. The first call to
+ *   `handler` receives this exact value. Subsequent calls receive
+ *   whatever the previous `pending(...)` returned.
+ * - `handler` — called once per attempt with the current state. Returns
+ *   a {@link Poll} outcome (`pending`, `done`, or `failed`). Same shape
+ *   as the previous positional `step` argument; renamed to `handler`
+ *   because that is what the function does.
+ * - The remaining fields are the same as {@link PollOptions}.
+ */
+export interface PollConfig<S, E> extends PollOptions<S, E> {
+  readonly initial: S;
+  readonly handler: (state: S) => Promise<Poll<S, E>>;
+}
