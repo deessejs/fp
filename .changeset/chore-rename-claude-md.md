@@ -1,5 +1,5 @@
 ---
-"@deessejs/fp": patch
+'@deessejs/fp': patch
 ---
 
 chore: rename agent guidance file from CLAUDE.md to AGENTS.md
