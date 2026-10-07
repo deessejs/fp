@@ -68,10 +68,17 @@ The repo historically started from the [`complete-package-template`](https://git
 
 ## Branching Strategy
 
-This project follows the branching model: `main` <- `staging` <- `dev`
+This project follows the branching model: `dev` → `staging` → `main`. The arrow is the direction of promotion, and **every step is a reviewed PR**. There is no direct push to `main` or `staging`.
 
-- **dev**: Latest work-in-progress changes. Developers work here.
-- **staging**: Contains work that has been reviewed and is ready for release testing.
-- **main**: Production-ready code. Contains the official release history.
+- **`dev`** — the integration branch. Feature branches (`feature/*`, `fix/*`, `investigation/*`, etc.) target `dev`. This is where work accumulates between releases.
+- **`staging`** — release candidates. The release engineer opens a PR from `dev` to `staging` once a release is shaping up. The "Version Packages" PR (changesets-version.yml) lives here: it bumps versions, consumes the pending changesets, and updates `CHANGELOG.md`.
+- **`main`** — the official release history. A PR from `staging` to `main` triggers `publish.yml` (build → smoke test → npm publish via OIDC Trusted Publishing → tag → GitHub Release). No direct merge, no force-push, no bypass.
 
-All developers push directly to `main`. The release engineer is responsible for managing the flow from `main` to `staging` and from `staging` to `main` (releases).
+The release pipeline is fully automated from the moment a PR is merged into `main`. The full design is in `docs/engineering/plans/release-pipeline.md`; the current operational rules are enforced by the `detect` job in `publish.yml` (see the recent fix that requires both a deleted changeset and a version bump before treating a merge as a release).
+
+Concretely, when you open a PR in this repo:
+
+- Target `dev` (or a feature branch off `dev`).
+- Include a `.changeset/*.md` if the change is user-facing (patch / minor / major).
+- Wait for CI to be green and a review.
+- Do not target `staging` or `main` directly. The release engineer manages those transitions.
