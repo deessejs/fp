@@ -1,5 +1,5 @@
 ---
-"@deessejs/fp": patch
+'@deessejs/fp': patch
 ---
 
 Split the CI's "Test + coverage gate" job into two: a fast `test`

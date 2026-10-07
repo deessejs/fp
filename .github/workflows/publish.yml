@@ -105,8 +105,6 @@ jobs:
           fi
           rm -f status.json
 
-
-
   validate:
     name: Validate (build, test, smoke, anti-republish)
     needs: detect

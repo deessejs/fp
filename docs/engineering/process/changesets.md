@@ -8,7 +8,7 @@
 This document describes how we use [Changesets](https://github.com/changesets/changesets) day
 to day to accumulate changes across branches and produce releases. It complements the
 [`docs/engineering/plans/release-pipeline.md`](../plans/release-pipeline.md) senior plan,
-which describes the *target* architecture. This page is the *current* practice.
+which describes the _target_ architecture. This page is the _current_ practice.
 
 ---
 
@@ -49,32 +49,32 @@ guarantee that every merged change ships.
 
 This is a deliberate trade-off: speed and consistency over discretionary review. If a
 change should not ship (broken code, security incident, partial feature), the place
-to stop it is *before* the merge, not after. Once a PR is on `main`, the release is
+to stop it is _before_ the merge, not after. Once a PR is on `main`, the release is
 imminent.
 
 ---
 
 ## 1. Why we accumulate changesets
 
-A Changeset is a small Markdown file under `.changeset/`. The file declares *which package*
-is affected, the *semver level* (`major` / `minor` / `patch`), and a one-line summary. The
+A Changeset is a small Markdown file under `.changeset/`. The file declares _which package_
+is affected, the _semver level_ (`major` / `minor` / `patch`), and a one-line summary. The
 filename is a slug (e.g. `cyan-panda-dance.md`); the contents matter, the name does not.
 
-The reason this workflow exists at all is that it makes concurrent feature work *mergeable
-without conflict*. The classic case is two features that would otherwise both edit
+The reason this workflow exists at all is that it makes concurrent feature work _mergeable
+without conflict_. The classic case is two features that would otherwise both edit
 `packages/fp/package.json#version`:
 
 - `branch-a` and `branch-b` each add a Changeset file:
   - `branch-a` adds `.changeset/cyan-panda-dance.md`.
   - `branch-b` adds `.changeset/heavy-lion-sing.md`.
 - The Changeset files do not overlap. Merging both branches is a clean fast-forward.
-- At release time, the tool reads *every* Changeset in `.changeset/`, computes the next
+- At release time, the tool reads _every_ Changeset in `.changeset/`, computes the next
   semver, edits `package.json`, regenerates `CHANGELOG.md`, and deletes the consumed
   Changeset files.
 
 This avoids the version-edit conflict entirely. The trade-off is that the actual version
-number is decided *at release time*, not at PR-merge time. The author decides the *impact
-level* of their change at code time; the tool rolls them up later.
+number is decided _at release time_, not at PR-merge time. The author decides the _impact
+level_ of their change at code time; the tool rolls them up later.
 
 ---
 
@@ -86,11 +86,11 @@ We follow the branching model in [`CLAUDE.md`](../../../CLAUDE.md):
 main  <-  staging  <-  dev
 ```
 
-| Branch | Role | Receives PRs from | Changesets on this branch |
-| --- | --- | --- | --- |
-| `dev` | Day-to-day work | `feature/*`, `fix/*` | Yes, added by authors |
-| `staging` | Integration / release train | `dev`, `feature/*`, `fix/*` | Yes, accumulated from merged branches |
-| `main` | Releases only | Version Packages PR (auto), hotfix PRs | No, consumed by `pnpm changeset version` |
+| Branch    | Role                        | Receives PRs from                      | Changesets on this branch                |
+| --------- | --------------------------- | -------------------------------------- | ---------------------------------------- |
+| `dev`     | Day-to-day work             | `feature/*`, `fix/*`                   | Yes, added by authors                    |
+| `staging` | Integration / release train | `dev`, `feature/*`, `fix/*`            | Yes, accumulated from merged branches    |
+| `main`    | Releases only               | Version Packages PR (auto), hotfix PRs | No, consumed by `pnpm changeset version` |
 
 A typical release cycle follows this path:
 
@@ -141,14 +141,14 @@ The trap:
    of the merge, consuming both Changesets. `main` now has version `1.1.1` and **no
    Changeset files**.
 5. The release workflow publishes `1.1.1`. Done.
-6. *Without the back-merge*: `staging` still has both Changeset files. If a maintainer
+6. _Without the back-merge_: `staging` still has both Changeset files. If a maintainer
    opens another Version Packages PR from `staging` (or if `changesets/action` does),
-   it will run `pnpm changeset version` *again* and produce `1.1.2` with the *same*
+   it will run `pnpm changeset version` _again_ and produce `1.1.2` with the _same_
    release notes, because the Changeset files were never removed from `staging`.
 
 The fix is mechanical: after a Version Packages PR is merged into `main`, back-merge
 `main` into `staging` (and into `dev` if `dev` is long-lived). This is normally done
-automatically by the release workflow, but it must be done — and it must be done *after*
+automatically by the release workflow, but it must be done — and it must be done _after_
 the version bump lands on `main`, not before.
 
 The same rule applies, with reversed direction, after a hotfix lands on `main`: back-merge
@@ -160,8 +160,8 @@ branch.
 ## 4. Authoring a Changeset
 
 This section is the writing guide. It complements the per-PR requirement described in
-§ 7 — that section says *every PR must have a Changeset*; this one says *how to write a
-good one*.
+§ 7 — that section says _every PR must have a Changeset_; this one says _how to write a
+good one_.
 
 ### 4.1 The shape
 
@@ -171,7 +171,7 @@ filename does not. The contents follow this shape:
 
 ```md
 ---
-"@deessejs/fp": minor
+'@deessejs/fp': minor
 ---
 
 Add the `Result.tryCatch` and `Maybe.tryMaybe` families.
@@ -188,15 +188,15 @@ The semver level encodes the **impact on the consumer of the package**, not the 
 the diff. A 200-line internal refactor is `patch`; a one-line rename of a public symbol
 is `major`. The decision tree:
 
-- **`major`** — anything that *requires* a consumer to change their code to keep working.
+- **`major`** — anything that _requires_ a consumer to change their code to keep working.
   A symbol renamed or removed. A signature change. A behaviour change that flips a
   default. If you can answer "yes, a user has to edit their code" with confidence, it is
   `major`. Major bumps are rare and must be called out in the PR description.
-- **`minor`** — anything that *adds* a new capability without breaking existing code.
+- **`minor`** — anything that _adds_ a new capability without breaking existing code.
   A new exported function. A new method on `Ok` / `Err` / `Some` / `None`. A new option
   on an existing function. If the change is purely additive, it is `minor`.
-- **`patch`** — anything that *fixes* a bug, *improves* an internal detail, or *changes
-  documentation*. A wrong type narrowing. A clearer error message. A perf tweak. A CI
+- **`patch`** — anything that _fixes_ a bug, _improves_ an internal detail, or _changes
+  documentation_. A wrong type narrowing. A clearer error message. A perf tweak. A CI
   change. A typo in a docstring.
 
 Cases that come up often and are easy to misclassify:
@@ -210,7 +210,7 @@ Cases that come up often and are easy to misclassify:
 - **Performance improvement with no API change**: `patch`. Consumers do not need to
   change anything.
 - **Type-only change that narrows or widens a return type**: if a consumer's code stops
-  compiling, it is `major`; if it now compiles *better* (more precise inference), it is
+  compiling, it is `major`; if it now compiles _better_ (more precise inference), it is
   `minor` or `patch` depending on whether the change is additive or corrective.
 
 When in doubt, default to `minor` and call it out in the PR description. It is cheaper
@@ -237,13 +237,13 @@ Conventions in the wider Changesets ecosystem, which we follow:
   different semver levels, write two Changeset files. A single Changeset file can have
   multiple lines, but it should be one coherent change.
 
-| Good | Bad | Why |
-| --- | --- | --- |
-| `Added Result.tryCatch that wraps a throwing function into a Result.` | `Add stuff` | The first names the symbol and the effect; the second is unsearchable. |
-| `Fixed incorrect narrowing when match returns a Result on the err branch.` | `Fix bug` | The first is searchable and tells the user what was wrong; the second is noise. |
+| Good                                                                            | Bad          | Why                                                                                   |
+| ------------------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------- |
+| `Added Result.tryCatch that wraps a throwing function into a Result.`           | `Add stuff`  | The first names the symbol and the effect; the second is unsearchable.                |
+| `Fixed incorrect narrowing when match returns a Result on the err branch.`      | `Fix bug`    | The first is searchable and tells the user what was wrong; the second is noise.       |
 | `Renamed Maybe.fromNullable to maybe for consistency with Result constructors.` | `Update API` | The first tells the user which symbol moved; the second is a heading, not a sentence. |
-| `Deprecated errOr; it will be removed in 2.0. Use err instead.` | `Deprecate` | The first tells the user what to do; the second is a label. |
-| `Bumped minimum Node version to 22.14 to match the engines field.` | `Node bump` | The first explains the impact; the second is shorthand for maintainers. |
+| `Deprecated errOr; it will be removed in 2.0. Use err instead.`                 | `Deprecate`  | The first tells the user what to do; the second is a label.                           |
+| `Bumped minimum Node version to 22.14 to match the engines field.`              | `Node bump`  | The first explains the impact; the second is shorthand for maintainers.               |
 
 If a change needs more than a sentence to explain, multi-line Markdown is fine. Common
 patterns:
@@ -260,8 +260,8 @@ independently at release time.
 
 ```md
 ---
-"@deessejs/fp": minor
-"@deessejs/errors": patch
+'@deessejs/fp': minor
+'@deessejs/errors': patch
 ---
 
 Add `Result.tryCatch` that returns typed errors from `@deessejs/errors` shapes.
@@ -269,10 +269,10 @@ Add `Result.tryCatch` that returns typed errors from `@deessejs/errors` shapes.
 
 A few rules:
 
-- Each package gets the semver level that matches *its* impact, not the highest level
+- Each package gets the semver level that matches _its_ impact, not the highest level
   across the PR. If `@deessejs/fp` adds a function but `@deessejs/errors` only adjusts an
   internal helper, the levels differ.
-- If the changes in two packages are *unrelated* (different PRs accidentally bundled), do
+- If the changes in two packages are _unrelated_ (different PRs accidentally bundled), do
   not bundle them. Split into two Changeset files.
 - The summary should describe the user-facing effect of the bundle. If the changes are
   conceptually one feature, one summary is fine. If they are two features that happen
@@ -296,13 +296,13 @@ entirely, because the per-PR rule (see § 7) requires a Changeset for every PR a
 release tooling will trip on a missing file regardless of whether the change is
 user-visible.
 
-`--empty` is **not** an exemption. It is a *form* of Changeset, with the body left
+`--empty` is **not** an exemption. It is a _form_ of Changeset, with the body left
 intentionally empty because the changelog does not need to know.
 
 ### 4.6 Anti-patterns
 
-What *not* to put in a Changeset. The list is short because most of these are caught by
-the § 4.3 *good vs bad* table above, but they recur often enough to be worth calling
+What _not_ to put in a Changeset. The list is short because most of these are caught by
+the § 4.3 _good vs bad_ table above, but they recur often enough to be worth calling
 out explicitly.
 
 - **Implementation chatter.** "Extracted the `fold` helper into its own module",
@@ -314,7 +314,7 @@ out explicitly.
 - **Marketing.** "We're excited to announce", "This release brings powerful new
   capabilities". Releases are not press releases.
 - **Multi-line apology.** "Sorry for the previous breaking change, this reverts..." is
-  fine *once*; repeated in every release it becomes noise. State the change, not the
+  fine _once_; repeated in every release it becomes noise. State the change, not the
   history.
 - **Bullet-point changelog when one sentence suffices.** A one-line summary that says
   "Fixed narrowing in `Maybe.flatMap`" is better than three bullets about the same
@@ -416,7 +416,7 @@ lands on `main`, its content is published to npm**. There is no "merge now, rele
 later" mode, no "merge without publishing" mode, no way to land code on `main` without
 producing a new version of `@deessejs/fp` under the `latest` dist-tag.
 
-This is not a separate rule added on top of the workflow — it is a *consequence* of two
+This is not a separate rule added on top of the workflow — it is a _consequence_ of two
 rules that already hold:
 
 1. **Every PR adds a Changeset** (§ 7). The CI refuses to merge any PR that does not.
@@ -424,8 +424,8 @@ rules that already hold:
    fires on `pull_request.closed` events against `main`, gated on `merged == true`).
 
 Put together: every merge to `main` carries at least one Changeset, and the workflow
-publishes it. The release is therefore not a *decision* the maintainer makes; it is a
-*mechanical effect* of a successful merge.
+publishes it. The release is therefore not a _decision_ the maintainer makes; it is a
+_mechanical effect_ of a successful merge.
 
 Two practical consequences follow:
 
@@ -452,7 +452,7 @@ otherwise a future Version Packages PR will replay Changesets that have already 
 **Every pull request must add a Changeset file under `.changeset/`.** This is not a
 convention we encourage; it is a hard requirement enforced by CI. The rationale is that
 the accumulation workflow described above only works if every change ships with a
-Changeset — if any PR slips through without one, that change is *invisible* to the
+Changeset — if any PR slips through without one, that change is _invisible_ to the
 release tooling and either ships silently or requires a hotfix to recover.
 
 ### 7.1 The rule
@@ -464,7 +464,7 @@ release tooling and either ships silently or requires a hotfix to recover.
 - There are **no exemptions by category** — not for refactors, not for CI, not for
   docs. A PR that is "just a typo" still adds a Changeset (typically `patch` and a
   one-line summary).
-- The only carve-out is technical: a Changeset is *required*, but its *content* may
+- The only carve-out is technical: a Changeset is _required_, but its _content_ may
   legitimately be empty. For changes with no user-visible effect, run
   `pnpm changeset --empty` to produce a Changeset file that records the no-op
   semver level. This keeps the audit trail intact without inflating the changelog.
@@ -474,7 +474,7 @@ release tooling and either ships silently or requires a hotfix to recover.
   `pull_request.base.ref == 'staging'` and skips hotfix PRs. The audit entry for the
   hotfix is added afterwards via a follow-up PR on `staging` that follows the per-PR
   rule (see `hotfix.md` § 8), and the changelog entry appears in the next regular
-  release. The hotfix exemption is the only carve-out, and it is *only* for hotfix PRs
+  release. The hotfix exemption is the only carve-out, and it is _only_ for hotfix PRs
   targeting `main`.
 
 ### 7.2 How it is enforced
@@ -494,7 +494,7 @@ every PR targeting `staging`:
   `staging` branch protection ruleset, so a green run is a hard prerequisite for
   merge. There is no bypass — not for maintainers, not for hotfixes.
 
-In other words, the mechanism is *blocking* by design. The Changesets GitHub Bot
+In other words, the mechanism is _blocking_ by design. The Changesets GitHub Bot
 (installed in non-blocking mode) provides a soft nudge on top: it comments on PRs
 that lack a Changeset, but it is the CI status check that actually prevents the
 merge.
@@ -511,8 +511,8 @@ counter-argument is operational, not semantic:
 - **A refactor can break a downstream user in subtle ways.** A Changeset with
   `patch` and a one-line summary is the cheapest possible insurance against the
   "I didn't know this changed" report.
-- **CI-only or docs-only changes are not exempt either**, because the *release
-  tooling* doesn't know which is which. A blanket rule is enforceable; a
+- **CI-only or docs-only changes are not exempt either**, because the _release
+  tooling_ doesn't know which is which. A blanket rule is enforceable; a
   category-aware rule is not.
 
 The cost of a per-PR Changeset is roughly 30 seconds of author time. The cost of a
@@ -546,5 +546,5 @@ will turn it green on the next push.
   directly; uses the same `publish.yml` workflow as a regular release.
 - [`canary.md`](canary.md) — the pre-release snapshot path. Future feature, not
   currently implemented. Documented for completeness so the design is not lost.
-- The published process page in the wiki, *Release Process*, which mirrors this document
+- The published process page in the wiki, _Release Process_, which mirrors this document
   for an external audience.

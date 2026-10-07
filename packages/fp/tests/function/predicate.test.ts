@@ -11,7 +11,8 @@ describe('Predicate', () => {
 
 describe('Refinement', () => {
   it('narrows the parameter type to B in the true branch', () => {
-    const isString: Refinement<unknown, string> = (a: unknown): a is string => typeof a === 'string';
+    const isString: Refinement<unknown, string> = (a: unknown): a is string =>
+      typeof a === 'string';
     const value: unknown = 'hello';
     if (isString(value)) {
       expect(value.toUpperCase()).toBe('HELLO');

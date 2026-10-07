@@ -1,37 +1,36 @@
-import Link from "next/link";
-import type { Metadata } from "next";
-import { CodeBlock } from "@/components/code-block";
-import { CtaCard } from "@/components/cta-card";
-import { Footer } from "@/components/footer";
-import { baseUrl } from "@/lib/shared";
+import Link from 'next/link';
+import type { Metadata } from 'next';
+import { CodeBlock } from '@/components/code-block';
+import { CtaCard } from '@/components/cta-card';
+import { Footer } from '@/components/footer';
+import { baseUrl } from '@/lib/shared';
 
 export const metadata: Metadata = {
-  title: "@deessejs/fp — Functional Programming for TypeScript",
+  title: '@deessejs/fp — Functional Programming for TypeScript',
   description:
-    "@deessejs/fp is a TypeScript library bringing functional programming patterns to JavaScript. Result, Maybe, and Unit types for robust, composable code.",
+    '@deessejs/fp is a TypeScript library bringing functional programming patterns to JavaScript. Result, Maybe, and Unit types for robust, composable code.',
   keywords: [
-    "typescript functional programming",
-    "result type typescript",
-    "maybe type typescript",
-    "option type javascript",
-    "error handling typescript",
-    "fp typescript",
+    'typescript functional programming',
+    'result type typescript',
+    'maybe type typescript',
+    'option type javascript',
+    'error handling typescript',
+    'fp typescript',
   ],
   openGraph: {
-    type: "website",
-    locale: "en_US",
+    type: 'website',
+    locale: 'en_US',
     url: baseUrl,
-    siteName: "@deessejs/fp",
-    title: "@deessejs/fp — Functional Programming for TypeScript",
+    siteName: '@deessejs/fp',
+    title: '@deessejs/fp — Functional Programming for TypeScript',
     description:
-      "A TypeScript library bringing functional programming patterns to JavaScript. Result, Maybe, and Unit types for robust, composable code.",
+      'A TypeScript library bringing functional programming patterns to JavaScript. Result, Maybe, and Unit types for robust, composable code.',
   },
   twitter: {
-    card: "summary_large_image",
-    title: "@deessejs/fp — Functional Programming for TypeScript",
-    description:
-      "A TypeScript library bringing functional programming patterns to JavaScript.",
-    creator: "@nesalia_inc",
+    card: 'summary_large_image',
+    title: '@deessejs/fp — Functional Programming for TypeScript',
+    description: 'A TypeScript library bringing functional programming patterns to JavaScript.',
+    creator: '@nesalia_inc',
   },
   alternates: {
     canonical: baseUrl,
@@ -56,28 +55,28 @@ const composed = ok(21)
 // Features data
 const features = [
   {
-    title: "Result Type",
+    title: 'Result Type',
     description:
-      "Handle errors with type-safe success and failure states. No more undefined/null checks everywhere.",
-    href: "/docs/result",
+      'Handle errors with type-safe success and failure states. No more undefined/null checks everywhere.',
+    href: '/docs/result',
   },
   {
-    title: "Maybe Type",
+    title: 'Maybe Type',
     description:
-      "Work with optional values in a composable way. Explicitly handle the absence of values.",
-    href: "/docs/maybe",
+      'Work with optional values in a composable way. Explicitly handle the absence of values.',
+    href: '/docs/maybe',
   },
   {
-    title: "Unit Type",
+    title: 'Unit Type',
     description:
-      "Represent intentional void returns for side effects. Makes side effects explicit in your type signatures.",
-    href: "/docs/unit",
+      'Represent intentional void returns for side effects. Makes side effects explicit in your type signatures.',
+    href: '/docs/unit',
   },
   {
-    title: "TypeScript Native",
+    title: 'TypeScript Native',
     description:
-      "Full type safety with generic types. Leverage TypeScript to catch errors before they happen.",
-    href: "/docs/getting-started",
+      'Full type safety with generic types. Leverage TypeScript to catch errors before they happen.',
+    href: '/docs/getting-started',
   },
 ];
 
@@ -108,25 +107,25 @@ divide(10, 0).match({
 
 export default function HomePage() {
   const softwareJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "@deessejs/fp",
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: '@deessejs/fp',
     description:
-      "TypeScript functional programming library with Result, Maybe, and Unit types for robust, composable code.",
+      'TypeScript functional programming library with Result, Maybe, and Unit types for robust, composable code.',
     url: baseUrl,
-    applicationCategory: "DeveloperApplication",
-    operatingSystem: "Node.js 18+",
+    applicationCategory: 'DeveloperApplication',
+    operatingSystem: 'Node.js 18+',
     programmingLanguage: {
-      "@type": "ComputerLanguage",
-      name: "TypeScript",
+      '@type': 'ComputerLanguage',
+      name: 'TypeScript',
     },
-    license: "MIT",
+    license: 'MIT',
     offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "USD",
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
     },
-    downloadUrl: "https://www.npmjs.com/package/@deessejs/fp",
+    downloadUrl: 'https://www.npmjs.com/package/@deessejs/fp',
   };
 
   return (
@@ -134,7 +133,7 @@ export default function HomePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(softwareJsonLd).replace(/</g, "\\u003c"),
+          __html: JSON.stringify(softwareJsonLd).replace(/</g, '\\u003c'),
         }}
       />
 
@@ -148,9 +147,8 @@ export default function HomePage() {
               Made Simple.
             </h1>
             <p className="mt-6 max-w-2xl text-xl text-fd-muted-foreground">
-              A TypeScript library that brings functional programming patterns
-              to JavaScript. Result, Maybe, and Unit types for robust, composable
-              code.
+              A TypeScript library that brings functional programming patterns to JavaScript.
+              Result, Maybe, and Unit types for robust, composable code.
             </p>
             <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center">
               <Link
@@ -184,8 +182,7 @@ export default function HomePage() {
                 Features
               </h2>
               <p className="mt-4 text-lg text-fd-muted-foreground leading-relaxed">
-                Everything you need for robust functional programming in
-                TypeScript.
+                Everything you need for robust functional programming in TypeScript.
               </p>
             </div>
 
@@ -254,18 +251,14 @@ export default function HomePage() {
                 From optional chaos to typed safety.
               </h2>
               <p className="mt-4 text-lg text-fd-muted-foreground leading-relaxed">
-                Stop relying on undefined checks and type assertions. Get
-                type-safe, composable code that makes debugging a breeze.
+                Stop relying on undefined checks and type assertions. Get type-safe, composable code
+                that makes debugging a breeze.
               </p>
             </div>
 
             <div className="grid lg:grid-cols-2 gap-8">
               {/* Before */}
-              <CodeBlock
-                language="typescript"
-                title="before.ts"
-                code={BEFORE_CODE}
-              />
+              <CodeBlock language="typescript" title="before.ts" code={BEFORE_CODE} />
 
               {/* After */}
               <CodeBlock language="typescript" title="after.ts" code={AFTER_CODE} />

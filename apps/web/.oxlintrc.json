@@ -1,0 +1,14 @@
+{
+  "extends": ["../../.oxlintrc.json"],
+  "plugins": ["react", "react-hooks", "nextjs", "jsx-a11y"],
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+    "react/jsx-max-depth": "off",
+    "react/purity": "off",
+    "nextjs/no-img-element": "off",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "jsx-a11y/anchor-has-content": "off",
+    "jsx-a11y/anchor-is-valid": "off"
+  }
+}

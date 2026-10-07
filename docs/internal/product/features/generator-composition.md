@@ -9,9 +9,9 @@ Write sequential-looking code that handles errors automatically. No more pyramid
 ```typescript
 // Without gen - nested callbacks
 function fetchUserData(userId: string) {
-  return getUser(userId).flatMap(user => {
-    return getPosts(user.id).flatMap(posts => {
-      return getComments(posts.map(p => p.id)).flatMap(comments => {
+  return getUser(userId).flatMap((user) => {
+    return getPosts(user.id).flatMap((posts) => {
+      return getComments(posts.map((p) => p.id)).flatMap((comments) => {
         return ok({ user, posts, comments });
       });
     });
@@ -23,7 +23,7 @@ function fetchUserData(userId: string) {
   return gen(function* () {
     const user = yield* getUser(userId);
     const posts = yield* getPosts(user.id);
-    const comments = yield* getComments(posts.map(p => p.id));
+    const comments = yield* getComments(posts.map((p) => p.id));
     return ok({ user, posts, comments });
   });
 }
@@ -175,24 +175,30 @@ interface Order {
 }
 
 // Full checkout process
-async function checkout(input: CheckoutInput): Promise<Result<Order, CartError | PaymentError | InventoryError>> {
+async function checkout(
+  input: CheckoutInput
+): Promise<Result<Order, CartError | PaymentError | InventoryError>> {
   return gen(async function* () {
     // 1. Get cart with items
-    const cart = yield* await getCart(input.cartId)
-      .mapError(e => CartError({ reason: e.message }));
+    const cart = yield* await getCart(input.cartId).mapError((e) =>
+      CartError({ reason: e.message })
+    );
 
     if (cart.items.length === 0) {
       return err(CartError({ reason: 'Cart is empty' }));
     }
 
     // 2. Verify inventory for all items
-    const inventoryCheck = yield* await verifyInventory(cart.items)
-      .mapError(e => InventoryError({ reason: e.message }));
+    const inventoryCheck = yield* await verifyInventory(cart.items).mapError((e) =>
+      InventoryError({ reason: e.message })
+    );
 
     if (!inventoryCheck.available) {
-      return err(InventoryError({
-        reason: `Insufficient stock for: ${inventoryCheck.unavailableItems.join(', ')}`,
-      }));
+      return err(
+        InventoryError({
+          reason: `Insufficient stock for: ${inventoryCheck.unavailableItems.join(', ')}`,
+        })
+      );
     }
 
     // 3. Calculate totals
@@ -206,11 +212,12 @@ async function checkout(input: CheckoutInput): Promise<Result<Order, CartError |
       methodId: input.paymentMethodId,
       amount: total,
       description: `Order ${cart.id}`,
-    }).mapError(e => PaymentError({ reason: e.message }));
+    }).mapError((e) => PaymentError({ reason: e.message }));
 
     // 5. Reserve inventory
-    yield* await reserveInventory(cart.items)
-      .mapError(e => InventoryError({ reason: e.message }));
+    yield* await reserveInventory(cart.items).mapError((e) =>
+      InventoryError({ reason: e.message })
+    );
 
     // 6. Create order
     const order = yield* await createOrder({
@@ -221,15 +228,15 @@ async function checkout(input: CheckoutInput): Promise<Result<Order, CartError |
       tax,
       total,
       paymentId: paymentResult.transactionId,
-    }).mapError(e => CartError({ reason: e.message }));
+    }).mapError((e) => CartError({ reason: e.message }));
 
     // 7. Clear cart
-    yield* await clearCart(input.cartId)
-      .mapError(e => CartError({ reason: e.message }));
+    yield* await clearCart(input.cartId).mapError((e) => CartError({ reason: e.message }));
 
     // 8. Send confirmation
-    yield* await sendOrderConfirmation(order.id)
-      .mapError(e => CartError({ reason: 'Failed to send confirmation' }));
+    yield* await sendOrderConfirmation(order.id).mapError((e) =>
+      CartError({ reason: 'Failed to send confirmation' })
+    );
 
     return ok(order);
   });
@@ -323,8 +330,7 @@ async function authenticatedRequest<T>(
 ): Promise<Result<T, AuthError | ApiError>> {
   return gen(async function* () {
     // 1. Get or refresh token
-    const token = yield* await getValidToken()
-      .mapError(e => AuthError({ reason: e.message }));
+    const token = yield* await getValidToken().mapError((e) => AuthError({ reason: e.message }));
 
     // 2. Make request with retry
     const response = yield* await retry({
@@ -335,7 +341,7 @@ async function authenticatedRequest<T>(
       const res = await fetch(`${API_BASE}${path}`, {
         method,
         headers: {
-          'Authorization': `Bearer ${token.accessToken}`,
+          Authorization: `Bearer ${token.accessToken}`,
           'Content-Type': 'application/json',
         },
         body: body ? JSON.stringify(body) : undefined,
@@ -351,7 +357,7 @@ async function authenticatedRequest<T>(
       }
 
       return res.json() as T;
-    }).mapError(e => ApiError({ reason: e.message }));
+    }).mapError((e) => ApiError({ reason: e.message }));
 
     return ok(response);
   });
@@ -378,7 +384,7 @@ This gives you sequential-looking code with automatic error propagation.
 const result = gen(function* () {
   const a = yield* ok(1);
   const b = yield* err('failed'); // Short-circuits here
-  const c = yield* ok(3);         // Never executed
+  const c = yield* ok(3); // Never executed
   return ok({ a, b, c });
 });
 // Err('failed')
@@ -419,9 +425,7 @@ function gen<R extends AnyResult, This>(
 Wraps a Promise of Result to be yieldable in async generators.
 
 ```typescript
-function await<T, E>(
-  promise: Promise<Result<T, E>>
-): AsyncGenerator<Err<never, E>, T, unknown>;
+function await<T, E>(promise: Promise<Result<T, E>>): AsyncGenerator<Err<never, E>, T, unknown>;
 ```
 
 ### Type Utilities

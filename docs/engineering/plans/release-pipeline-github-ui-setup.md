@@ -7,6 +7,7 @@
 This document lists every action that must be performed in the GitHub web UI and on npmjs.com to support the release pipeline. Each step is independent; if you stop halfway through, the repository still works, but publish cannot happen via Trusted Publishing until §4 and §5 are both done.
 
 > **Pre-requisites**
+>
 > - You have admin access to the `deessejs/fp` GitHub repository.
 > - You have publish-admin access to the `@deessejs/fp` package on npmjs.com.
 > - The branch `feat/release-pipeline` is pushed to origin (or will be pushed right before §3).

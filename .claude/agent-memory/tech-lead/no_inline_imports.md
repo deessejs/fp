@@ -13,13 +13,15 @@ type: feedback
 **How to apply:** Always import types at the top of the file. Never use `import('../module').Type` inline in interfaces.
 
 **Bad:**
+
 ```typescript
 export interface Err {
-  toMaybe(): import('../maybe/types').Maybe<T>;  // FORBIDDEN
+  toMaybe(): import('../maybe/types').Maybe<T>; // FORBIDDEN
 }
 ```
 
 **Good:**
+
 ```typescript
 import type { Maybe } from '../maybe/types';
 

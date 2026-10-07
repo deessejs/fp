@@ -33,47 +33,47 @@ function err<E>(error: E): Err<never, E>;
 
 ### Ok Instance Methods
 
-| Method | Signature | Returns |
-|--------|-----------|---------|
-| `map` | `(fn: (value: T) => B) => Result<B, E>` | Transformed `Ok` |
-| `flatMap` | `(fn: (value: T) => Result<B, E2>) => Result<B, E \| E2>` | Chained `Result` |
-| `mapError` | `(fn: (error: never) => E2) => Result<T, E2>` | Same `Ok` |
-| `filter` | `(predicate: (value: T) => boolean) => Result<T, E>` | Same or original `Ok` |
-| `tap` | `(fn: (value: T) => unknown) => Result<T, E>` | Same `Ok` |
-| `tapAsync` | `(fn: (value: T) => Promise<unknown>) => Promise<Result<T, E>>` | Same `Ok` |
-| `flatMapAsync` | `(fn: (value: T) => Promise<Result<B, E2>>) => Promise<Result<B, E \| E2>>` | Chained `Result` |
-| `match` | `(handlers: { ok, err }) => U` | `U` |
-| `fold` | `(onOk, onErr) => U` | `U` |
-| `getOrElse` | `(defaultValue: T) => T` | `T` |
-| `getOrThrow` | `(message?: string) => T` | `T` or throws |
-| `getOrNull` | `() => T \| null` | `T` or `null` |
-| `getOrUndefined` | `() => T \| undefined` | `T` or `undefined` |
-| `toMaybe` | `() => Maybe<T>` | `Some<T>` |
-| `toOption` | `() => Maybe<T>` | `Some<T>` |
-| `isOk` | `() => this is Ok<T, E>` | `boolean` |
-| `isErr` | `() => this is Err<T, E>` | `boolean` |
+| Method           | Signature                                                                   | Returns               |
+| ---------------- | --------------------------------------------------------------------------- | --------------------- |
+| `map`            | `(fn: (value: T) => B) => Result<B, E>`                                     | Transformed `Ok`      |
+| `flatMap`        | `(fn: (value: T) => Result<B, E2>) => Result<B, E \| E2>`                   | Chained `Result`      |
+| `mapError`       | `(fn: (error: never) => E2) => Result<T, E2>`                               | Same `Ok`             |
+| `filter`         | `(predicate: (value: T) => boolean) => Result<T, E>`                        | Same or original `Ok` |
+| `tap`            | `(fn: (value: T) => unknown) => Result<T, E>`                               | Same `Ok`             |
+| `tapAsync`       | `(fn: (value: T) => Promise<unknown>) => Promise<Result<T, E>>`             | Same `Ok`             |
+| `flatMapAsync`   | `(fn: (value: T) => Promise<Result<B, E2>>) => Promise<Result<B, E \| E2>>` | Chained `Result`      |
+| `match`          | `(handlers: { ok, err }) => U`                                              | `U`                   |
+| `fold`           | `(onOk, onErr) => U`                                                        | `U`                   |
+| `getOrElse`      | `(defaultValue: T) => T`                                                    | `T`                   |
+| `getOrThrow`     | `(message?: string) => T`                                                   | `T` or throws         |
+| `getOrNull`      | `() => T \| null`                                                           | `T` or `null`         |
+| `getOrUndefined` | `() => T \| undefined`                                                      | `T` or `undefined`    |
+| `toMaybe`        | `() => Maybe<T>`                                                            | `Some<T>`             |
+| `toOption`       | `() => Maybe<T>`                                                            | `Some<T>`             |
+| `isOk`           | `() => this is Ok<T, E>`                                                    | `boolean`             |
+| `isErr`          | `() => this is Err<T, E>`                                                   | `boolean`             |
 
 ### Err Instance Methods
 
-| Method | Signature | Returns |
-|--------|-----------|---------|
-| `map` | `(fn: (value: never) => B) => Result<B, E>` | Same `Err` |
-| `flatMap` | `(fn: (value: never) => Result<B, E2>) => Result<B, E \| E2>` | Same `Err` |
-| `mapError` | `(fn: (error: E) => E2) => Result<T, E2>` | `Err` with transformed error |
-| `filter` | `(predicate, errorFn?) => Result<T, E>` | Same `Err` |
-| `tap` | `(fn: (value: never) => unknown) => Result<T, E>` | Same `Err` |
-| `tapAsync` | `(fn: (value: never) => Promise<unknown>) => Promise<Result<T, E>>` | Same `Err` |
-| `flatMapAsync` | `(fn: (value: never) => Promise<Result<B, E2>>) => Promise<Result<B, E \| E2>>` | Same `Err` |
-| `match` | `(handlers: { ok, err }) => U` | `U` |
-| `fold` | `(onOk, onErr) => U` | `U` |
-| `getOrElse` | `(defaultValue: T) => T` | `defaultValue` |
-| `getOrThrow` | `(message?: string) => never` | throws |
-| `getOrNull` | `() => null` | `null` |
-| `getOrUndefined` | `() => undefined` | `undefined` |
-| `toMaybe` | `() => Maybe<T>` | `None` |
-| `toOption` | `() => Maybe<T>` | `None` |
-| `isOk` | `() => this is Ok<T, E>` | `false` |
-| `isErr` | `() => this is Err<T, E>` | `true` |
+| Method           | Signature                                                                       | Returns                      |
+| ---------------- | ------------------------------------------------------------------------------- | ---------------------------- |
+| `map`            | `(fn: (value: never) => B) => Result<B, E>`                                     | Same `Err`                   |
+| `flatMap`        | `(fn: (value: never) => Result<B, E2>) => Result<B, E \| E2>`                   | Same `Err`                   |
+| `mapError`       | `(fn: (error: E) => E2) => Result<T, E2>`                                       | `Err` with transformed error |
+| `filter`         | `(predicate, errorFn?) => Result<T, E>`                                         | Same `Err`                   |
+| `tap`            | `(fn: (value: never) => unknown) => Result<T, E>`                               | Same `Err`                   |
+| `tapAsync`       | `(fn: (value: never) => Promise<unknown>) => Promise<Result<T, E>>`             | Same `Err`                   |
+| `flatMapAsync`   | `(fn: (value: never) => Promise<Result<B, E2>>) => Promise<Result<B, E \| E2>>` | Same `Err`                   |
+| `match`          | `(handlers: { ok, err }) => U`                                                  | `U`                          |
+| `fold`           | `(onOk, onErr) => U`                                                            | `U`                          |
+| `getOrElse`      | `(defaultValue: T) => T`                                                        | `defaultValue`               |
+| `getOrThrow`     | `(message?: string) => never`                                                   | throws                       |
+| `getOrNull`      | `() => null`                                                                    | `null`                       |
+| `getOrUndefined` | `() => undefined`                                                               | `undefined`                  |
+| `toMaybe`        | `() => Maybe<T>`                                                                | `None`                       |
+| `toOption`       | `() => Maybe<T>`                                                                | `None`                       |
+| `isOk`           | `() => this is Ok<T, E>`                                                        | `false`                      |
+| `isErr`          | `() => this is Err<T, E>`                                                       | `true`                       |
 
 ---
 
@@ -109,49 +109,49 @@ function maybe<T>(value: T | null | undefined): Maybe<T>;
 
 ### Some Instance Methods
 
-| Method | Signature | Returns |
-|--------|-----------|---------|
-| `map` | `(fn: (value: T) => B) => Maybe<B>` | Transformed `Some` |
-| `flatMap` | `(fn: (value: T) => Maybe<B>) => Maybe<B>` | Chained `Maybe` |
-| `filter` | `(predicate: (value: T) => boolean) => Maybe<T>` | `Some` or `None` |
-| `filterMap` | `(fn: (value: T) => Maybe<B>) => Maybe<B>` | Chained `Maybe` |
-| `tap` | `(fn: (value: T) => unknown) => Maybe<T>` | Same `Some` |
-| `tapAsync` | `(fn: (value: T) => Promise<unknown>) => Promise<Maybe<T>>` | Same `Some` |
-| `match` | `(handlers: { some, none }) => U` | `U` |
-| `fold` | `(onSome, onNone) => U` | `U` |
-| `getOrElse` | `(defaultValue: T) => T` | `T` |
-| `getOrThrow` | `(message?: string) => T` | `T` or throws |
-| `getOrNull` | `() => T \| null` | `T` |
-| `getOrUndefined` | `() => T \| undefined` | `T` |
-| `get` | `<K extends keyof T>(key: K) => Maybe<T[K]>` | Property as `Maybe` |
-| `toResult` | `<E>(error: E) => Result<T, E>` | `Ok<T, E>` |
-| `toArray` | `() => T[]` | `[T]` |
-| `toIterable` | `() => Iterable<T>` | Iterable of `T` |
-| `isSome` | `() => this is Some<T>` | `true` |
-| `isNone` | `() => this is None` | `false` |
+| Method           | Signature                                                   | Returns             |
+| ---------------- | ----------------------------------------------------------- | ------------------- |
+| `map`            | `(fn: (value: T) => B) => Maybe<B>`                         | Transformed `Some`  |
+| `flatMap`        | `(fn: (value: T) => Maybe<B>) => Maybe<B>`                  | Chained `Maybe`     |
+| `filter`         | `(predicate: (value: T) => boolean) => Maybe<T>`            | `Some` or `None`    |
+| `filterMap`      | `(fn: (value: T) => Maybe<B>) => Maybe<B>`                  | Chained `Maybe`     |
+| `tap`            | `(fn: (value: T) => unknown) => Maybe<T>`                   | Same `Some`         |
+| `tapAsync`       | `(fn: (value: T) => Promise<unknown>) => Promise<Maybe<T>>` | Same `Some`         |
+| `match`          | `(handlers: { some, none }) => U`                           | `U`                 |
+| `fold`           | `(onSome, onNone) => U`                                     | `U`                 |
+| `getOrElse`      | `(defaultValue: T) => T`                                    | `T`                 |
+| `getOrThrow`     | `(message?: string) => T`                                   | `T` or throws       |
+| `getOrNull`      | `() => T \| null`                                           | `T`                 |
+| `getOrUndefined` | `() => T \| undefined`                                      | `T`                 |
+| `get`            | `<K extends keyof T>(key: K) => Maybe<T[K]>`                | Property as `Maybe` |
+| `toResult`       | `<E>(error: E) => Result<T, E>`                             | `Ok<T, E>`          |
+| `toArray`        | `() => T[]`                                                 | `[T]`               |
+| `toIterable`     | `() => Iterable<T>`                                         | Iterable of `T`     |
+| `isSome`         | `() => this is Some<T>`                                     | `true`              |
+| `isNone`         | `() => this is None`                                        | `false`             |
 
 ### None Instance Methods
 
-| Method | Signature | Returns |
-|--------|-----------|---------|
-| `map` | `(_fn) => Maybe<never>` | `None` |
-| `flatMap` | `(_fn) => Maybe<never>` | `None` |
-| `filter` | `(_predicate) => Maybe<never>` | `None` |
-| `filterMap` | `(_fn) => Maybe<never>` | `None` |
-| `tap` | `(_fn) => Maybe<never>` | `None` |
-| `tapAsync` | `(_fn) => Promise<Maybe<never>>` | Promise of `None` |
-| `match` | `(handlers) => U` | `U` from `none` handler |
-| `fold` | `(_onSome, onNone) => U` | `U` from `onNone` |
-| `getOrElse` | `(defaultValue: T) => T` | `defaultValue` |
-| `getOrThrow` | `(message?: string) => never` | throws |
-| `getOrNull` | `() => null` | `null` |
-| `getOrUndefined` | `() => undefined` | `undefined` |
-| `get` | `(_key) => Maybe<never>` | `None` |
-| `toResult` | `<E>(error: E) => Result<never, E>` | `Err<never, E>` |
-| `toArray` | `() => []` | `[]` |
-| `toIterable` | `() => Iterable<never>` | Empty iterable |
-| `isSome` | `() => this is Some<never>` | `false` |
-| `isNone` | `() => this is None` | `true` |
+| Method           | Signature                           | Returns                 |
+| ---------------- | ----------------------------------- | ----------------------- |
+| `map`            | `(_fn) => Maybe<never>`             | `None`                  |
+| `flatMap`        | `(_fn) => Maybe<never>`             | `None`                  |
+| `filter`         | `(_predicate) => Maybe<never>`      | `None`                  |
+| `filterMap`      | `(_fn) => Maybe<never>`             | `None`                  |
+| `tap`            | `(_fn) => Maybe<never>`             | `None`                  |
+| `tapAsync`       | `(_fn) => Promise<Maybe<never>>`    | Promise of `None`       |
+| `match`          | `(handlers) => U`                   | `U` from `none` handler |
+| `fold`           | `(_onSome, onNone) => U`            | `U` from `onNone`       |
+| `getOrElse`      | `(defaultValue: T) => T`            | `defaultValue`          |
+| `getOrThrow`     | `(message?: string) => never`       | throws                  |
+| `getOrNull`      | `() => null`                        | `null`                  |
+| `getOrUndefined` | `() => undefined`                   | `undefined`             |
+| `get`            | `(_key) => Maybe<never>`            | `None`                  |
+| `toResult`       | `<E>(error: E) => Result<never, E>` | `Err<never, E>`         |
+| `toArray`        | `() => []`                          | `[]`                    |
+| `toIterable`     | `() => Iterable<never>`             | Empty iterable          |
+| `isSome`         | `() => this is Some<never>`         | `false`                 |
+| `isNone`         | `() => this is None`                | `true`                  |
 
 ---
 

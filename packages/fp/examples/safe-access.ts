@@ -4,7 +4,7 @@
  * Demonstrates: some/none/maybe, map, getOrElse, optional chaining
  */
 
-import { some, none, maybe, Maybe } from '../src';
+import { some, none, maybe, type Maybe } from '../src';
 
 interface Address {
   city?: string;

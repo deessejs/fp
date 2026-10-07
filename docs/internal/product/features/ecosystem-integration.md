@@ -14,6 +14,7 @@ import { error, raise, is } from '@deessejs/errors';
 ### Why @deessejs/errors?
 
 `@deessejs/errors` provides:
+
 - **Exception chaining** via `.from()`
 - **Hierarchical inheritance** for domain error taxonomies
 - **Message templates** with `{placeholder}` replacement
@@ -96,7 +97,9 @@ const DatabaseError = error({
 });
 
 // User service with comprehensive error handling
-async function getUserWithOrders(userId: string): Promise<Result<UserWithOrders, ValidationError | NotFoundError | DatabaseError>> {
+async function getUserWithOrders(
+  userId: string
+): Promise<Result<UserWithOrders, ValidationError | NotFoundError | DatabaseError>> {
   return gen(async function* () {
     // Validate input
     if (!userId || userId.length < 1) {
@@ -105,15 +108,13 @@ async function getUserWithOrders(userId: string): Promise<Result<UserWithOrders,
 
     // Get user
     const user = yield* await tryPromise(() => db.users.findById(userId))
-      .mapError(e => DatabaseError({ cause: e }))
-      .flatMap(user => user
-        ? ok(user)
-        : err(NotFoundError({ id: userId }))
-      );
+      .mapError((e) => DatabaseError({ cause: e }))
+      .flatMap((user) => (user ? ok(user) : err(NotFoundError({ id: userId }))));
 
     // Get orders
-    const orders = yield* await tryPromise(() => db.orders.findByUserId(userId))
-      .mapError(e => DatabaseError({ cause: e }));
+    const orders = yield* await tryPromise(() => db.orders.findByUserId(userId)).mapError((e) =>
+      DatabaseError({ cause: e })
+    );
 
     return ok({ user, orders });
   });
@@ -194,7 +195,7 @@ function parseConfig(content: string): Result<Config, ParseError | ValidationErr
   return try_({
     try: () => JSON.parse(content) as unknown,
     catch: (cause) => ParseError({ cause }),
-  }).flatMap(data => {
+  }).flatMap((data) => {
     // Validate with cause propagation
     const errors = validateConfig(data);
     if (errors.length > 0) {
@@ -214,7 +215,7 @@ async function saveUser(user: unknown): Promise<Result<User, DatabaseError | Val
       }
       return DatabaseError({ cause });
     },
-  }).mapError(e => {
+  }).mapError((e) => {
     if (is(e, DatabaseError) && e.cause === 'Email already exists') {
       return ValidationError({ field: 'email', reason: 'Email already registered' });
     }
@@ -243,11 +244,13 @@ const ExternalServiceError = error({
 async function fetchUserData(userId: string) {
   return gen(async function* () {
     try {
-      const user = yield* await tryPromise(() => api.getUser(userId))
-        .mapError(e => ExternalServiceError({ cause: e }));
+      const user = yield* await tryPromise(() => api.getUser(userId)).mapError((e) =>
+        ExternalServiceError({ cause: e })
+      );
 
-      const profile = yield* await tryPromise(() => api.getProfile(user.id))
-        .mapError(e => ExternalServiceError({ cause: e }).from(e));
+      const profile = yield* await tryPromise(() => api.getProfile(user.id)).mapError((e) =>
+        ExternalServiceError({ cause: e }).from(e)
+      );
 
       return ok({ user, profile });
     } catch (e) {
@@ -380,10 +383,10 @@ function is(value: unknown, error: ErrorFactory): value is ErrorInstance;
 
 ### Pattern Summary
 
-| Pattern | @deessejs/fp | @deessejs/errors |
-|---------|--------------|------------------|
+| Pattern      | @deessejs/fp          | @deessejs/errors                           |
+| ------------ | --------------------- | ------------------------------------------ |
 | Create error | `err(new Error(...))` | `error({ name: 'Error', message: '...' })` |
-| Check type | `result.isErr()` | `is(result.error, ErrorType)` |
-| Get fields | `result.error` | `result.error.fields` |
-| Chain errors | N/A | `error.from(cause)` |
-| Create child | N/A | `ParentError.child({...})` |
+| Check type   | `result.isErr()`      | `is(result.error, ErrorType)`              |
+| Get fields   | `result.error`        | `result.error.fields`                      |
+| Chain errors | N/A                   | `error.from(cause)`                        |
+| Create child | N/A                   | `ParentError.child({...})`                 |

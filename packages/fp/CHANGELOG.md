@@ -15,7 +15,7 @@
 ### Minor Changes
 
 - 04e3798: Release 1.1.0.
-  
+
   Advances the version from 1.0.2 (the dummy release-test artifact) to 1.1.0 to bring the published version on npm into a clean state. The release pipeline is now end-to-end validated; this entry produces the first legitimate user-facing minor bump since the Trusted Publishing migration.
 
 ### Patch Changes
@@ -71,7 +71,6 @@
 - c18a652: Release v1.0.0-alpha.1 - Core Types
 
   ### Minor Changes
-
   - Add `Result<T, E>` type with `Ok` and `Err` variants
   - Add `Maybe<T>` type with `Some` and `None` variants
   - Add `Unit` type for void-returning functions

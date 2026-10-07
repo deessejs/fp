@@ -1,12 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  ok,
-  err,
-  isOk,
-  isErr,
-  fromThrowable,
-  fromAsyncThrowable,
-} from '@deessejs/fp';
+import { ok, err, isOk, isErr, fromThrowable, fromAsyncThrowable } from '@deessejs/fp';
 
 describe('fromThrowable', () => {
   describe('thunk overload', () => {

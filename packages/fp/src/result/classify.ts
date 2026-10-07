@@ -26,10 +26,7 @@ import type { ErrorClassification, ClassificationRule } from './types.js';
  * ]);
  * // kind === 'retryable' if err is a NetworkError or TimeoutError
  */
-export function classifyError(
-  e: unknown,
-  rules: ClassificationRule[],
-): ErrorClassification {
+export function classifyError(e: unknown, rules: ClassificationRule[]): ErrorClassification {
   if (!(e instanceof Error)) return 'non-retryable';
   for (const rule of rules) {
     if (e instanceof rule.error) return rule.classification;

@@ -11,6 +11,7 @@ Analyzed from better-auth.com, nextjs.org/docs, and fumadocs.dev
 ## Recurring Patterns
 
 ### Structure
+
 1. **Intro** — 1-2 contextual sentences before diving in
 2. **Steps** — Numbered or bulleted sequences
 3. **Code blocks** — Always with filename header or context
@@ -19,12 +20,14 @@ Analyzed from better-auth.com, nextjs.org/docs, and fumadocs.dev
 6. **See Also** — Cards at end of page for cross-linking
 
 ### Code Blocks
+
 - Include filename in header or comment above
 - Show language/format
 - Display in tabs when multiple options (npm/pnpm/yarn)
 - Use transformers for highlighting (twoslash for types)
 
 ### Callouts
+
 - `info` (default) — general info
 - `warn`/`warning` — caution
 - `error` — danger
@@ -32,6 +35,7 @@ Analyzed from better-auth.com, nextjs.org/docs, and fumadocs.dev
 - `idea` — tip or enhancement
 
 ### Prose Style
+
 - Short, action-oriented sentences ("Let's start by...")
 - Explain WHY before showing HOW
 - Contextual paragraphs between code blocks
@@ -39,13 +43,14 @@ Analyzed from better-auth.com, nextjs.org/docs, and fumadocs.dev
 - Numbered steps for procedures
 
 ### Navigation
+
 - "On this page" in-page TOC (Fumadocs auto-generates)
 - Cards at bottom for related pages
 - Never bullet lists for related links
 
 ## Template for New Pages
 
-```mdx
+````mdx
 ---
 title: Page Title
 description: One-line SEO description
@@ -60,6 +65,7 @@ Contextual prose...
 ```ts filename.ts
 // code here
 ```
+````
 
 More explanatory text.
 

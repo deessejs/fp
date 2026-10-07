@@ -66,7 +66,10 @@ describe('Result pipeables', () => {
     });
 
     it('returns Err(errorFn) when predicate fails and errorFn supplied', () => {
-      const out = filterR((x: number) => x % 2 === 0, (x) => `odd:${x}`)(ok(3));
+      const out = filterR(
+        (x: number) => x % 2 === 0,
+        (x) => `odd:${x}`
+      )(ok(3));
       expect(out.isErr()).toBe(true);
       if (out.isErr()) expect(out.error).toBe('odd:3');
     });
@@ -140,7 +143,7 @@ describe('Result pipeables', () => {
         matchR<number, string, string>({
           ok: (v) => `ok:${v}`,
           err: () => 'err',
-        })(ok(10)),
+        })(ok(10))
       ).toBe('ok:10');
     });
 
@@ -149,7 +152,7 @@ describe('Result pipeables', () => {
         matchR<number, string, string>({
           ok: () => 'ok',
           err: (e) => `err:${e}`,
-        })(err('e')),
+        })(err('e'))
       ).toBe('err:e');
     });
   });
@@ -159,8 +162,8 @@ describe('Result pipeables', () => {
       expect(
         foldR(
           (v: number) => v + 1,
-          () => 0,
-        )(ok(10)),
+          () => 0
+        )(ok(10))
       ).toBe(11);
     });
 
@@ -168,8 +171,8 @@ describe('Result pipeables', () => {
       expect(
         foldR(
           (v: number) => v + 1,
-          (e: string) => e.length,
-        )(err('hello')),
+          (e: string) => e.length
+        )(err('hello'))
       ).toBe(5);
     });
   });

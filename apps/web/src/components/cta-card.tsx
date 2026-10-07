@@ -1,23 +1,23 @@
-"use client";
+'use client';
 
-import { Copy, Check } from "lucide-react";
-import Link from "next/link";
-import { useState } from "react";
+import { Copy, Check } from 'lucide-react';
+import Link from 'next/link';
+import { useState } from 'react';
 
 export function CtaCard() {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText("npm install @deessejs/fp");
+      await navigator.clipboard.writeText('npm install @deessejs/fp');
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      const textarea = document.createElement("textarea");
-      textarea.value = "npm install @deessejs/fp";
+      const textarea = document.createElement('textarea');
+      textarea.value = 'npm install @deessejs/fp';
       document.body.appendChild(textarea);
       textarea.select();
-      document.execCommand("copy");
+      document.execCommand('copy');
       document.body.removeChild(textarea);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -28,12 +28,9 @@ export function CtaCard() {
     <section className="bg-fd-background">
       <div className="max-w-6xl mx-auto px-6 pb-24">
         <div className="mt-10 border border-fd-border bg-fd-card rounded-none p-8">
-          <h3 className="text-2xl font-bold text-fd-foreground">
-            Ready to get started?
-          </h3>
+          <h3 className="text-2xl font-bold text-fd-foreground">Ready to get started?</h3>
           <p className="mt-2 text-fd-muted-foreground">
-            Install the package and start building with functional programming
-            patterns today.
+            Install the package and start building with functional programming patterns today.
           </p>
           <div className="mt-6 flex flex-col sm:flex-row gap-4">
             <Link
