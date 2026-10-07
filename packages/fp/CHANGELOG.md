@@ -1,5 +1,17 @@
 # @deessejs/fp
 
+## 5.0.1
+
+### Patch Changes
+
+- Run `pnpm --filter @deessejs/fp build` in the `publish` job before `pnpm changeset publish`.
+
+  The previous workflow ran `pnpm install` and called `pnpm changeset publish` directly, never building the package. Every published artifact from this repository (1.3.0, 2.0.0, 2.0.1, 5.0.0) shipped without `dist/` despite `package.json#files` whitelisting it and `main` / `types` / `exports` pointing at it. Consumers importing `@deessejs/fp` got `ERR_MODULE_NOT_FOUND` because `./dist/index.js` did not exist in the tarball.
+
+  This is the first release from this repository that consumers can actually use.
+
+  Cleanup action required separately by a maintainer with npm publish rights: unpublish the broken `@deessejs/fp@5.0.0` from the registry. It was published less than an hour ago, well inside the 72-hour `npm unpublish` window for versions that have not been depended on.
+
 ## 5.0.0
 
 ### Major Changes
