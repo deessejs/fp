@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 import { CtaCard } from '@/components/cta-card';
-import { CodeBlock } from '@/components/code-block';
+import { CodeComparison } from '@/components/marketing/code-comparison';
 import { FeaturesGrid } from '@/components/marketing/features-grid';
 import { GlobalLayout } from '@/components/marketing/global-layout';
 import { Hero } from '@/components/marketing/hero';
@@ -41,32 +41,7 @@ export const metadata: Metadata = {
   },
 };
 
-// Before/After comparison
-const BEFORE_CODE = `// Traditional approach
-function divide(a: number, b: number): number | undefined {
-  if (b === 0) return undefined;
-  return a / b;
-}
-
-const result = divide(10, 0);
-if (result !== undefined) {
-  console.log(result);
-}`;
-
-const AFTER_CODE = `// @deessejs/fp approach
-import { Result, ok, err } from '@deessejs/fp';
-
-function divide(a: number, b: number): Result<number, string> {
-  if (b === 0) return err('Division by zero');
-  return ok(a / b);
-}
-
-divide(10, 0).match({
-  ok: (value) => console.log(value),
-  err: (error) => console.error(error),
-});`;
-
-export default function HomePage() {
+export default async function HomePage() {
   const softwareJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
@@ -119,10 +94,7 @@ export default function HomePage() {
               title="From optional chaos to typed safety."
               subtitle="Stop relying on undefined checks and type assertions. Get type-safe, composable code that makes debugging a breeze."
             />
-            <div className="grid gap-6 p-6 lg:grid-cols-2 lg:gap-8 lg:p-8">
-              <CodeBlock language="typescript" title="before.ts" code={BEFORE_CODE} />
-              <CodeBlock language="typescript" title="after.ts" code={AFTER_CODE} />
-            </div>
+            <CodeComparison />
           </Section>
 
           <CtaCard noBorderB />
