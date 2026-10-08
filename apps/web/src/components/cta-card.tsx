@@ -1,23 +1,47 @@
 'use client';
 
-import { Check, Copy } from 'lucide-react';
+import { ChevronRight, Copy, Check } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/cn';
 
-export function CtaCard() {
+const INSTALL_COMMAND = 'npm install @deessejs/fp';
+
+/**
+ * Final CTA at the bottom of the home page.
+ *
+ * Two-column grid (deessejs `_shared/final-cta.tsx` pattern):
+ * the left cell carries the eyebrow + H2 + body, the right cell
+ * stacks the actions vertically. The two cells are separated by
+ * a `divide-x` on desktop, `divide-y` on mobile.
+ *
+ * The second action is a copy-to-clipboard button that swaps
+ * to a "Copied!" state for 2 seconds on success. The button
+ * label is the npm install command itself, so the click is
+ * a "copy" gesture, not a "go install" gesture.
+ */
+export function CtaCard({
+  noBorderB = false,
+  className,
+}: {
+  /** Drop the bottom border. Use on the last section of a page
+   *  so the surrounding frame (GlobalLayout, footer) closes the
+   *  page cleanly without a double line. */
+  noBorderB?: boolean;
+  className?: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText('npm install @deessejs/fp');
+      await navigator.clipboard.writeText(INSTALL_COMMAND);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
       const textarea = document.createElement('textarea');
-      textarea.value = 'npm install @deessejs/fp';
+      textarea.value = INSTALL_COMMAND;
       document.body.appendChild(textarea);
       textarea.select();
       document.execCommand('copy');
@@ -28,37 +52,47 @@ export function CtaCard() {
   };
 
   return (
-    <section className="bg-background">
-      <div className="max-w-6xl mx-auto px-6 pb-24">
-        <div className="mt-10">
-          <Card>
-            <CardHeader>
-              <CardTitle>Ready to get started?</CardTitle>
-              <CardDescription>
-                Install the package and start building with functional programming patterns today.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col sm:flex-row gap-4">
-              <Button asChild size="lg">
-                <Link href="/docs">Read the docs</Link>
-              </Button>
-              <Button variant="outline" size="lg" onClick={handleCopy} className="font-mono">
-                {copied ? (
-                  <>
-                    <Check />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy />
-                    npm install @deessejs/fp
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+    <div
+      className={cn(
+        'grid grid-cols-1 divide-y divide-border border-t border-border lg:grid-cols-2 lg:divide-y-0 lg:divide-x',
+        noBorderB && 'border-b-0',
+        className
+      )}
+    >
+      {/* Left: copy */}
+      <div className="flex flex-col gap-4 p-6 lg:p-10">
+        <p className="text-label-13 uppercase tracking-wider text-muted-foreground">Get started</p>
+        <h2 className="text-heading-32 font-medium tracking-tight text-balance lg:text-heading-40 [&:not(:first-child)]:mt-0">
+          Install the library. Read the docs.
+        </h2>
+        <p className="max-w-md text-copy-16 leading-7 text-muted-foreground [&:not(:first-child)]:mt-0">
+          A small, ESM-only, peer-dependency-free library for typed functional programming in
+          TypeScript. Result, Maybe, and Unit — typed, composable, and ready to ship.
+        </p>
       </div>
-    </section>
+
+      {/* Right: actions */}
+      <div className="flex flex-col items-stretch justify-center gap-4 p-6 lg:p-10">
+        <Button asChild size="lg">
+          <Link href="/docs">
+            Read the docs
+            <ChevronRight className="size-3.5" aria-hidden />
+          </Link>
+        </Button>
+        <Button variant="outline" size="lg" onClick={handleCopy} className="font-mono">
+          {copied ? (
+            <>
+              <Check aria-hidden />
+              Copied!
+            </>
+          ) : (
+            <>
+              <Copy aria-hidden />
+              {INSTALL_COMMAND}
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
   );
 }

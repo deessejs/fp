@@ -125,9 +125,7 @@ export default function HomePage() {
             </div>
           </Section>
 
-          <Section className="border-b-0">
-            <CtaCard />
-          </Section>
+          <CtaCard noBorderB />
         </GlobalLayout>
       </main>
     </>
