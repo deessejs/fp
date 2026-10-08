@@ -142,25 +142,25 @@ export default function HomePage() {
           {/* Hero Section */}
           <section className="relative overflow-hidden">
             <div className="max-w-6xl mx-auto px-6 pt-20 lg:pt-28 pb-8 relative z-10">
-              <h1 className="text-5xl lg:text-6xl font-bold tracking-tight leading-[0.95] text-fd-foreground">
+              <h1 className="text-5xl lg:text-6xl font-bold tracking-tight leading-[0.95] text-foreground">
                 Functional Programming,
                 <br />
                 Made Simple.
               </h1>
-              <p className="mt-6 max-w-2xl text-xl text-fd-muted-foreground">
+              <p className="mt-6 max-w-2xl text-xl text-muted-foreground">
                 A TypeScript library that brings functional programming patterns to JavaScript.
                 Result, Maybe, and Unit types for robust, composable code.
               </p>
               <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                 <Link
                   href="/docs"
-                  className="inline-flex items-center gap-2.5 bg-fd-primary hover:bg-fd-primary/90 rounded-none px-5 py-3 text-sm font-medium text-fd-primary-foreground transition-colors"
+                  className="inline-flex items-center gap-2.5 bg-primary hover:bg-primary/90 rounded-none px-5 py-3 text-sm font-medium text-primary-foreground transition-colors"
                 >
                   Get Started
                 </Link>
                 <Link
                   href="/docs/getting-started"
-                  className="inline-flex items-center gap-2.5 border border-fd-border hover:border-fd-accent bg-fd-card hover:bg-fd-accent/50 rounded-none px-5 py-3 text-sm font-medium text-fd-muted-foreground transition-colors"
+                  className="inline-flex items-center gap-2.5 border border-border hover:border-accent bg-card hover:bg-accent/50 rounded-none px-5 py-3 text-sm font-medium text-muted-foreground transition-colors"
                 >
                   npm install @deessejs/fp
                 </Link>
@@ -176,13 +176,13 @@ export default function HomePage() {
           </section>
 
           {/* Features Section */}
-          <section className="bg-fd-background-secondary">
+          <section className="bg-muted">
             <div className="max-w-6xl mx-auto px-6 py-24">
               <div className="max-w-2xl">
-                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight leading-[1.1] text-fd-foreground">
+                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight leading-[1.1] text-foreground">
                   Features
                 </h2>
-                <p className="mt-4 text-lg text-fd-muted-foreground leading-relaxed">
+                <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
                   Everything you need for robust functional programming in TypeScript.
                 </p>
               </div>
@@ -193,12 +193,12 @@ export default function HomePage() {
                   <Link
                     key={feature.title}
                     href={feature.href}
-                    className="lg:col-span-3 border border-fd-border bg-fd-card hover:border-fd-accent hover:bg-fd-secondary rounded-none p-6 transition-colors"
+                    className="lg:col-span-3 border border-border bg-card hover:border-accent hover:bg-secondary rounded-none p-6 transition-colors"
                   >
-                    <h3 className="text-xl font-semibold tracking-tight text-fd-foreground">
+                    <h3 className="text-xl font-semibold tracking-tight text-foreground">
                       {feature.title}
                     </h3>
-                    <p className="mt-1.5 text-[15px] text-fd-muted-foreground leading-relaxed">
+                    <p className="mt-1.5 text-[15px] text-muted-foreground leading-relaxed">
                       {feature.description}
                     </p>
                   </Link>
@@ -207,36 +207,36 @@ export default function HomePage() {
                 {/* Secondary features - spans 2 columns */}
                 <Link
                   href="/docs/result"
-                  className="lg:col-span-2 border border-fd-border bg-fd-card hover:border-fd-accent hover:bg-fd-secondary rounded-none p-6 transition-colors"
+                  className="lg:col-span-2 border border-border bg-card hover:border-accent hover:bg-secondary rounded-none p-6 transition-colors"
                 >
-                  <h3 className="text-xl font-semibold tracking-tight text-fd-foreground">
+                  <h3 className="text-xl font-semibold tracking-tight text-foreground">
                     Error Handling
                   </h3>
-                  <p className="mt-1.5 text-[15px] text-fd-muted-foreground leading-relaxed">
+                  <p className="mt-1.5 text-[15px] text-muted-foreground leading-relaxed">
                     Type-safe error propagation with the Result type.
                   </p>
                 </Link>
 
                 <Link
                   href="/docs/maybe"
-                  className="lg:col-span-2 border border-fd-border bg-fd-card hover:border-fd-accent hover:bg-fd-secondary rounded-none p-6 transition-colors"
+                  className="lg:col-span-2 border border-border bg-card hover:border-accent hover:bg-secondary rounded-none p-6 transition-colors"
                 >
-                  <h3 className="text-xl font-semibold tracking-tight text-fd-foreground">
+                  <h3 className="text-xl font-semibold tracking-tight text-foreground">
                     Optional Values
                   </h3>
-                  <p className="mt-1.5 text-[15px] text-fd-muted-foreground leading-relaxed">
+                  <p className="mt-1.5 text-[15px] text-muted-foreground leading-relaxed">
                     Handle null/undefined with the Maybe type.
                   </p>
                 </Link>
 
                 <Link
                   href="/docs/api-reference"
-                  className="lg:col-span-2 border border-fd-border bg-fd-card hover:border-fd-accent hover:bg-fd-secondary rounded-none p-6 transition-colors"
+                  className="lg:col-span-2 border border-border bg-card hover:border-accent hover:bg-secondary rounded-none p-6 transition-colors"
                 >
-                  <h3 className="text-xl font-semibold tracking-tight text-fd-foreground">
+                  <h3 className="text-xl font-semibold tracking-tight text-foreground">
                     API Reference
                   </h3>
-                  <p className="mt-1.5 text-[15px] text-fd-muted-foreground leading-relaxed">
+                  <p className="mt-1.5 text-[15px] text-muted-foreground leading-relaxed">
                     Complete API documentation with examples.
                   </p>
                 </Link>
@@ -245,13 +245,13 @@ export default function HomePage() {
           </section>
 
           {/* Before/After Comparison */}
-          <section className="bg-fd-background">
+          <section className="bg-background">
             <div className="max-w-6xl mx-auto px-6 py-24">
               <div className="max-w-2xl mb-12">
-                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight leading-[1.1] text-fd-foreground">
+                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight leading-[1.1] text-foreground">
                   From optional chaos to typed safety.
                 </h2>
-                <p className="mt-4 text-lg text-fd-muted-foreground leading-relaxed">
+                <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
                   Stop relying on undefined checks and type assertions. Get type-safe, composable
                   code that makes debugging a breeze.
                 </p>

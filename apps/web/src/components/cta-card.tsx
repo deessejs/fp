@@ -25,23 +25,23 @@ export function CtaCard() {
   };
 
   return (
-    <section className="bg-fd-background">
+    <section className="bg-background">
       <div className="max-w-6xl mx-auto px-6 pb-24">
-        <div className="mt-10 border border-fd-border bg-fd-card rounded-none p-8">
-          <h3 className="text-2xl font-bold text-fd-foreground">Ready to get started?</h3>
-          <p className="mt-2 text-fd-muted-foreground">
+        <div className="mt-10 border border-border bg-card rounded-none p-8">
+          <h3 className="text-2xl font-bold text-foreground">Ready to get started?</h3>
+          <p className="mt-2 text-muted-foreground">
             Install the package and start building with functional programming patterns today.
           </p>
           <div className="mt-6 flex flex-col sm:flex-row gap-4">
             <Link
               href="/docs"
-              className="inline-flex items-center justify-center gap-2 bg-fd-primary hover:bg-fd-primary/90 text-fd-primary-foreground px-6 py-3 font-medium rounded-none transition-colors"
+              className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 font-medium rounded-none transition-colors"
             >
               Read the docs
             </Link>
             <button
               onClick={handleCopy}
-              className="inline-flex items-center justify-center gap-2 border border-fd-border bg-fd-background hover:bg-fd-secondary text-fd-foreground px-6 py-3 font-mono text-sm rounded-none transition-colors"
+              className="inline-flex items-center justify-center gap-2 border border-border bg-background hover:bg-secondary text-foreground px-6 py-3 font-mono text-sm rounded-none transition-colors"
             >
               {copied ? (
                 <>
