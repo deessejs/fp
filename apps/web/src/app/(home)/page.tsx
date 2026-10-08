@@ -1,8 +1,12 @@
-import Link from 'next/link';
 import type { Metadata } from 'next';
-import { CodeBlock } from '@/components/code-block';
+
 import { CtaCard } from '@/components/cta-card';
+import { CodeBlock } from '@/components/code-block';
+import { FeaturesGrid } from '@/components/marketing/features-grid';
 import { GlobalLayout } from '@/components/marketing/global-layout';
+import { Hero } from '@/components/marketing/hero';
+import { Section } from '@/components/marketing/section';
+import { SectionHeader } from '@/components/marketing/section-header';
 import { baseUrl } from '@/lib/shared';
 
 export const metadata: Metadata = {
@@ -37,50 +41,7 @@ export const metadata: Metadata = {
   },
 };
 
-// Hero code example
-const HERO_CODE = `import { ok, err, some, none, unit } from '@deessejs/fp';
-
-// Result type - handle errors gracefully
-const result = ok(42).map((n) => n * 2); // Ok(84)
-const failed = err('oops').map((n) => n * 2); // Err('oops')
-
-// Maybe type - handle optional values
-const value = some(42).filter((n) => n > 10); // Some(42)
-const empty = none<number>().map((n) => n * 2); // None
-
-// Compose with flatMap
-const composed = ok(21)
-  .flatMap((n) => (n > 10 ? ok(n * 2) : err('too small')));`;
-
-// Features data
-const features = [
-  {
-    title: 'Result Type',
-    description:
-      'Handle errors with type-safe success and failure states. No more undefined/null checks everywhere.',
-    href: '/docs/result',
-  },
-  {
-    title: 'Maybe Type',
-    description:
-      'Work with optional values in a composable way. Explicitly handle the absence of values.',
-    href: '/docs/maybe',
-  },
-  {
-    title: 'Unit Type',
-    description:
-      'Represent intentional void returns for side effects. Makes side effects explicit in your type signatures.',
-    href: '/docs/unit',
-  },
-  {
-    title: 'TypeScript Native',
-    description:
-      'Full type safety with generic types. Leverage TypeScript to catch errors before they happen.',
-    href: '/docs/getting-started',
-  },
-];
-
-// Code examples for showcase
+// Before/After comparison
 const BEFORE_CODE = `// Traditional approach
 function divide(a: number, b: number): number | undefined {
   if (b === 0) return undefined;
@@ -139,136 +100,34 @@ export default function HomePage() {
 
       <main>
         <GlobalLayout>
-          {/* Hero Section */}
-          <section className="relative overflow-hidden">
-            <div className="max-w-6xl mx-auto px-6 pt-20 lg:pt-28 pb-8 relative z-10">
-              <h1 className="text-5xl lg:text-6xl font-bold tracking-tight leading-[0.95] text-foreground">
-                Functional Programming,
-                <br />
-                Made Simple.
-              </h1>
-              <p className="mt-6 max-w-2xl text-xl text-muted-foreground">
-                A TypeScript library that brings functional programming patterns to JavaScript.
-                Result, Maybe, and Unit types for robust, composable code.
-              </p>
-              <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-                <Link
-                  href="/docs"
-                  className="inline-flex items-center gap-2.5 bg-primary hover:bg-primary/90 rounded-none px-5 py-3 text-sm font-medium text-primary-foreground transition-colors"
-                >
-                  Get Started
-                </Link>
-                <Link
-                  href="/docs/getting-started"
-                  className="inline-flex items-center gap-2.5 border border-border hover:border-accent bg-card hover:bg-accent/50 rounded-none px-5 py-3 text-sm font-medium text-muted-foreground transition-colors"
-                >
-                  npm install @deessejs/fp
-                </Link>
-              </div>
+          <Section>
+            <Hero />
+          </Section>
+
+          <Section>
+            <SectionHeader
+              eyebrow="The primitives"
+              title="Features"
+              subtitle="Everything you need for robust functional programming in TypeScript. Result, Maybe, and Unit types for typed, composable code."
+            />
+            <FeaturesGrid />
+          </Section>
+
+          <Section>
+            <SectionHeader
+              eyebrow="Before & after"
+              title="From optional chaos to typed safety."
+              subtitle="Stop relying on undefined checks and type assertions. Get type-safe, composable code that makes debugging a breeze."
+            />
+            <div className="grid gap-6 p-6 lg:grid-cols-2 lg:gap-8 lg:p-8">
+              <CodeBlock language="typescript" title="before.ts" code={BEFORE_CODE} />
+              <CodeBlock language="typescript" title="after.ts" code={AFTER_CODE} />
             </div>
-          </section>
+          </Section>
 
-          {/* Hero Code Section */}
-          <section className="relative z-10">
-            <div className="max-w-6xl mx-auto px-6 py-16">
-              <CodeBlock language="typescript" title="example.ts" code={HERO_CODE} />
-            </div>
-          </section>
-
-          {/* Features Section */}
-          <section className="bg-muted">
-            <div className="max-w-6xl mx-auto px-6 py-24">
-              <div className="max-w-2xl">
-                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight leading-[1.1] text-foreground">
-                  Features
-                </h2>
-                <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
-                  Everything you need for robust functional programming in TypeScript.
-                </p>
-              </div>
-
-              <div className="mt-10 grid lg:grid-cols-6 gap-5">
-                {/* Feature cards - spans 3 columns each */}
-                {features.map((feature) => (
-                  <Link
-                    key={feature.title}
-                    href={feature.href}
-                    className="lg:col-span-3 border border-border bg-card hover:border-accent hover:bg-secondary rounded-none p-6 transition-colors"
-                  >
-                    <h3 className="text-xl font-semibold tracking-tight text-foreground">
-                      {feature.title}
-                    </h3>
-                    <p className="mt-1.5 text-[15px] text-muted-foreground leading-relaxed">
-                      {feature.description}
-                    </p>
-                  </Link>
-                ))}
-
-                {/* Secondary features - spans 2 columns */}
-                <Link
-                  href="/docs/result"
-                  className="lg:col-span-2 border border-border bg-card hover:border-accent hover:bg-secondary rounded-none p-6 transition-colors"
-                >
-                  <h3 className="text-xl font-semibold tracking-tight text-foreground">
-                    Error Handling
-                  </h3>
-                  <p className="mt-1.5 text-[15px] text-muted-foreground leading-relaxed">
-                    Type-safe error propagation with the Result type.
-                  </p>
-                </Link>
-
-                <Link
-                  href="/docs/maybe"
-                  className="lg:col-span-2 border border-border bg-card hover:border-accent hover:bg-secondary rounded-none p-6 transition-colors"
-                >
-                  <h3 className="text-xl font-semibold tracking-tight text-foreground">
-                    Optional Values
-                  </h3>
-                  <p className="mt-1.5 text-[15px] text-muted-foreground leading-relaxed">
-                    Handle null/undefined with the Maybe type.
-                  </p>
-                </Link>
-
-                <Link
-                  href="/docs/api-reference"
-                  className="lg:col-span-2 border border-border bg-card hover:border-accent hover:bg-secondary rounded-none p-6 transition-colors"
-                >
-                  <h3 className="text-xl font-semibold tracking-tight text-foreground">
-                    API Reference
-                  </h3>
-                  <p className="mt-1.5 text-[15px] text-muted-foreground leading-relaxed">
-                    Complete API documentation with examples.
-                  </p>
-                </Link>
-              </div>
-            </div>
-          </section>
-
-          {/* Before/After Comparison */}
-          <section className="bg-background">
-            <div className="max-w-6xl mx-auto px-6 py-24">
-              <div className="max-w-2xl mb-12">
-                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight leading-[1.1] text-foreground">
-                  From optional chaos to typed safety.
-                </h2>
-                <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
-                  Stop relying on undefined checks and type assertions. Get type-safe, composable
-                  code that makes debugging a breeze.
-                </p>
-              </div>
-
-              <div className="grid lg:grid-cols-2 gap-8">
-                {/* Before */}
-                <CodeBlock language="typescript" title="before.ts" code={BEFORE_CODE} />
-
-                {/* After */}
-                <CodeBlock language="typescript" title="after.ts" code={AFTER_CODE} />
-              </div>
-            </div>
-          </section>
-
-          {/* CTA Section */}
-          <CtaCard />
+          <Section className="border-b-0">
+            <CtaCard />
+          </Section>
         </GlobalLayout>
       </main>
     </>
