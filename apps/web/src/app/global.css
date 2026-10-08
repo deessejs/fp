@@ -1,5 +1,6 @@
 @import 'tailwindcss';
-@import 'tw-animate-css';
+@import 'fumadocs-ui/css/lib/base.css';
+@import 'fumadocs-ui/css/generated/shared.css';
 
 /* shadcn/ui Tailwind v4 token set, inlined here because there is no
    shadcn package on npm that exports `shadcn/tailwind.css` for direct
