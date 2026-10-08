@@ -185,19 +185,52 @@ html > body[data-scroll-locked] {
          <nav>...</nav>
        </div>
      </header>
-   The `*:max-w-(--fd-layout-width)` rule pins the nav to a fixed
-   1400px, which is wider than the rest of the page content
-   (which uses `max-w-6xl mx-auto` = 1152px). Replace it with
-   the same `max-w-6xl mx-auto` constraint so the header aligns
-   visually with the rest of the marketing surface. Higher
-   specificity than the `*:` utility so it wins without
-   `!important`. The outer full-bleed strip is preserved
-   (backdrop-blur + border-b sit on the wrapping div, not on
-   the nav). */
+   The `*:max-w-(--fd-layout-width)` rule pins the centered nav
+   to a fixed 1400px, which is wider than the rest of the
+   marketing surface. The shared-border card around the page
+   content (apps/web/src/components/marketing/global-layout.tsx)
+   uses the Tailwind v4 `container` class with `mx-auto`, so
+   its width ladders through the same breakpoint variables the
+   rest of the site uses (24/28/32/36/42 rem at
+   sm/md/lg/xl/2xl). Match that here so the header and the
+   content card stay aligned at every viewport. The outer
+   full-bleed strip with backdrop-blur and border-b is
+   preserved; only the centered content follows the new
+   ladder. Higher specificity than the `*:` utility so it
+   wins without `!important`. */
 #nd-nav > div > * {
-  max-width: 72rem; /* max-w-6xl in the marketing surface */
+  max-width: 100%;
   margin-inline: auto;
-  width: 100%;
+}
+
+@media (min-width: 640px) {
+  #nd-nav > div > * {
+    max-width: 40rem;
+  }
+}
+
+@media (min-width: 768px) {
+  #nd-nav > div > * {
+    max-width: 48rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  #nd-nav > div > * {
+    max-width: 64rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  #nd-nav > div > * {
+    max-width: 80rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  #nd-nav > div > * {
+    max-width: 96rem;
+  }
 }
 
 /* Light mode shiki. Shiki emits inline color via CSS variables. We
