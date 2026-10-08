@@ -186,46 +186,18 @@ html > body[data-scroll-locked] {
        </div>
      </header>
    The `*:max-w-(--fd-layout-width)` rule pins the nav to a fixed
-   1400px, which is wider than the rest of the site's content
-   (which uses Tailwind v4's `container` class with breakpoint
-   widths of 640/768/1024/1280/1536px). Override the child width
-   here so the header follows the same container ladder instead.
-   Higher specificity than the `*:` utility so it wins without
+   1400px, which is wider than the rest of the page content
+   (which uses `max-w-6xl mx-auto` = 1152px). Replace it with
+   the same `max-w-6xl mx-auto` constraint so the header aligns
+   visually with the rest of the marketing surface. Higher
+   specificity than the `*:` utility so it wins without
    `!important`. The outer full-bleed strip is preserved
    (backdrop-blur + border-b sit on the wrapping div, not on
    the nav). */
 #nd-nav > div > * {
-  max-width: 100%;
-}
-
-@media (min-width: 640px) {
-  #nd-nav > div > * {
-    max-width: var(--container-sm, 640px);
-  }
-}
-
-@media (min-width: 768px) {
-  #nd-nav > div > * {
-    max-width: var(--container-md, 768px);
-  }
-}
-
-@media (min-width: 1024px) {
-  #nd-nav > div > * {
-    max-width: var(--container-lg, 1024px);
-  }
-}
-
-@media (min-width: 1280px) {
-  #nd-nav > div > * {
-    max-width: var(--container-xl, 1280px);
-  }
-}
-
-@media (min-width: 1536px) {
-  #nd-nav > div > * {
-    max-width: var(--container-2xl, 1536px);
-  }
+  max-width: 72rem; /* max-w-6xl in the marketing surface */
+  margin-inline: auto;
+  width: 100%;
 }
 
 /* Light mode shiki. Shiki emits inline color via CSS variables. We
