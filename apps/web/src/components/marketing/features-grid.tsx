@@ -78,7 +78,7 @@ const LIVE_SNIPPET = `ok(42).match({
 }) // → 84`;
 
 /**
- * FeaturesGrid — 2-column bento.
+ * FeaturesGrid — 2-column bento, no gap, no padding.
  *
  *   ┌──────────┬──────────┐
  *   │  Maybe   │  Result  │   row 1 (2 simple primitives)
@@ -90,33 +90,39 @@ const LIVE_SNIPPET = `ok(42).match({
  *   │   Unit   │  match() │   row 4 (Unit + Live demo)
  *   └──────────┴──────────┘
  *
- * Each tile is a self-contained card with an eyebrow, an H3, a
- * body, an icon, and a footer link. The middle row uses
- * `row-span-2` so the two use-case tiles stretch across two
- * rows. The bento is `grid-cols-2 grid-rows-3` with `gap-4`
- * between tiles — no `border-b` / `divide-x` rhythm, the gap
- * itself is the separator.
+ * The grid is `gap-0 p-0` so the tiles touch each other. Each
+ * tile carries its own `border-r border-b border-border`; the
+ * last tile in each row drops `border-r` and the last row drops
+ * `border-b` so the bento reads as a single 2x3 quadrillage
+ * flush with the surrounding card frame.
  *
- * On mobile (default `grid-cols-1`) the tall row collapses to a
- * pair of normal-height tiles, so the visual order is:
+ * The middle row uses `row-span-2` so the two use-case tiles
+ * stretch across two rows. The grid itself is `grid-cols-2
+ * grid-rows-3` (sm:). On mobile the grid collapses to
+ * `grid-cols-1 grid-rows-6` and the tall row becomes two
+ * normal-height tiles, so the visual order stays:
  * Maybe → Result → Error → Optional → Unit → match().
  */
 export function FeaturesGrid() {
   return (
-    <div className="grid grid-cols-1 grid-rows-6 gap-4 p-6 sm:grid-cols-2 sm:grid-rows-3 lg:p-8">
-      {PRIMITIVES.map((p) => (
-        <BentoTile key={p.title} {...p} />
+    <div className="grid grid-cols-1 grid-rows-6 sm:grid-cols-2 sm:grid-rows-3">
+      {PRIMITIVES.map((p, i) => (
+        <BentoTile key={p.title} {...p} isLastInRow={i % 2 === 1} isLastRow={i >= 2} />
       ))}
-      {USE_CASES.map((u) => (
+      {USE_CASES.map((u, i) => (
         <BentoTile
           key={u.title}
           {...u}
           className="sm:row-span-2"
           bodyClassName="text-copy-16 leading-7"
+          isLastInRow={i % 2 === 1}
+          // The use cases are rows 2-3 of the 3-row grid (indices 2-3
+          // in a 6-cell linear order), so they ARE the last row.
+          isLastRow
         />
       ))}
-      {BOTTOM_TILES.map((t) => (
-        <BentoTile key={t.title} {...t} />
+      {BOTTOM_TILES.map((t, i) => (
+        <BentoTile key={t.title} {...t} isLastInRow={i % 2 === 1} isLastRow />
       ))}
     </div>
   );
@@ -131,6 +137,10 @@ type BentoTileProps = {
   live?: boolean;
   className?: string;
   bodyClassName?: string;
+  /** True for the right column of a row — drops the right border. */
+  isLastInRow?: boolean;
+  /** True for the bottom row — drops the bottom border. */
+  isLastRow?: boolean;
 };
 
 function BentoTile({
@@ -142,13 +152,22 @@ function BentoTile({
   live = false,
   className,
   bodyClassName,
+  isLastInRow = false,
+  isLastRow = false,
 }: BentoTileProps) {
   return (
     <Link
       href={href}
       aria-label={`${title}: ${description}`}
       className={cn(
-        'group relative flex flex-col rounded-none border border-border bg-background p-6 transition-colors hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
+        'group relative flex flex-col bg-background p-6 transition-colors hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 lg:p-8',
+        // On mobile every tile is the only one in its row, so it
+        // never needs a right border. On sm+ we add `border-r` to
+        // every tile, then `sm:border-r-0` overrides for the right
+        // column.
+        'border-b border-border sm:border-r',
+        isLastInRow && 'sm:border-r-0',
+        isLastRow && 'border-b-0',
         className
       )}
     >
@@ -171,7 +190,7 @@ function BentoTile({
       </p>
 
       {live && (
-        <pre className="mt-4 overflow-x-auto rounded-none border border-border bg-muted/30 p-3 font-mono text-xs leading-5 text-foreground">
+        <pre className="mt-4 overflow-x-auto border border-border bg-muted/30 p-3 font-mono text-xs leading-5 text-foreground">
           {LIVE_SNIPPET}
         </pre>
       )}
