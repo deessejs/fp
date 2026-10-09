@@ -25,7 +25,7 @@ type Audience = keyof typeof COMMANDS;
  * browsers and insecure contexts (http) silently no-op rather
  * than throw, which matches the vercel/chat behavior.
  */
-export function InstallCommand() {
+export function InstallCommand({ className }: { className?: string }) {
   const [audience, setAudience] = React.useState<Audience>('humans');
   const [copied, setCopied] = React.useState(false);
   const command = COMMANDS[audience];
@@ -41,7 +41,7 @@ export function InstallCommand() {
   }, [command]);
 
   return (
-    <div className="flex w-full flex-col items-center gap-2">
+    <div className={`flex w-full flex-col items-center gap-2 ${className ?? ''}`}>
       <div role="tablist" aria-label="Install audience" className="inline-flex items-center">
         <AudienceTab
           label="For humans"
