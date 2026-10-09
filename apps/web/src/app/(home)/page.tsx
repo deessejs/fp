@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 
 import { CtaCard } from '@/components/cta-card';
+import { BenefitsGrid } from '@/components/marketing/benefits-grid';
 import { CodeComparison } from '@/components/marketing/code-comparison';
-import { FeaturesGrid } from '@/components/marketing/features-grid';
+import { ConceptsRow } from '@/components/marketing/concepts-row';
 import { GlobalLayout } from '@/components/marketing/global-layout';
 import { Hero } from '@/components/marketing/hero';
 import { Section } from '@/components/marketing/section';
@@ -81,11 +82,12 @@ export default async function HomePage() {
 
           <Section>
             <SectionHeader
-              eyebrow="The primitives"
-              title="Features"
-              subtitle="Everything you need for robust functional programming in TypeScript. Result, Maybe, and Unit types for typed, composable code."
+              eyebrow="Why @deessejs/fp"
+              title="Three things the library does for you"
+              subtitle="Result, Maybe, and a small set of composition helpers. Each answers a question that TypeScript leaves open."
             />
-            <FeaturesGrid />
+            <BenefitsGrid />
+            <ConceptsRow />
           </Section>
 
           <Section>
