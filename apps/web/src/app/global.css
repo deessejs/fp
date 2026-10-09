@@ -1,6 +1,174 @@
 @import 'tailwindcss';
-@import 'fumadocs-ui/css/black.css';
-@import 'fumadocs-ui/css/preset.css';
+@import 'fumadocs-ui/css/shadcn.css';
+@import 'fumadocs-ui/css/lib/base.css';
+@import 'fumadocs-ui/css/generated/shared.css';
+@import 'fumadocs-ui/css/generated/home.css';
+@import 'fumadocs-ui/css/generated/docs.css';
+@import 'fumadocs-ui/css/generated/notebook.css';
+@import 'fumadocs-ui/css/generated/flux.css';
+
+/* The official fumadocs-ui shadcn interop path is
+     @import 'fumadocs-ui/css/shadcn.css';
+     @import 'fumadocs-ui/css/preset.css';
+   but `preset.css` transitively pulls in `lib/shiki.css`, which uses
+   `@apply bg-fd-diff-remove` for a utility that this Tailwind v4
+   build never defines. We skip `preset.css` and `shiki.css`, and
+   keep the parts we actually need: `shadcn.css` (the --color-fd-*
+   alias layer driven by the shadcn CSS variables we define below
+   in :root and .dark), `lib/base.css` (the @theme animations +
+   @layer base that the rest of the app relies on), and the four
+   `generated/*.css` files (each one is a bag of `@source inline()`
+   JIT directives that register the class names used by
+   HomeLayout, DocsLayout, NotebookLayout, and FluxLayout —
+   grid-cols-2/3/6, h-14, fd-layout, fd-sidebar, fd-toc, etc.).
+   Without those `@source inline` bags, the Tailwind JIT
+   tree-shakes the fumadocs class names out of the bundle, the
+   HTML keeps emitting them, and the pages render with
+   unstyled, broken layouts. The marketing surface does not use
+   fumadocs' code-block styling, so dropping shiki.css is safe. */
+@theme inline {
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  --font-sans: var(--font-sans);
+
+  /* Typography scale (mirrors packages/ui/src/styles/globals.css
+     in the deessejs SaaS template). */
+  --text-heading-72: 4.5rem;
+  --text-heading-64: 4rem;
+  --text-heading-56: 3.5rem;
+  --text-heading-48: 3rem;
+  --text-heading-40: 2.5rem;
+  --text-heading-32: 2rem;
+  --text-heading-24: 1.5rem;
+  --text-heading-20: 1.25rem;
+  --text-heading-16: 1rem;
+  --text-heading-14: 0.875rem;
+
+  --text-label-20: 1.25rem;
+  --text-label-18: 1.125rem;
+  --text-label-16: 1rem;
+  --text-label-14: 0.875rem;
+  --text-label-13: 0.8125rem;
+  --text-label-12: 0.75rem;
+
+  --text-copy-24: 1.5rem;
+  --text-copy-20: 1.25rem;
+  --text-copy-18: 1.125rem;
+  --text-copy-16: 1rem;
+  --text-copy-14: 0.875rem;
+  --text-copy-13: 0.8125rem;
+
+  --text-button-16: 1rem;
+  --text-button-14: 0.875rem;
+  --text-button-12: 0.75rem;
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+}
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
 
 html {
   scrollbar-gutter: stable;
@@ -11,32 +179,71 @@ html > body[data-scroll-locked] {
   --removed-body-scroll-bar-size: 0px !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  .shiki,
-  .shiki span {
-    background-color: #0a0a0a !important;
+/* Fumadocs-ui's <HomeLayout /> header renders
+     <header id="nd-nav">
+       <div class="backdrop-blur-lg border-b *:mx-auto *:max-w-(--fd-layout-width)">
+         <nav>...</nav>
+       </div>
+     </header>
+   The `*:max-w-(--fd-layout-width)` rule pins the centered nav
+   to a fixed 1400px, which is wider than the rest of the
+   marketing surface. The shared-border card around the page
+   content (apps/web/src/components/marketing/global-layout.tsx)
+   uses the Tailwind v4 `container` class with `mx-auto`, so
+   its width ladders through the same breakpoint variables the
+   rest of the site uses (24/28/32/36/42 rem at
+   sm/md/lg/xl/2xl). Match that here so the header and the
+   content card stay aligned at every viewport. The outer
+   full-bleed strip with backdrop-blur and border-b is
+   preserved; only the centered content follows the new
+   ladder. Higher specificity than the `*:` utility so it
+   wins without `!important`. */
+#nd-nav > div > * {
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+@media (min-width: 640px) {
+  #nd-nav > div > * {
+    max-width: 40rem;
   }
+}
+
+@media (min-width: 768px) {
+  #nd-nav > div > * {
+    max-width: 48rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  #nd-nav > div > * {
+    max-width: 64rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  #nd-nav > div > * {
+    max-width: 80rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  #nd-nav > div > * {
+    max-width: 96rem;
+  }
+}
+
+/* Light mode shiki. Shiki emits inline color via CSS variables. We
+   override the background here so light-mode code blocks fit the
+   rest of the surface. The dark-mode override below covers the
+   `html.dark` class next-themes sets when a dark-mode toggle is
+   wired in. */
+html .shiki,
+html .shiki span {
+  background-color: var(--background) !important;
 }
 
 html.dark .shiki,
 html.dark .shiki span {
   background-color: #0a0a0a !important;
-}
-
-@media (prefers-color-scheme: dark) {
-  .shiki,
-  .shiki span {
-    background-color: var(--bg-fd-background) !important;
-    font-style: var(--shiki-dark-font-style) !important;
-    font-weight: var(--shiki-dark-font-weight) !important;
-    text-decoration: var(--shiki-dark-text-decoration) !important;
-  }
-}
-
-html.dark .shiki,
-html.dark .shiki span {
-  background-color: var(--bg-fd-background) !important;
-  font-style: var(--shiki-dark-font-style) !important;
-  font-weight: var(--shiki-dark-font-weight) !important;
-  text-decoration: var(--shiki-dark-text-decoration) !important;
 }
