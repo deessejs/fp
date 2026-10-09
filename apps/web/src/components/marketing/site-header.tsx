@@ -21,14 +21,11 @@ export function SiteHeader() {
           <div className="flex items-center gap-6">
             <Link
               href="/"
-              className="inline-flex min-h-11 items-center gap-2.5 text-label-14 font-medium"
+              className="inline-flex min-h-11 items-center gap-2 font-semibold text-lg"
               aria-label="DeesseJS FP home"
             >
               <DeessejsMark className="h-[18px] w-5" />
-              <span>
-                deessejs<span className="mx-2 text-muted-foreground">/</span>
-                <span className="font-mono">fp</span>
-              </span>
+              <span>DeesseJS</span>
             </Link>
             <div className="hidden md:block">
               <NavSections pathname={pathname} variant="desktop" />
