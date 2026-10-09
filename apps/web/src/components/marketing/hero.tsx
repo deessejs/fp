@@ -22,15 +22,19 @@ const composed = ok(21)
  * Home hero — badge pill above, then a centered H1 + sub + an
  * `<InstallCommand>` segmented control (which doubles as the
  * CTA group: humans get `npm install`, agents get the
- * `npx skills` command), then a full-width code example.
+ * `npx skills` command), then a `max-w-5xl` code example.
  *
  * Layout (vercel/chat pattern):
  *   - Mobile (default): vertical stack, all centered.
  *   - lg: still centered. The H1 widens to `max-w-5xl`, the sub
  *     to `max-w-2xl`, the badge and the command picker sit
- *     centered above and below.
- *   - The code block spans the full width of the Section padding
- *     and sits below the centered header.
+ *     centered above and below. The code block caps at the same
+ *     `max-w-5xl` as the H1 so the two share the same edge.
+ *   - The parent flex column does not use `items-center` —
+ *     each child centers itself via `self-center` (badge, H1,
+ *     sub, InstallCommand) or `mx-auto` (CodeBlock). The code
+ *     block keeps `w-full` underneath the max width so it still
+ *     fills the card on narrow viewports.
  *
  * Order: text first, code second. A screen reader walks the
  * narrative ("Introducing v5.0 → headline → sub → install
@@ -64,7 +68,12 @@ export function Hero() {
 
       <InstallCommand className="self-center" />
 
-      <CodeBlock language="typescript" title="example.ts" code={HERO_CODE} />
+      <CodeBlock
+        language="typescript"
+        title="example.ts"
+        code={HERO_CODE}
+        className="mx-auto w-full max-w-5xl"
+      />
     </div>
   );
 }
