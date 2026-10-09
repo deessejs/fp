@@ -25,7 +25,7 @@ export function SiteHeader() {
               aria-label="DeesseJS FP home"
             >
               <DeessejsMark className="h-[18px] w-5" />
-              <span>DeesseJS</span>
+              <span>DeesseJS / FP</span>
             </Link>
             <div className="hidden md:block">
               <NavSections pathname={pathname} variant="desktop" />
