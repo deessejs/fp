@@ -9,7 +9,10 @@ export type CodeComparisonExample = {
   label: string;
 };
 
-export type CodeComparisonData = Record<string, { before: string; after: string }>;
+export type CodeComparisonData = Record<
+  string,
+  { before: React.ReactNode; after: React.ReactNode }
+>;
 
 /**
  * Client-side Tabs control for the home page code comparison.
@@ -22,11 +25,12 @@ export type CodeComparisonData = Record<string, { before: string; after: string 
  * four examples are mounted up front and the visitor sees both
  * the before and the after of the active example side by side.
  *
- * The actual code blocks are pre-rendered by Shiki in the
- * parent Server Component and arrive here as a
- * `dataByExample` map of HTML strings. We render them with
- * `dangerouslySetInnerHTML` so the shadcn Tabs state can flip
- * between them on the client without re-hitting Shiki.
+ * The actual code blocks are pre-rendered by the parent Server
+ * Component (via the shared `<CodeHtmlBlock>`) and arrive here
+ * as ReactNodes. We cannot call `<CodeBlock>` (or render
+ * `<CodeHtmlBlock>` directly) from inside this Client
+ * Component because both are async Server Components and Next
+ * 16 forbids rendering one as a child of a Client Component.
  */
 export function CodeComparisonTabs({
   examples,
@@ -50,34 +54,15 @@ export function CodeComparisonTabs({
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-0 lg:divide-x lg:divide-border">
         {examples.map((e) => (
           <TabsContent key={`${e.id}-before`} value={e.id} className="lg:pr-8">
-            <CodeHtmlBlock title={`${e.id}.before.ts`} html={dataByExample[e.id].before} />
+            {dataByExample[e.id].before}
           </TabsContent>
         ))}
         {examples.map((e) => (
           <TabsContent key={`${e.id}-after`} value={e.id} className="lg:pl-8">
-            <CodeHtmlBlock title={`${e.id}.after.ts`} html={dataByExample[e.id].after} />
+            {dataByExample[e.id].after}
           </TabsContent>
         ))}
       </div>
     </Tabs>
-  );
-}
-
-function CodeHtmlBlock({ title, html }: { title: string; html: string }) {
-  return (
-    <div className="bg-background w-full overflow-hidden rounded-none border border-border">
-      {title && (
-        <div className="flex items-center gap-1.5 border-b border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-          <span className="size-2.5 rounded-full bg-red-500/80" />
-          <span className="size-2.5 rounded-full bg-yellow-500/80" />
-          <span className="size-2.5 rounded-full bg-green-500/80" />
-          <span className="ml-2 font-mono">{title}</span>
-        </div>
-      )}
-      <div
-        className="overflow-x-auto p-3 text-xs [&_pre]:!bg-transparent [&_pre]:!p-0"
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
-    </div>
   );
 }

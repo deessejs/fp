@@ -1,10 +1,9 @@
-import { codeToHtml } from 'shiki';
-
 import {
   CodeComparisonTabs,
   type CodeComparisonData,
   type CodeComparisonExample,
 } from './code-comparison-tabs';
+import { CodeHtmlBlock } from './code-html-block';
 
 const EXAMPLES: ReadonlyArray<{
   id: string;
@@ -127,40 +126,41 @@ form.match({
  * CodeComparison — two-column code comparison on the home page.
  *
  * Server Component (async). Pre-renders every code snippet to
- * dual-theme Shiki HTML at build time and threads the result
- * into `<CodeComparisonTabs>` (a Client Component) as plain
- * strings, because Next 16 forbids rendering an async Server
- * Component as a child of a Client Component (Radix Tabs has
- * `"use client"`).
+ * Shiki HTML at build time via the shared `<CodeHtmlBlock>`
+ * component (the same one used elsewhere in the marketing
+ * surface) and threads the rendered blocks into
+ * `<CodeComparisonTabs>` (a Client Component) as ReactNodes.
  *
- * The Tabs UI is the same on both sides; both are controlled
- * by the same `active` state held in the client wrapper, so
- * the visitor always sees the before/after for the same use
- * case in lockstep.
- *
- * `defaultColor: false` is mandatory: without it Shiki emits
- * inline `color` styles that win over the CSS variables in
- * `globals.css`, and dark mode would not flip.
+ * The reason we cannot call `<CodeBlock>` (the shared
+ * component) directly from inside `<CodeComparisonTabs>` is
+ * that `<CodeBlock>` is an async Server Component and Next 16
+ * forbids rendering one as a child of a Client Component
+ * (Radix Tabs has `"use client"`). The `<CodeHtmlBlock>`
+ * helper that this file renders is itself a Server Component,
+ * but we resolve it here on the server and pass the already-
+ * rendered ReactNode down to the client wrapper, so the
+ * `"use client"` boundary is never asked to render an async
+ * Server Component.
  */
 export async function CodeComparison() {
-  const highlighted = await Promise.all(
-    EXAMPLES.map(async (e) => {
-      const [beforeHtml, afterHtml] = await Promise.all([
-        codeToHtml(e.before, {
-          lang: 'typescript',
-          themes: { light: 'github-light', dark: 'github-dark' },
-          defaultColor: false,
-        }),
-        codeToHtml(e.after, {
-          lang: 'typescript',
-          themes: { light: 'github-light', dark: 'github-dark' },
-          defaultColor: false,
-        }),
-      ]);
-      return [e.id, { before: beforeHtml, after: afterHtml }] as const;
-    })
-  );
-  const dataByExample = Object.fromEntries(highlighted) as CodeComparisonData;
+  const dataByExample = Object.fromEntries(
+    await Promise.all(
+      EXAMPLES.map(
+        async (e) =>
+          [
+            e.id,
+            {
+              before: (
+                <CodeHtmlBlock code={e.before} language="typescript" title={`${e.id}.before.ts`} />
+              ),
+              after: (
+                <CodeHtmlBlock code={e.after} language="typescript" title={`${e.id}.after.ts`} />
+              ),
+            },
+          ] as const
+      )
+    )
+  ) as CodeComparisonData;
 
   const examples: ReadonlyArray<CodeComparisonExample> = EXAMPLES.map(({ id, label }) => ({
     id,
