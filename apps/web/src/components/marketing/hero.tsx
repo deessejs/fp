@@ -2,7 +2,7 @@ import { ArrowRight, Layers } from 'lucide-react';
 import Link from 'next/link';
 
 import { CodeBlock } from '@/components/code-block';
-import { Button } from '@/components/ui/button';
+import { InstallCommand } from '@/components/marketing/install-command';
 
 const HERO_CODE = `import { ok, err, some, none, unit } from '@deessejs/fp';
 
@@ -19,27 +19,23 @@ const composed = ok(21)
   .flatMap((n) => (n > 10 ? ok(n * 2) : err('too small')))`;
 
 /**
- * Home hero — H1 with a badge pill above, sub-copy + CTAs in a row,
- * then a code example. The badge is the deessejs "Introducing X"
- * pattern: a small clickable chip above the H1 that routes to the
- * latest changelog or release note. Tells the visitor the project
- * is alive before they read the title.
- */
-/**
- * Home hero — badge pill above, then a centered H1 + sub + CTAs,
- * then a full-width code example.
+ * Home hero — badge pill above, then a centered H1 + sub + an
+ * `<InstallCommand>` segmented control (which doubles as the
+ * CTA group: humans get `npm install`, agents get the
+ * `npx skills` command), then a full-width code example.
  *
  * Layout (vercel/chat pattern):
  *   - Mobile (default): vertical stack, all centered.
- *   - lg: still centered. The H1 widens to `max-w-5xl`, the sub to
- *     `max-w-2xl`, the badge and the CTA group sit centered
- *     above and below.
+ *   - lg: still centered. The H1 widens to `max-w-5xl`, the sub
+ *     to `max-w-2xl`, the badge and the command picker sit
+ *     centered above and below.
  *   - The code block spans the full width of the Section padding
  *     and sits below the centered header.
  *
  * Order: text first, code second. A screen reader walks the
- * narrative ("Introducing v5.0 → headline → sub → CTAs → code
- * example") in the same order a sighted visitor scans the page.
+ * narrative ("Introducing v5.0 → headline → sub → install
+ * command → code example") in the same order a sighted
+ * visitor scans the page.
  */
 export function Hero() {
   return (
@@ -66,14 +62,7 @@ export function Hero() {
         Maybe, and Unit types for robust, composable code.
       </p>
 
-      <div className="flex flex-col items-center gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-        <Button asChild size="lg">
-          <Link href="/docs">Get Started</Link>
-        </Button>
-        <Button asChild size="lg" variant="outline" className="bg-background hover:bg-accent/40">
-          <Link href="/docs/getting-started">npm install @deessejs/fp</Link>
-        </Button>
-      </div>
+      <InstallCommand />
 
       <CodeBlock language="typescript" title="example.ts" code={HERO_CODE} />
     </div>
