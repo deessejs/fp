@@ -1,5 +1,6 @@
 {
-  "buildCommand": "cd apps/web && pnpm next build --webpack",
-  "outputDirectory": "apps/web/.next",
-  "installCommand": "pnpm install"
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "pnpm --filter web build",
+  "installCommand": "pnpm install",
+  "outputDirectory": ".next"
 }
