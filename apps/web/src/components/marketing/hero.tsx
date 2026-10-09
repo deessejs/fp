@@ -39,7 +39,7 @@ const composed = ok(21)
  */
 export function Hero() {
   return (
-    <div className="flex flex-col items-center gap-10 px-6 py-16 text-center lg:gap-12 lg:px-8 lg:py-24">
+    <div className="flex flex-col items-center gap-6 px-6 py-16 text-center lg:gap-8 lg:px-8 lg:py-24">
       <Link
         href="/changelog"
         className="inline-flex max-w-full items-center gap-2 rounded-full border border-border bg-background px-4 py-1.5 shadow-sm transition-colors hover:bg-accent/40"
