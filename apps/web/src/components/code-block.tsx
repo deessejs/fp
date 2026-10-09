@@ -6,6 +6,7 @@ interface CodeBlockProps {
   title?: string;
   size?: 'sm' | 'lg';
   tabs?: boolean;
+  className?: string;
 }
 
 const sizeClasses = {
@@ -19,6 +20,7 @@ export async function CodeBlock({
   title,
   size = 'sm',
   tabs = true,
+  className,
 }: CodeBlockProps) {
   const html = await codeToHtml(code, {
     lang: language,
@@ -26,7 +28,9 @@ export async function CodeBlock({
   });
 
   return (
-    <div className="h-full bg-background w-full overflow-hidden rounded-none border border-border">
+    <div
+      className={`h-full bg-background w-full overflow-hidden rounded-none border border-border ${className ?? ''}`}
+    >
       {title && (
         <div className="flex items-center gap-1.5 px-3 py-2 border-b bg-muted/30">
           <div className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />

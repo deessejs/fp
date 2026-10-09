@@ -64,7 +64,12 @@ export function Hero() {
 
       <InstallCommand />
 
-      <CodeBlock language="typescript" title="example.ts" code={HERO_CODE} />
+      <CodeBlock
+        language="typescript"
+        title="example.ts"
+        code={HERO_CODE}
+        className="w-full self-stretch"
+      />
     </div>
   );
 }
