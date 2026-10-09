@@ -43,13 +43,15 @@ export function CodeComparisonTabs({
 
   return (
     <Tabs value={active} onValueChange={setActive} className="flex flex-col gap-6 p-6 lg:p-8">
-      <TabsList className="self-center">
-        {examples.map((e) => (
-          <TabsTrigger key={e.id} value={e.id}>
-            {e.label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
+      <div className="flex justify-center border-b border-border pb-4">
+        <TabsList>
+          {examples.map((e) => (
+            <TabsTrigger key={e.id} value={e.id}>
+              {e.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-0 lg:divide-x lg:divide-border">
         {examples.map((e) => (
