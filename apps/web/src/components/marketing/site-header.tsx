@@ -1,10 +1,15 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ThemeSwitch } from 'fumadocs-ui/layouts/shared/slots/theme-switch';
-import { ArrowUpRight } from 'lucide-react';
+
 import { GithubIcon, DeessejsMark } from '@/components/icons/brand';
+import { NavSections } from './nav-sections';
 import { MobileNavigation } from './mobile-navigation';
 
 export function SiteHeader() {
+  const pathname = usePathname();
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background">
       <a href="#home-content" className="home-skip-link">
@@ -23,28 +28,11 @@ export function SiteHeader() {
               <span className="font-mono">fp</span>
             </span>
           </Link>
+
           <div className="flex items-center gap-1 sm:gap-3">
-            <nav aria-label="Main navigation" className="mr-3 hidden items-center gap-6 md:flex">
-              <Link
-                href="/docs"
-                className="text-label-13 text-muted-foreground hover:text-foreground"
-              >
-                Docs
-              </Link>
-              <Link
-                href="#examples"
-                className="text-label-13 text-muted-foreground hover:text-foreground"
-              >
-                Examples
-              </Link>
-              <a
-                href="https://deessejs.com"
-                className="inline-flex items-center gap-1 text-label-13 text-muted-foreground hover:text-foreground"
-              >
-                DeesseJS
-                <ArrowUpRight className="size-3" aria-hidden />
-              </a>
-            </nav>
+            <div className="mr-3 hidden md:block">
+              <NavSections pathname={pathname} variant="desktop" />
+            </div>
             <a
               href="https://github.com/deessejs/fp"
               aria-label="GitHub repository"

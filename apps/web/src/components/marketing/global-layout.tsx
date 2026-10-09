@@ -12,8 +12,8 @@ export function GlobalLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </div>
-      <div className="mx-auto container px-4 sm:px-6">
-        <div className="border-x border-border bg-background">{children}</div>
+      <div className="mx-auto container px-4 my-20 sm:px-6">
+        <div className="border border-border bg-background">{children}</div>
       </div>
     </div>
   );
