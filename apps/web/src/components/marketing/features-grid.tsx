@@ -1,4 +1,4 @@
-import { ArrowRight, CircleCheck, CircleSlash, Play, Shapes } from 'lucide-react';
+import { ArrowRight, CircleCheck, CircleSlash, GitMerge, Shapes } from 'lucide-react';
 import Link from 'next/link';
 
 import { cn } from '@/lib/cn';
@@ -11,6 +11,7 @@ type Primitive = {
   description: string;
   href: string;
   icon: IconType;
+  snippet: string;
 };
 
 type UseCase = {
@@ -18,6 +19,7 @@ type UseCase = {
   title: string;
   description: string;
   href: string;
+  snippet: string;
 };
 
 const PRIMITIVES: ReadonlyArray<Primitive> = [
@@ -27,6 +29,7 @@ const PRIMITIVES: ReadonlyArray<Primitive> = [
     description: 'Optional values, handled explicitly. No more `null` and `undefined` surprises.',
     href: '/docs/maybe',
     icon: Shapes,
+    snippet: 'some(42).map((n) => n * 2) // Some(84)',
   },
   {
     label: '02 — Primitive',
@@ -35,6 +38,7 @@ const PRIMITIVES: ReadonlyArray<Primitive> = [
       'Type-safe success and failure states. Errors are part of the signature, not a side channel.',
     href: '/docs/result',
     icon: CircleCheck,
+    snippet: 'ok(42).map((n) => n * 2) // Ok(84)',
   },
 ];
 
@@ -45,6 +49,9 @@ const USE_CASES: ReadonlyArray<UseCase> = [
     description:
       'Stop throwing across module boundaries. Compose fallible operations without losing the error.',
     href: '/docs/result',
+    snippet: `ok(21).flatMap((n) =>
+  n > 10 ? ok(n * 2) : err('too small'),
+) // Ok(42)`,
   },
   {
     label: '02 — Use case',
@@ -52,6 +59,9 @@ const USE_CASES: ReadonlyArray<UseCase> = [
     description:
       'Replace every `if (x != null)` with a chain of `.map`, `.filter`, `.getWithDefault`.',
     href: '/docs/maybe',
+    snippet: `findUser('abc')
+  .map((u) => u.name)
+  .getWithDefault('Anonymous')`,
   },
 ];
 
@@ -62,23 +72,30 @@ const BOTTOM_TILES = [
     description: 'Intentional `void` returns for side effects. Visible in the type signature.',
     href: '/docs/unit',
     icon: CircleSlash,
+    snippet: `const login = (
+  email: string,
+  password: string,
+): Unit => {
+  localStorage.setItem('token', '...')
+  return unit
+}`,
   },
   {
-    label: '04 — Live',
-    title: 'match() in 3 lines',
-    description: 'Branch on ok/err in one expression. The error is preserved through the chain.',
+    label: '04 — Composable',
+    title: 'Pipe match → map',
+    description: 'Every helper composes. The error is preserved through the chain.',
     href: '/docs/result#match',
-    icon: Play,
+    icon: GitMerge,
+    snippet: `ok(42)
+  .match({ ok: (n) => n, err: () => 0 })
+  .map((n) => n * 2) // 84`,
   },
 ] as const;
 
-const LIVE_SNIPPET = `ok(42).match({
-  ok: (n) => n * 2,
-  err: () => 0,
-}) // → 84`;
-
 /**
- * FeaturesGrid — 2-column bento, no gap, no padding.
+ * FeaturesGrid — 2-column bento, no gap, no padding, every
+ * tile shows a short code snippet between its description and
+ * the "Learn more" footer.
  *
  *   ┌──────────┬──────────┐
  *   │  Maybe   │  Result  │   row 1 (2 simple primitives)
@@ -87,7 +104,7 @@ const LIVE_SNIPPET = `ok(42).match({
  *   │   Error    Optional │   rows 2-3 (2 tall use cases, row-span-2)
  *   │                     │
  *   ├──────────┬──────────┤
- *   │   Unit   │  match() │   row 4 (Unit + Live demo)
+ *   │   Unit   │  match() │   row 4 (Unit + Composable example)
  *   └──────────┴──────────┘
  *
  * The grid is `gap-0 p-0` so the tiles touch each other. Each
@@ -101,7 +118,7 @@ const LIVE_SNIPPET = `ok(42).match({
  * grid-rows-3` (sm:). On mobile the grid collapses to
  * `grid-cols-1 grid-rows-6` and the tall row becomes two
  * normal-height tiles, so the visual order stays:
- * Maybe → Result → Error → Optional → Unit → match().
+ * Maybe → Result → Error → Optional → Unit → Pipe.
  */
 export function FeaturesGrid() {
   return (
@@ -116,8 +133,6 @@ export function FeaturesGrid() {
           className="sm:row-span-2"
           bodyClassName="text-copy-16 leading-7"
           isLastInRow={i % 2 === 1}
-          // The use cases are rows 2-3 of the 3-row grid (indices 2-3
-          // in a 6-cell linear order), so they ARE the last row.
           isLastRow
         />
       ))}
@@ -134,7 +149,7 @@ type BentoTileProps = {
   description: string;
   href: string;
   icon?: IconType;
-  live?: boolean;
+  snippet: string;
   className?: string;
   bodyClassName?: string;
   /** True for the right column of a row — drops the right border. */
@@ -149,7 +164,7 @@ function BentoTile({
   description,
   href,
   icon: Icon,
-  live = false,
+  snippet,
   className,
   bodyClassName,
   isLastInRow = false,
@@ -182,18 +197,16 @@ function BentoTile({
 
       <p
         className={cn(
-          'mt-2 flex-1 text-copy-14 leading-6 text-muted-foreground [&:not(:first-child)]:mt-0',
+          'mt-2 text-copy-14 leading-6 text-muted-foreground [&:not(:first-child)]:mt-0',
           bodyClassName
         )}
       >
         {description}
       </p>
 
-      {live && (
-        <pre className="mt-4 overflow-x-auto border border-border bg-muted/30 p-3 font-mono text-xs leading-5 text-foreground">
-          {LIVE_SNIPPET}
-        </pre>
-      )}
+      <pre className="mt-4 flex-1 overflow-x-auto border border-border bg-muted/30 p-3 font-mono text-xs leading-5 text-foreground">
+        {snippet}
+      </pre>
 
       <p className="mt-4 inline-flex items-center gap-1 text-label-13 text-foreground">
         Learn more
