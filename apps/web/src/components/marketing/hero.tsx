@@ -51,13 +51,13 @@ export function Hero() {
         <ArrowRight className="size-3 shrink-0 text-muted-foreground" aria-hidden />
       </Link>
 
-      <h1 className="max-w-5xl text-heading-40 font-medium tracking-tight text-balance sm:text-heading-48 lg:text-heading-56 [&:not(:first-child)]:mt-0">
+      <h1 className="max-w-5xl text-center text-heading-40 font-medium tracking-tight text-balance md:text-heading-48 lg:text-heading-64 [&:not(:first-child)]:mt-0">
         Functional Programming,
         <br />
         Made Simple.
       </h1>
 
-      <p className="max-w-2xl text-copy-16 leading-7 text-muted-foreground text-balance sm:text-copy-18 [&:not(:first-child)]:mt-0">
+      <p className="w-full text-center text-copy-16 leading-7 text-muted-foreground text-balance md:max-w-2xl md:text-copy-18 lg:text-copy-20 [&:not(:first-child)]:mt-0">
         A TypeScript library that brings functional programming patterns to JavaScript. Result,
         Maybe, and Unit types for robust, composable code.
       </p>
