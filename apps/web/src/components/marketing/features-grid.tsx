@@ -3,6 +3,8 @@ import Link from 'next/link';
 
 import { cn } from '@/lib/cn';
 
+import { BentoSnippet } from './bento-snippet';
+
 type IconType = React.ComponentType<{ className?: string; 'aria-hidden'?: boolean }>;
 
 type Primitive = {
@@ -94,8 +96,8 @@ const BOTTOM_TILES = [
 
 /**
  * FeaturesGrid — 2-column bento, no gap, no padding, every
- * tile shows a short code snippet between its description and
- * the "Learn more" footer.
+ * tile shows a Shiki-highlighted code snippet between its
+ * description and the "Learn more" footer.
  *
  *   ┌──────────┬──────────┐
  *   │  Maybe   │  Result  │   row 1 (2 simple primitives)
@@ -104,8 +106,13 @@ const BOTTOM_TILES = [
  *   │   Error    Optional │   rows 2-3 (2 tall use cases, row-span-2)
  *   │                     │
  *   ├──────────┬──────────┤
- *   │   Unit   │  match() │   row 4 (Unit + Composable example)
+ *   │   Unit   │  Pipe    │   row 4 (Unit + Composable example)
  *   └──────────┴──────────┘
+ *
+ * Server Component (async). The 6 snippets are pre-rendered by
+ * Shiki at build time (one per tile) via `<BentoSnippet>`, so
+ * the rendered HTML lands in the initial server response and
+ * the dark-mode flip works through the `global.css` rules.
  *
  * The grid is `gap-0 p-0` so the tiles touch each other. Each
  * tile carries its own `border-r border-b border-border`; the
@@ -120,7 +127,7 @@ const BOTTOM_TILES = [
  * normal-height tiles, so the visual order stays:
  * Maybe → Result → Error → Optional → Unit → Pipe.
  */
-export function FeaturesGrid() {
+export async function FeaturesGrid() {
   return (
     <div className="grid grid-cols-1 grid-rows-6 sm:grid-cols-2 sm:grid-rows-3">
       {PRIMITIVES.map((p, i) => (
@@ -204,9 +211,11 @@ function BentoTile({
         {description}
       </p>
 
-      <pre className="mt-4 flex-1 overflow-x-auto border border-border bg-muted/30 p-3 font-mono text-xs leading-5 text-foreground">
-        {snippet}
-      </pre>
+      {/* The snippet is a Server Component that pre-renders the
+          Shiki HTML at build time. It also acts as the flex-1
+          spacer that pushes the "Learn more" footer to the
+          bottom of the tile. */}
+      <BentoSnippet code={snippet} />
 
       <p className="mt-4 inline-flex items-center gap-1 text-label-13 text-foreground">
         Learn more

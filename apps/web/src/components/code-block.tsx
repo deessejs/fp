@@ -1,8 +1,10 @@
-import { codeToHtml } from 'shiki';
+import type { BundledLanguage } from 'shiki';
+
+import { highlightCode } from '@/lib/shiki';
 
 interface CodeBlockProps {
   code: string;
-  language?: string;
+  language?: BundledLanguage;
   title?: string;
   size?: 'sm' | 'lg';
   tabs?: boolean;
@@ -22,10 +24,7 @@ export async function CodeBlock({
   tabs = true,
   className,
 }: CodeBlockProps) {
-  const html = await codeToHtml(code, {
-    lang: language,
-    theme: 'github-dark',
-  });
+  const html = await highlightCode(code, language);
 
   return (
     <div
