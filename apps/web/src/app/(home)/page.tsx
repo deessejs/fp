@@ -111,8 +111,8 @@ export default async function HomePage() {
 
           <CtaCard noBorderB />
         </main>
-        <HomeFooter />
       </GlobalLayout>
+      <HomeFooter />
     </>
   );
 }
