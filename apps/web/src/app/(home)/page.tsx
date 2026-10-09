@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 import { CtaCard } from '@/components/cta-card';
-import { HomeFooter } from '@/components/footers/home-footer';
+import { AppFooter } from '@/components/footers/app-footer';
 import { BenefitsGrid } from '@/components/marketing/benefits-grid';
 import { CodeComparison } from '@/components/marketing/code-comparison';
 import { ConceptsRow } from '@/components/marketing/concepts-row';
@@ -112,7 +112,7 @@ export default async function HomePage() {
           <CtaCard noBorderB />
         </main>
       </GlobalLayout>
-      <HomeFooter />
+      <AppFooter />
     </>
   );
 }
