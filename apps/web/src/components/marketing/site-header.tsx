@@ -18,21 +18,22 @@ export function SiteHeader() {
       </a>
       <div className="mx-auto container px-4 sm:px-6">
         <div className="flex h-14 items-center justify-between gap-3 px-6 md:px-8 lg:px-10">
-          <div className="hidden md:block">
-            <NavSections pathname={pathname} variant="desktop" />
+          <div className="flex items-center gap-6">
+            <Link
+              href="/"
+              className="inline-flex min-h-11 items-center gap-2.5 text-label-14 font-medium"
+              aria-label="DeesseJS FP home"
+            >
+              <DeessejsMark className="h-[18px] w-5" />
+              <span>
+                deessejs<span className="mx-2 text-muted-foreground">/</span>
+                <span className="font-mono">fp</span>
+              </span>
+            </Link>
+            <div className="hidden md:block">
+              <NavSections pathname={pathname} variant="desktop" />
+            </div>
           </div>
-
-          <Link
-            href="/"
-            className="inline-flex min-h-11 items-center gap-2.5 text-label-14 font-medium md:absolute md:left-1/2 md:-translate-x-1/2"
-            aria-label="DeesseJS FP home"
-          >
-            <DeessejsMark className="h-[18px] w-5" />
-            <span>
-              deessejs<span className="mx-2 text-muted-foreground">/</span>
-              <span className="font-mono">fp</span>
-            </span>
-          </Link>
 
           <div className="flex items-center gap-1 sm:gap-3">
             <nav aria-label="Quick links" className="mr-3 hidden items-center gap-6 md:flex">
