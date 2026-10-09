@@ -1,98 +1,54 @@
-'use client';
-
-import { ChevronRight, Copy, Check } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
-
+import { ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { CopyButton } from '@/components/marketing/copy-button';
 import { cn } from '@/lib/cn';
 
-const INSTALL_COMMAND = 'npm install @deessejs/fp';
-
-/**
- * Final CTA at the bottom of the home page.
- *
- * Two-column grid (deessejs `_shared/final-cta.tsx` pattern):
- * the left cell carries the eyebrow + H2 + body, the right cell
- * stacks the actions vertically. The two cells are separated by
- * a `divide-x` on desktop, `divide-y` on mobile.
- *
- * The second action is a copy-to-clipboard button that swaps
- * to a "Copied!" state for 2 seconds on success. The button
- * label is the npm install command itself, so the click is
- * a "copy" gesture, not a "go install" gesture.
- */
 export function CtaCard({
   noBorderB = false,
   className,
 }: {
-  /** Drop the bottom border. Use on the last section of a page
-   *  so the surrounding frame (GlobalLayout, footer) closes the
-   *  page cleanly without a double line. */
   noBorderB?: boolean;
   className?: string;
 }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(INSTALL_COMMAND);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      const textarea = document.createElement('textarea');
-      textarea.value = INSTALL_COMMAND;
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
   return (
-    <div
+    <section
       className={cn(
-        'grid grid-cols-1 divide-y divide-border border-t border-border lg:grid-cols-2 lg:divide-y-0 lg:divide-x',
-        noBorderB && 'border-b-0',
+        'grid grid-cols-1 divide-y divide-border lg:grid-cols-2 lg:divide-x lg:divide-y-0',
+        !noBorderB && 'border-b border-border',
         className
       )}
+      aria-labelledby="get-started-heading"
     >
-      {/* Left: copy */}
-      <div className="flex flex-col gap-4 p-6 lg:p-10">
-        <p className="text-label-13 uppercase tracking-wider text-muted-foreground">Get started</p>
-        <h2 className="text-heading-32 font-medium tracking-tight text-balance lg:text-heading-40 [&:not(:first-child)]:mt-0">
-          Install the library. Read the docs.
+      <div className="flex flex-col gap-4 p-6 md:p-8 lg:p-10">
+        <p className="home-eyebrow">Get started</p>
+        <h2
+          id="get-started-heading"
+          className="text-heading-32 font-medium leading-[1.15] tracking-tight text-balance lg:text-heading-40"
+        >
+          Make the next outcome explicit.
         </h2>
-        <p className="max-w-md text-copy-16 leading-7 text-muted-foreground [&:not(:first-child)]:mt-0">
-          A small, ESM-only, peer-dependency-free library for typed functional programming in
-          TypeScript. Result, Maybe, and Unit — typed, composable, and ready to ship.
+        <p className="max-w-md text-copy-16 leading-7 text-muted-foreground">
+          Install the package and start with Result or Maybe. Explore the API as you need it.
         </p>
       </div>
-
-      {/* Right: actions */}
-      <div className="flex flex-col items-stretch justify-center gap-4 p-6 lg:p-10">
-        <Button asChild size="lg">
-          <Link href="/docs">
+      <div className="flex flex-col justify-center gap-4 p-6 md:p-8 lg:p-10">
+        <Button asChild size="lg" className="home-button">
+          <Link href="/docs/getting-started">
             Read the docs
-            <ChevronRight className="size-3.5" aria-hidden />
+            <ArrowUpRight className="size-3.5" aria-hidden />
           </Link>
         </Button>
-        <Button variant="outline" size="lg" onClick={handleCopy} className="font-mono">
-          {copied ? (
-            <>
-              <Check aria-hidden />
-              Copied!
-            </>
-          ) : (
-            <>
-              <Copy aria-hidden />
-              {INSTALL_COMMAND}
-            </>
-          )}
-        </Button>
+        <div className="flex min-w-0 items-center justify-between gap-2 border border-border pl-4 pr-1">
+          <code
+            tabIndex={0}
+            className="min-w-0 overflow-x-auto whitespace-nowrap font-mono text-copy-13"
+          >
+            npm install @deessejs/fp
+          </code>
+          <CopyButton value="npm install @deessejs/fp" label="Copy install command" iconOnly />
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

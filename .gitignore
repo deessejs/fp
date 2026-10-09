@@ -48,3 +48,6 @@ temp/
 
 # Build artifacts
 coverage-comment.md
+
+# Marketing snippet scratch files (rewritten by check-marketing-examples.mjs)
+apps/web/.marketing-check/

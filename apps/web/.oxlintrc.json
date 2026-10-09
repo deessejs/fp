@@ -1,5 +1,6 @@
 {
   "extends": ["../../.oxlintrc.json"],
+  "ignorePatterns": [".marketing-check/**"],
   "plugins": ["react", "react-hooks", "nextjs", "jsx-a11y"],
   "rules": {
     "react/react-in-jsx-scope": "off",

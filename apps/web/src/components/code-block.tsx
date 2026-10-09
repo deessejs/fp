@@ -1,46 +1,58 @@
-import type { BundledLanguage } from 'shiki';
-import { codeToHtml } from 'shiki';
+import type { ReactNode } from 'react';
+import { highlight, type HighlightOptions } from 'fumadocs-core/highlight';
+import { CopyButton } from '@/components/marketing/copy-button';
+import { cn } from '@/lib/cn';
 
 interface CodeBlockProps {
   code: string;
-  language?: BundledLanguage;
+  language?: HighlightOptions['lang'];
   title?: string;
   size?: 'sm' | 'lg';
-  tabs?: boolean;
+  footer?: ReactNode;
+  unframed?: boolean;
   className?: string;
 }
 
-const sizeClasses = {
-  sm: 'p-3 text-xs',
-  lg: 'p-6 text-sm',
-};
-
+/** Highlight on the server; pass the rendered component through client slots. */
 export async function CodeBlock({
   code,
   language = 'typescript',
   title,
-  size = 'sm',
-  tabs = true,
+  size = 'lg',
+  footer,
+  unframed = false,
   className,
 }: CodeBlockProps) {
-  const html = await codeToHtml(code, {
+  const highlighted = await highlight(code, {
     lang: language,
-    theme: 'github-dark',
+    themes: { light: 'github-light', dark: 'github-dark' },
+    defaultColor: false,
   });
-
   return (
-    <div
-      className={`h-full bg-background w-full overflow-hidden rounded-none border border-border ${className ?? ''}`}
+    <figure
+      className={cn(
+        'marketing-code m-0 min-w-0 bg-background',
+        !unframed && 'border border-border',
+        className
+      )}
     >
       {title && (
-        <div className="flex items-center gap-1.5 px-3 py-2 border-b bg-muted/30">
-          <div className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-          <div className="h-2.5 w-2.5 rounded-full bg-[#ffbd2e]" />
-          <div className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-          <span className="ml-2 font-mono text-[13px] text-muted-foreground">{title}</span>
-        </div>
+        <figcaption className="flex min-h-12 items-center justify-between gap-3 border-b border-border pl-4 pr-1 sm:pl-6">
+          <span className="min-w-0 font-mono text-label-13 text-muted-foreground">{title}</span>
+          <CopyButton value={code} />
+        </figcaption>
       )}
-      <div className={`${sizeClasses[size]}`} dangerouslySetInnerHTML={{ __html: html }} />
-    </div>
+      <section
+        className={cn(
+          'marketing-code-scroll min-w-0 overflow-x-auto',
+          size === 'sm' ? 'p-4' : 'p-4 sm:p-6'
+        )}
+        tabIndex={0}
+        aria-label={`${title ?? language} code, scroll horizontally if needed`}
+      >
+        {highlighted}
+      </section>
+      {footer && <div className="border-t border-border px-4 py-3 sm:px-6">{footer}</div>}
+    </figure>
   );
 }

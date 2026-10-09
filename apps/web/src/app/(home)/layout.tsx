@@ -1,12 +1,19 @@
-import { HomeLayout } from 'fumadocs-ui/layouts/home';
-import { baseOptions } from '@/lib/layout.shared';
-import { HomeFooter } from '@/components/footers/home-footer';
+import { Geist, Geist_Mono } from 'next/font/google';
+import { SiteHeader } from '@/components/marketing/site-header';
+import './home.css';
+
+const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans', display: 'swap' });
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  variable: '--font-geist-mono',
+  display: 'swap',
+});
 
 export default function Layout({ children }: LayoutProps<'/'>) {
   return (
-    <HomeLayout {...baseOptions()}>
+    <div className={`fp-home ${geistSans.variable} ${geistMono.variable}`}>
+      <SiteHeader />
       {children}
-      <HomeFooter />
-    </HomeLayout>
+    </div>
   );
 }

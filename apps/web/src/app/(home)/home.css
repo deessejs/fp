@@ -1,0 +1,113 @@
+/* Route-scoped composition. Brand colors and container widths remain DeesseJS tokens. */
+.fp-home {
+  --font-mono: var(--font-geist-mono), monospace;
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+  color: var(--foreground);
+  background: var(--background);
+}
+.fp-home .home-rail {
+  background-image: repeating-linear-gradient(
+    315deg,
+    var(--border) 0,
+    var(--border) 1px,
+    transparent 0,
+    transparent 50%
+  );
+  background-size: 10px 10px;
+}
+.fp-home .home-eyebrow {
+  display: flex;
+  align-items: center;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.8125rem;
+  line-height: 1.2;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--foreground);
+}
+.fp-home .home-eyebrow::before {
+  content: '';
+  flex-shrink: 0;
+  width: 1.7px;
+  height: 13.5px;
+  margin-right: 16px;
+  background: currentColor;
+}
+.fp-home .home-eyebrow {
+  opacity: 0.64;
+}
+.fp-home .home-button {
+  height: 44px;
+  border-radius: var(--radius);
+  padding-inline: 16px;
+}
+@media (min-width: 640px) {
+  .fp-home .home-button {
+    height: 36px;
+  }
+}
+.fp-home .marketing-code-scroll pre {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 13px;
+  line-height: 22px;
+  tab-size: 2;
+}
+.fp-home .marketing-code-scroll code {
+  font-family: inherit;
+}
+@media (min-width: 640px) {
+  .fp-home .marketing-code-scroll pre {
+    font-size: 14px;
+  }
+}
+/* Full token palettes, scoped to the marketing code instead of all MDX snippets. */
+.fp-home .marketing-code .shiki,
+.fp-home .marketing-code .shiki span {
+  color: var(--shiki-light);
+  background-color: transparent !important;
+  font-style: var(--shiki-light-font-style);
+}
+html.dark .fp-home .marketing-code .shiki,
+html.dark .fp-home .marketing-code .shiki span {
+  color: var(--shiki-dark);
+  background-color: transparent !important;
+  font-style: var(--shiki-dark-font-style);
+}
+.fp-home :where(a, button, [tabindex]):focus-visible,
+.fp-mobile-menu :where(a, button):focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 3px;
+  box-shadow: none;
+}
+.fp-home .home-theme-switch {
+  min-height: 40px;
+  border-radius: var(--radius);
+}
+.fp-home .home-theme-switch > svg {
+  border-radius: 4px;
+}
+.home-skip-link {
+  position: absolute;
+  left: 16px;
+  top: 8px;
+  z-index: 60;
+  transform: translateY(-150%);
+  padding: 8px 12px;
+  background: var(--background);
+  border: 1px solid var(--border);
+}
+.home-skip-link:focus {
+  transform: translateY(0);
+}
+.fp-home section[id] {
+  scroll-margin-top: 72px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fp-home *,
+  .fp-mobile-menu * {
+    transition: none !important;
+  }
+}

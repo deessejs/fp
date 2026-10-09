@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { CtaCard } from '@/components/cta-card';
+import { HomeFooter } from '@/components/footers/home-footer';
 import { BenefitsGrid } from '@/components/marketing/benefits-grid';
 import { CodeComparison } from '@/components/marketing/code-comparison';
 import { ConceptsRow } from '@/components/marketing/concepts-row';
@@ -74,34 +75,44 @@ export default async function HomePage() {
         }}
       />
 
-      <main>
-        <GlobalLayout>
+      <GlobalLayout>
+        <main id="home-content">
           <Section>
             <Hero />
           </Section>
 
           <Section>
             <SectionHeader
-              eyebrow="Why @deessejs/fp"
-              title="Three things the library does for you"
-              subtitle="Result, Maybe, and a small set of composition helpers. Each answers a question that TypeScript leaves open."
+              eyebrow="Why FP"
+              title="Make every outcome visible."
+              subtitle="Keep the successful path readable, without leaving failures or missing values implicit."
             />
             <BenefitsGrid />
-            <ConceptsRow />
           </Section>
 
-          <Section>
+          <Section id="examples">
             <SectionHeader
               eyebrow="Before & after"
-              title="From optional chaos to typed safety."
-              subtitle="Stop relying on undefined checks and type assertions. Get type-safe, composable code that makes debugging a breeze."
+              title="Same task. Explicit outcomes."
+              subtitle="Compare ordinary TypeScript with FP on a small, complete example. Choose the representation that fits your code."
             />
             <CodeComparison />
           </Section>
 
+          <Section>
+            <SectionHeader
+              eyebrow="The primitives"
+              title="Small types. Clear contracts."
+              subtitle="Start with Result and Maybe. Use Unit when a function needs an explicit value for an otherwise empty return."
+              action={{ href: '/docs/api-reference', label: 'API reference' }}
+            />
+            <ConceptsRow />
+          </Section>
+
           <CtaCard noBorderB />
-        </GlobalLayout>
-      </main>
+        </main>
+        <HomeFooter />
+      </GlobalLayout>
     </>
   );
 }

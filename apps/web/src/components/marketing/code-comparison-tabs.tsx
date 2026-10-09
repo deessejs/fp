@@ -1,70 +1,48 @@
 'use client';
 
-import { useState } from 'react';
-
+import type { ReactNode } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-export type CodeComparisonExample = {
-  id: string;
-  label: string;
-};
-
-export type CodeComparisonData = Record<
-  string,
-  { before: React.ReactNode; after: React.ReactNode }
->;
-
-/**
- * Client-side Tabs control for the home page code comparison.
- *
- * Single shadcn `<Tabs>` root with a single `<TabsList>` at the
- * top. For each example there are two `<TabsContent>` elements
- * (one for the "before" snippet, one for the "after" snippet),
- * both with the same `value`. Radix renders every
- * `<TabsContent>` whose `value` matches the active tab, so all
- * four examples are mounted up front and the visitor sees both
- * the before and the after of the active example side by side.
- *
- * The actual code blocks are pre-rendered by the parent Server
- * Component (via the shared `<CodeHtmlBlock>`) and arrive here
- * as ReactNodes. We cannot call `<CodeBlock>` (or render
- * `<CodeHtmlBlock>` directly) from inside this Client
- * Component because both are async Server Components and Next
- * 16 forbids rendering one as a child of a Client Component.
- */
 export function CodeComparisonTabs({
   examples,
-  dataByExample,
 }: {
-  examples: ReadonlyArray<CodeComparisonExample>;
-  dataByExample: CodeComparisonData;
+  examples: ReadonlyArray<{
+    id: string;
+    label: string;
+    description: string;
+    before: ReactNode;
+    after: ReactNode;
+  }>;
 }) {
-  const [active, setActive] = useState<string>(examples[0].id);
-
   return (
-    <Tabs value={active} onValueChange={setActive} className="flex flex-col">
-      <div className="flex justify-center border-b border-border pb-4">
-        <TabsList>
-          {examples.map((e) => (
-            <TabsTrigger key={e.id} value={e.id}>
-              {e.label}
+    <Tabs defaultValue={examples[0]?.id} className="gap-0">
+      <div className="min-w-0 overflow-x-auto border-b border-border px-6 md:px-8 lg:px-10">
+        <TabsList
+          aria-label="Code examples"
+          className="h-auto justify-start gap-6 rounded-none bg-transparent p-0"
+        >
+          {examples.map((example) => (
+            <TabsTrigger
+              key={example.id}
+              value={example.id}
+              className="min-h-12 flex-none rounded-none border-b-2 border-transparent px-0 py-3 text-label-13 text-muted-foreground shadow-none transition-colors hover:text-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
+            >
+              {example.label}
             </TabsTrigger>
           ))}
         </TabsList>
       </div>
-
-      <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-2 lg:gap-0 lg:p-8 lg:divide-x lg:divide-border">
-        {examples.map((e) => (
-          <TabsContent key={`${e.id}-before`} value={e.id}>
-            {dataByExample[e.id].before}
-          </TabsContent>
-        ))}
-        {examples.map((e) => (
-          <TabsContent key={`${e.id}-after`} value={e.id}>
-            {dataByExample[e.id].after}
-          </TabsContent>
-        ))}
-      </div>
+      {examples.map((example) => (
+        <TabsContent key={example.id} value={example.id} className="min-w-0">
+          <p className="border-b border-border bg-muted/30 px-6 py-4 text-copy-14 leading-6 text-muted-foreground md:px-8 lg:px-10">
+            {example.description}
+          </p>
+          <div className="grid min-w-0 grid-cols-1 divide-y divide-border lg:grid-cols-2 lg:divide-x lg:divide-y-0">
+            {example.before}
+            {example.after}
+          </div>
+        </TabsContent>
+      ))}
     </Tabs>
   );
 }

@@ -1,64 +1,46 @@
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 
-type Concept = {
-  label: string;
-  title: string;
-  description: string;
-  href: string;
-};
-
-const CONCEPTS: ReadonlyArray<Concept> = [
+const CONCEPTS = [
   {
-    label: 'Primitive',
     title: 'Result',
-    description: 'A success or a failure, with the error as a value.',
+    type: 'Result<T, E>',
+    description:
+      'A success carrying T or a failure carrying E. Transform either branch and handle the outcome with match.',
     href: '/docs/result',
   },
   {
-    label: 'Primitive',
     title: 'Maybe',
-    description: 'A present value or the absence of one. Nothing else.',
+    type: 'Maybe<T>',
+    description:
+      'A present value or none. Map the value, chain another lookup or provide an explicit fallback.',
     href: '/docs/maybe',
   },
   {
-    label: 'Primitive',
     title: 'Unit',
-    description: 'A value for functions that must return something.',
+    type: 'Unit',
+    description:
+      'A single value for an operation with no meaningful return value. It does not manage or isolate side effects.',
     href: '/docs/unit',
   },
-];
+] as const;
 
-/**
- * ConceptsRow — three reference entries for the primitives.
- *
- * Intentionally lighter than the benefits grid. These are
- * pointers to the docs, not pitches. The benefit story is
- * told by `<BenefitsGrid>`; the concepts are the table of
- * contents behind it.
- */
 export function ConceptsRow() {
   return (
-    <div className="grid grid-cols-1 divide-y divide-border border-b border-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-      {CONCEPTS.map((c) => (
-        <Link
-          key={c.title}
-          href={c.href}
-          className="group flex flex-col gap-1 p-6 transition-colors hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 lg:p-8"
-        >
-          <p className="text-label-13 text-muted-foreground">{c.label}</p>
-          <h3 className="m-0 text-heading-20 font-medium tracking-tight text-foreground">
-            {c.title}
-          </h3>
-          <p className="text-copy-14 leading-6 text-muted-foreground">{c.description}</p>
-          <p className="mt-2 inline-flex items-center gap-1 text-label-13 text-foreground">
-            Read the docs
-            <ArrowRight
-              className="size-3 transition-transform group-hover:translate-x-0.5"
-              aria-hidden
-            />
-          </p>
-        </Link>
+    <div className="grid grid-cols-1 divide-y divide-border md:grid-cols-3 md:divide-x md:divide-y-0">
+      {CONCEPTS.map((concept) => (
+        <article key={concept.title} className="flex min-w-0 flex-col p-6 md:p-8 lg:p-10">
+          <code className="mb-5 font-mono text-copy-13 text-muted-foreground">{concept.type}</code>
+          <h3 className="text-heading-24 font-medium leading-8 tracking-tight">{concept.title}</h3>
+          <p className="mt-3 text-copy-16 leading-7 text-muted-foreground">{concept.description}</p>
+          <Link
+            href={concept.href}
+            className="mt-auto inline-flex min-h-11 items-center gap-2 self-start pt-6 text-label-13 hover:underline underline-offset-4"
+          >
+            Explore {concept.title}
+            <ArrowUpRight className="size-3.5" aria-hidden />
+          </Link>
+        </article>
       ))}
     </div>
   );
