@@ -1,9 +1,8 @@
 import { ArrowRight, CircleCheck, CircleSlash, GitMerge, Shapes } from 'lucide-react';
 import Link from 'next/link';
 
+import { CodeBlock } from '@/components/code-block';
 import { cn } from '@/lib/cn';
-
-import { BentoSnippet } from './bento-snippet';
 
 type IconType = React.ComponentType<{ className?: string; 'aria-hidden'?: boolean }>;
 
@@ -110,9 +109,10 @@ const BOTTOM_TILES = [
  *   └──────────┴──────────┘
  *
  * Server Component (async). The 6 snippets are pre-rendered by
- * Shiki at build time (one per tile) via `<BentoSnippet>`, so
- * the rendered HTML lands in the initial server response and
- * the dark-mode flip works through the `global.css` rules.
+ * Shiki at build time (one per tile) via the shared
+ * `<CodeBlock>`, so the rendered HTML lands in the initial
+ * server response and the dark-mode flip works through the
+ * `global.css` rules.
  *
  * The grid is `gap-0 p-0` so the tiles touch each other. Each
  * tile carries its own `border-r border-b border-border`; the
@@ -211,11 +211,12 @@ function BentoTile({
         {description}
       </p>
 
-      {/* The snippet is a Server Component that pre-renders the
-          Shiki HTML at build time. It also acts as the flex-1
-          spacer that pushes the "Learn more" footer to the
-          bottom of the tile. */}
-      <BentoSnippet code={snippet} />
+      {/* The snippet goes through the shared <CodeBlock> so the
+          same Shiki render path used by the Hero applies here.
+          `border-0 bg-transparent` lets the tile's own chrome
+          show through; `p-0` removes the wrapper's own padding
+          so the snippet sits flush inside the tile. */}
+      <CodeBlock code={snippet} size="sm" className="mt-4" />
 
       <p className="mt-4 inline-flex items-center gap-1 text-label-13 text-foreground">
         Learn more
