@@ -28,10 +28,14 @@ type NavSection = {
  * Single source of truth for the home page nav. Both the desktop
  * Radix NavigationMenu and the mobile drawer read from this list.
  *
- * The shape mirrors the deessejs main site so a future merge is
- * mechanical. The items are repointed at the FP surface: internal
- * links go to `/docs/...` (this site), the rest go to
- * `*.deessejs.com` (the SaaS surface) and open in a new tab.
+ * The list is identical to the deessejs main site
+ * (`deessejs/deessejs/apps/web/src/components/headers/nav-sections.tsx`).
+ * Every label, description, and href matches the upstream source so
+ * the two sites read as one surface. Destinations that do not exist
+ * on this FP site (e.g. /templates, /blog, /changelog) are kept as
+ * placeholders that match the deessejs source; the same set of
+ * cross-site links is "external" from the FP perspective and opens
+ * in a new tab.
  */
 const NAV_SECTIONS: ReadonlyArray<NavSection> = [
   {
@@ -41,14 +45,14 @@ const NAV_SECTIONS: ReadonlyArray<NavSection> = [
         label: 'Templates',
         items: [
           {
-            label: 'Getting started',
-            href: '/docs/getting-started',
-            description: 'Install, set up, write your first Result',
+            label: 'Browse templates',
+            href: '/templates',
+            description: 'The full catalog, installable from the CLI',
           },
           {
-            label: 'API reference',
-            href: '/docs/api-reference',
-            description: 'Every export, every signature',
+            label: 'CLI',
+            href: '/cli',
+            description: 'deessejs init / list / info',
           },
         ],
       },
@@ -74,25 +78,26 @@ const NAV_SECTIONS: ReadonlyArray<NavSection> = [
             external: true,
           },
           {
-            label: 'UI',
-            href: 'https://ui.deessejs.com',
-            description: 'Component library',
+            label: 'FP',
+            href: 'https://fp.deessejs.com',
+            description: 'Functional primitives',
             external: true,
           },
         ],
       },
       {
-        label: 'FP surface',
+        label: 'DeesseJS surface',
         items: [
           {
-            label: 'Examples',
-            href: '/#examples',
-            description: 'Before/After comparisons',
+            label: 'UI',
+            href: 'https://ui.deessejs.com',
+            description: 'Component library',
+            external: true,
           },
           {
-            label: 'Changelog',
-            href: 'https://github.com/deessejs/fp/blob/main/packages/fp/CHANGELOG.md',
-            description: 'Release notes and version history',
+            label: 'Admin',
+            href: 'https://admin.deessejs.com',
+            description: 'Operator console',
             external: true,
           },
         ],
@@ -105,23 +110,47 @@ const NAV_SECTIONS: ReadonlyArray<NavSection> = [
       {
         label: 'Learn',
         items: [
-          { label: 'Result', href: '/docs/result', description: 'Typed success and failure' },
-          { label: 'Maybe', href: '/docs/maybe', description: 'Explicit absence' },
-          { label: 'Unit', href: '/docs/unit', description: 'A value for empty returns' },
+          {
+            label: 'Docs',
+            href: 'https://docs.deessejs.com',
+            description: 'The full DeesseJS reference',
+            external: true,
+          },
+          {
+            label: 'Blog',
+            href: '/blog',
+            description: 'Posts and announcements',
+          },
+          {
+            label: 'Changelog',
+            href: '/changelog',
+            description: 'Release notes and version history',
+          },
+          {
+            label: 'Knowledge Base',
+            href: '/knowledge-base',
+            description: 'How-tos and reference material',
+          },
         ],
       },
       {
         label: 'Use cases',
         items: [
           {
-            label: 'Error handling',
-            href: '/#examples',
-            description: 'Same task, explicit outcomes',
+            label: 'SaaS apps',
+            href: '/use-cases/saas-apps',
+            description:
+              'Multi-tenant B2B SaaS with auth, billing, and a working dashboard on day one',
           },
           {
-            label: 'Validation',
-            href: '/#examples',
-            description: 'Parse input without throw/catch',
+            label: 'AI products',
+            href: '/use-cases/ai-products',
+            description: 'RAG, chat, and agents wired against the same contracts your app uses',
+          },
+          {
+            label: 'Landing pages',
+            href: '/use-cases/landing-pages',
+            description: 'High-converting marketing surfaces, tuned for the B2B SaaS shelf',
           },
         ],
       },
@@ -129,23 +158,31 @@ const NAV_SECTIONS: ReadonlyArray<NavSection> = [
         label: 'Explore',
         items: [
           {
-            label: 'GitHub',
-            href: 'https://github.com/deessejs/fp',
-            description: 'Source, issues, releases',
-            external: true,
+            label: 'Customers',
+            href: '/customers',
+            description: 'Who builds on DeesseJS',
           },
           {
-            label: 'npm',
-            href: 'https://www.npmjs.com/package/@deessejs/fp',
-            description: 'The published package',
-            external: true,
+            label: 'Templates',
+            href: '/templates',
+            description: 'The full template catalog',
+          },
+          {
+            label: 'Ecosystem',
+            href: '/ecosystem',
+            description: 'The apps, SDKs, and contracts that ship together',
+          },
+          {
+            label: 'Stack',
+            href: '/stack',
+            description: 'The hosting, database, auth, and billing providers we ship against',
           },
         ],
       },
     ],
   },
-  { label: 'Enterprise', href: 'https://deessejs.com/enterprise', external: true },
-  { label: 'Pricing', href: 'https://deessejs.com/pricing', external: true },
+  { label: 'Enterprise', href: '/enterprise' },
+  { label: 'Pricing', href: '/pricing' },
 ];
 
 /** Local replacement for the shadcn `navigationMenuTriggerStyle()` helper. */
