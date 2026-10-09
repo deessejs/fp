@@ -14,12 +14,13 @@ export type CodeComparisonData = Record<string, { before: string; after: string 
 /**
  * Client-side Tabs control for the home page code comparison.
  *
- * Single shadcn `<Tabs>` root with **two** `<TabsList>` and a
- * `<TabsContent>` for each example. The two lists are stacked
- * above their respective code columns and read from the same
- * Radix Tabs context, so clicking a tab on one side switches
- * the active tab on the other by definition (one state, one
- * Radix context, no cross-context synchronization needed).
+ * Single shadcn `<Tabs>` root with a single `<TabsList>` at the
+ * top. For each example there are two `<TabsContent>` elements
+ * (one for the "before" snippet, one for the "after" snippet),
+ * both with the same `value`. Radix renders every
+ * `<TabsContent>` whose `value` matches the active tab, so all
+ * four examples are mounted up front and the visitor sees both
+ * the before and the after of the active example side by side.
  *
  * The actual code blocks are pre-rendered by Shiki in the
  * parent Server Component and arrive here as a
@@ -37,36 +38,23 @@ export function CodeComparisonTabs({
   const [active, setActive] = useState<string>(examples[0].id);
 
   return (
-    <Tabs
-      value={active}
-      onValueChange={setActive}
-      className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-2 lg:gap-0 lg:divide-x lg:divide-border lg:p-8"
-    >
-      <div className="flex flex-col gap-3 lg:pr-8">
-        <TabsList>
-          {examples.map((e) => (
-            <TabsTrigger key={e.id} value={e.id}>
-              {e.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+    <Tabs value={active} onValueChange={setActive} className="flex flex-col gap-6 p-6 lg:p-8">
+      <TabsList className="self-center">
         {examples.map((e) => (
-          <TabsContent key={e.id} value={e.id}>
+          <TabsTrigger key={e.id} value={e.id}>
+            {e.label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-0 lg:divide-x lg:divide-border">
+        {examples.map((e) => (
+          <TabsContent key={`${e.id}-before`} value={e.id} className="lg:pr-8">
             <CodeHtmlBlock title={`${e.id}.before.ts`} html={dataByExample[e.id].before} />
           </TabsContent>
         ))}
-      </div>
-
-      <div className="flex flex-col gap-3 lg:pl-8">
-        <TabsList>
-          {examples.map((e) => (
-            <TabsTrigger key={e.id} value={e.id}>
-              {e.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
         {examples.map((e) => (
-          <TabsContent key={e.id} value={e.id}>
+          <TabsContent key={`${e.id}-after`} value={e.id} className="lg:pl-8">
             <CodeHtmlBlock title={`${e.id}.after.ts`} html={dataByExample[e.id].after} />
           </TabsContent>
         ))}
