@@ -4,19 +4,20 @@ import Link from 'next/link';
 import { CodeBlock } from '@/components/code-block';
 import { InstallCommand } from '@/components/marketing/install-command';
 
-const HERO_CODE = `import { ok, err, some, none, unit } from '@deessejs/fp';
+const HERO_CODE = `import { ok, err, some, none } from '@deessejs/fp';
 
-// Result type - handle errors gracefully
-const result = ok(42).map((n) => n * 2); // Ok(84)
-const failed = err('oops').map((n) => n * 2); // Err('oops')
+// Result — typed success and failure
+const okValue = ok(42).map((n) => n * 2) // Ok(84)
+const errValue = err('oops').map((n) => n * 2) // Err('oops')
 
-// Maybe type - handle optional values
-const value = some(42).filter((n) => n > 10); // Some(42)
-const empty = none<number>().map((n) => n * 2); // None
+// Maybe — present or absent, no nulls
+const present = some(42).filter((n) => n > 10) // Some(42)
+const absent = none.map((n) => n * 2) // None
 
-// Compose with flatMap
-const composed = ok(21)
-  .flatMap((n) => (n > 10 ? ok(n * 2) : err('too small')))`;
+// Compose — flatMap on Result chains fallible operations
+const result = ok(21).flatMap((n) =>
+  n > 10 ? ok(n * 2) : err('too small'),
+)`;
 
 /**
  * Home hero — badge pill above, then a centered H1 + sub + an

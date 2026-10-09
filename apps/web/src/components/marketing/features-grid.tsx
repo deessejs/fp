@@ -57,12 +57,11 @@ const USE_CASES: ReadonlyArray<UseCase> = [
   {
     label: '02 — Use case',
     title: 'Optional values',
-    description:
-      'Replace every `if (x != null)` with a chain of `.map`, `.filter`, `.getWithDefault`.',
+    description: 'Replace every `if (x != null)` with a chain of `.map`, `.filter`, `.getOrElse`.',
     href: '/docs/maybe',
     snippet: `findUser('abc')
   .map((u) => u.name)
-  .getWithDefault('Anonymous')`,
+  .getOrElse('Anonymous')`,
   },
 ];
 
@@ -70,7 +69,7 @@ const BOTTOM_TILES = [
   {
     label: '03 — Primitive',
     title: 'Unit',
-    description: 'Intentional `void` returns for side effects. Visible in the type signature.',
+    description: 'A value for the cases where a function must return something but has no result.',
     href: '/docs/unit',
     icon: CircleSlash,
     snippet: `const login = (
@@ -83,13 +82,13 @@ const BOTTOM_TILES = [
   },
   {
     label: '04 — Composable',
-    title: 'Pipe match → map',
-    description: 'Every helper composes. The error is preserved through the chain.',
-    href: '/docs/result#match',
+    title: 'flatMap chains',
+    description: 'Pipe the helpers through `flatMap` to chain fallible operations.',
+    href: '/docs/result#flatMap',
     icon: GitMerge,
-    snippet: `ok(42)
-  .match({ ok: (n) => n, err: () => 0 })
-  .map((n) => n * 2) // 84`,
+    snippet: `ok('22')
+  .flatMap(parseAge)
+  .map((age) => \`Age: \${age}\`)`,
   },
 ] as const;
 
@@ -216,7 +215,13 @@ function BentoTile({
           `border-0 bg-transparent` lets the tile's own chrome
           show through; `p-0` removes the wrapper's own padding
           so the snippet sits flush inside the tile. */}
-      <CodeBlock code={snippet} size="sm" className="mt-4" />
+      <CodeBlock
+        language="typescript"
+        title="example.ts"
+        code={snippet}
+        size="sm"
+        className="mt-4"
+      />
 
       <p className="mt-4 inline-flex items-center gap-1 text-label-13 text-foreground">
         Learn more

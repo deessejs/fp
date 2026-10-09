@@ -55,39 +55,36 @@ if (user) {
 
 function findUser(id: string): Maybe<User> {
   const user = db.find(id);
-  return user ? some(user) : none();
+  return user ? some(user) : none;
 }
 
 findUser('abc')
   .map((user) => user.name)
-  .getWithDefault('Anonymous');
+  .getOrElse('Anonymous');
 
 findUser('abc')
   .map((user) => user.email.toUpperCase())
-  .forEach(console.log);`,
+  .match({
+    some: (email) => console.log(email),
+    none: () => {},
+  });`,
   },
   {
     id: 'side-effects',
     label: 'Side effects',
-    before: `let isLoggedIn = false;
-
-function login(email: string, password: string): void {
-  // mutating module-level state, no signal
-  isLoggedIn = true;
-  localStorage.setItem('token', '...');
+    before: `function login(email: string, password: string): void {
+  localStorage.setItem('token', '...')
 }
 
-login('a@b.com', 'secret');
-console.log(isLoggedIn); // true — but you have to know to look`,
-    after: `import { unit, Unit } from '@deessejs/fp';
+login('a@b.com', 'secret')`,
+    after: `import { unit, type Unit } from '@deessejs/fp';
 
 const login = (email: string, password: string): Unit => {
-  localStorage.setItem('token', '...');
-  return unit;
-};
+  localStorage.setItem('token', '...')
+  return unit
+}
 
-const session = login('a@b.com', 'secret');
-// session is explicitly Unit. Side effects visible in the signature.`,
+login('a@b.com', 'secret')`,
   },
   {
     id: 'validation',
