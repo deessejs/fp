@@ -42,8 +42,8 @@ export function CodeComparisonTabs({
   const [active, setActive] = useState<string>(examples[0].id);
 
   return (
-    <Tabs value={active} onValueChange={setActive} className="flex flex-col gap-6 p-6 lg:p-8">
-      <div className="flex justify-center border-b border-border">
+    <Tabs value={active} onValueChange={setActive} className="flex flex-col">
+      <div className="flex justify-center border-b border-border pb-4">
         <TabsList>
           {examples.map((e) => (
             <TabsTrigger key={e.id} value={e.id}>
@@ -53,14 +53,14 @@ export function CodeComparisonTabs({
         </TabsList>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-0 lg:divide-x lg:divide-border">
+      <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-2 lg:gap-0 lg:p-8 lg:divide-x lg:divide-border">
         {examples.map((e) => (
-          <TabsContent key={`${e.id}-before`} value={e.id} className="lg:pr-8">
+          <TabsContent key={`${e.id}-before`} value={e.id}>
             {dataByExample[e.id].before}
           </TabsContent>
         ))}
         {examples.map((e) => (
-          <TabsContent key={`${e.id}-after`} value={e.id} className="lg:pl-8">
+          <TabsContent key={`${e.id}-after`} value={e.id}>
             {dataByExample[e.id].after}
           </TabsContent>
         ))}
