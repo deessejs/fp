@@ -1,5 +1,99 @@
 # @deessejs/fp
 
+## 6.0.0
+
+### Major Changes
+
+- 66f86a3: fix(fp): include `dist/` in the published tarball
+  
+  The published `@deessejs/fp` tarball (1.2.0 and later, including 1.3.0) contained only 8 files — the source `.ts` files were excluded by `.npmignore` but the compiled `dist/` output was not whitelisted, so it was missing. Consumers who installed the package got `ERR_MODULE_NOT_FOUND` when importing, because `package.json` points `main` / `exports["."].import` to `./dist/index.js` which did not exist in the tarball.
+  
+  Root cause: the previous `.npmignore` filtered out everything that should not ship (`src/`, `*.test.ts`, `*.config.ts`, …) but did not explicitly allow `dist/`. Since `dist/` is also gitignored, no rule kept it in the tarball.
+  
+  Fix: replace the deny-list `.npmignore` with an explicit `files` allow-list in `package.json`:
+  
+  ```json
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ]
+  ```
+  
+  The `files` field has a safer failure mode than `.npmignore` — a missing entry fails loudly at install time (the consumer sees the broken import) rather than silently publishing unintended content. It is also unaffected by the interaction between `.gitignore` and `.npmignore`, which the npm CLI wiki lists among the "known issues" of the ignore-file approach.
+  
+  Verified with `npm pack --dry-run` locally: the preview now includes `dist/index.js`, `dist/index.d.ts`, and the rest of the build output (114 files vs. 8 previously).
+
+### Minor Changes
+
+- 5e483d7: chore: migrate lint and format from ESLint and Prettier to oxlint and oxfmt
+  
+  Replaces the ESLint flat config in `packages/fp/eslint.config.js` and `apps/web/eslint.config.mjs` and the root `.prettierrc` with a single oxlint + oxfmt setup.
+  
+  - Adds `oxlint@^1.87` and `oxfmt@^0.72` as root dev dependencies.
+  - Removes `eslint`, `@eslint/js`, `typescript-eslint`, `eslint-config-next`, and the implicit `prettier` invocation.
+  - New root configs: `.oxlintrc.json` (with `extends` from each workspace) and `.oxfmtrc.json` (migrated from `.prettierrc` via `oxfmt --migrate prettier`).
+  - Per-workspace configs at `packages/fp/.oxlintrc.json` and `apps/web/.oxlintrc.json`. The web app finally gets a real `lint` script (it previously depended on `eslint-config-next` without one).
+  - Scripts: root `format` and `format:check` now use `oxfmt`; per-workspace `lint` and `lint:fix` use `oxlint`.
+  - Husky pre-commit now runs `pnpm format:check` so formatting drift is caught on commit.
+  
+  This is a developer-tooling change only. The published `@deessejs/fp` artifact, the public API, and the runtime behavior are unchanged.
+  
+  One real source fix was required: a stray Windows-1252 em-dash (0x97) in `docs/internal/product/features/result.md` was incompatible with the strict UTF-8 parser in oxfmt and has been replaced with the proper UTF-8 em-dash. The file rendered correctly in every browser and editor before, but the byte was technically invalid.
+
+### Patch Changes
+
+- 9bfb2cc: chore: rename agent guidance file from CLAUDE.md to AGENTS.md
+  
+  Moves the project instructions from `CLAUDE.md` to `AGENTS.md` and reduces `CLAUDE.md` to a single line containing `@AGENTS.md`, so that any tool that follows the `@<otherfile>` convention (Claude Code, Cursor, GitHub Copilot) will resolve the redirect to the canonical `AGENTS.md`.
+  
+  Why:
+  
+  - `AGENTS.md` is the cross-vendor convention for AI-agent guidance (Claude Code, Cursor, GitHub Copilot, Aider, Zed, etc.) — a single file that all of them read.
+  - The old `CLAUDE.md` was Claude-specific. The new naming makes the project vendor-neutral without losing Claude compatibility (Claude Code also reads `AGENTS.md`).
+  - The `@AGENTS.md` redirect keeps backward compatibility for any tool that still looks for `CLAUDE.md` and supports the redirect convention.
+  
+  Also updates 9 references to `CLAUDE.md` in the repo:
+  
+  - `README.md` and `packages/fp/README.md` (project tree comments)
+  - `docs/engineering/plans/release-pipeline.md` (3 prose references)
+  - `docs/engineering/process/changesets.md` (cross-link)
+  - `.claude/agent-memory/design-engineer/{project_architecture,user_role}.md` (memory notes)
+  - `.claude/agents/release-engineer/README.md` (agent instructions)
+  
+  No public API change. The published `@deessejs/fp` artifact is unaffected — `AGENTS.md` and `CLAUDE.md` are not in the package's `files` allow-list, so neither ships to npm.
+- b218b28: Added a Vale-based prose lint job for the public documentation site (`apps/web/content`). The job runs only on PRs that touch the documentation and lints MDX files against a project vocabulary and the `Vale` and `proselint` styles.
+- df0bc20: fix(ci): stop publish.yml from treating any package.json change as a release
+  
+  The `detect` job in `.github/workflows/publish.yml` previously
+  triggered a release whenever `packages/fp/package.json` changed in
+  `HEAD~1..HEAD`. Any fix PR that happened to touch `package.json` (for
+  example, to add a `files` field, or to update a dev dependency entry)
+  was misread as a version bump, and the workflow then tried to publish
+  the current `package.json#version` to npm. The anti-republish guard
+  in `validate` would refuse if that version was already live, otherwise
+  the workflow would publish a release with an empty changelog and a
+  half-baked version that had not gone through `changesets-version.yml`.
+  
+  A legitimate release commit — produced by `changesets-version.yml` and
+  merged into `main` — has both:
+  
+  - one or more changeset files removed under `.changeset/`
+    (excluding `config.json` and `README.md`, which are not changesets)
+  - the `version` field of `packages/fp/package.json` strictly
+    greater than in `HEAD~1`
+  
+  Require both. The change is verified locally against five scenarios
+  (real release, fix PR touching package.json, orphan changeset
+  deletion, manual version bump, and major release) and the detector
+  returns the expected result in every case.
+- b218b28: chore: remove stray temp/comments.md from the repository root
+  
+  The file was a personal brainstorming note that landed with the
+  rewritten first commit and never belonged in the tracked tree. It is
+  not referenced by any source, test, lint, build, or workflow.
+
 ## 5.0.1
 
 ### Patch Changes
