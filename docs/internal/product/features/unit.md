@@ -157,10 +157,7 @@ const logError = (operation: string, error: Error): Unit => {
 };
 
 // Timed operation
-async function withLogging<T>(
-  operation: string,
-  fn: () => Promise<T>
-): Promise<T> {
+async function withLogging<T>(operation: string, fn: () => Promise<T>): Promise<T> {
   logStart(operation);
   const start = Date.now();
 
@@ -175,9 +172,7 @@ async function withLogging<T>(
 }
 
 // Usage
-const fetchUsers = () => withLogging('fetchUsers', () =>
-  fetch('/api/users').then(r => r.json())
-);
+const fetchUsers = () => withLogging('fetchUsers', () => fetch('/api/users').then((r) => r.json()));
 ```
 
 ### Service Composition
@@ -219,7 +214,10 @@ function createAlertService(
         }
 
         // Send push notification
-        const pushResult = await notification.notifyAll(['oncall-user-1', 'oncall-user-2'], message);
+        const pushResult = await notification.notifyAll(
+          ['oncall-user-1', 'oncall-user-2'],
+          message
+        );
         if (pushResult.isErr()) {
           return err(pushResult.error);
         }

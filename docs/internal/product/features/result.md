@@ -16,11 +16,9 @@ function parseConfig(input: string) {
 
 // With Result - errors are part of the type
 function parseConfig(input: string): Result<Config, ParseError> {
-  return try_(() => JSON.parse(input))
-    .flatMap(cfg => cfg.version
-      ? ok(cfg)
-      : err(ParseError({ reason: 'Missing version' }))
-    );
+  return try_(() => JSON.parse(input)).flatMap((cfg) =>
+    cfg.version ? ok(cfg) : err(ParseError({ reason: 'Missing version' }))
+  );
 }
 ```
 
@@ -63,11 +61,8 @@ interface User {
 
 async function getUserById(id: string): Promise<Result<User, NotFoundError | DatabaseError>> {
   return tryPromise(() => db.users.findById(id))
-    .mapError(cause => DatabaseError({ cause }))
-    .flatMap(user => user
-      ? ok(user)
-      : err(NotFoundError({ id }))
-    );
+    .mapError((cause) => DatabaseError({ cause }))
+    .flatMap((user) => (user ? ok(user) : err(NotFoundError({ id }))));
 }
 
 // API Handler
@@ -149,7 +144,7 @@ async function registerUser(input: RegisterInput): Promise<Result<User, Validati
     flatMap(() => validatePassword(input.password)),
     flatMap(async (password) => {
       const hashed = await hashPassword(password);
-      return hashed.mapError(e => ValidationError({ reason: 'Hash failed' }));
+      return hashed.mapError((e) => ValidationError({ reason: 'Hash failed' }));
     }),
     flatMap(async (hashedPassword) => {
       const user = await db.users.create({
@@ -168,10 +163,11 @@ app.post('/register', async (req, res) => {
 
   result.match({
     ok: (user) => res.status(201).json({ userId: user.id }),
-    err: (e) => res.status(400).json({
-      error: e.message,
-      fields: e.fields,
-    }),
+    err: (e) =>
+      res.status(400).json({
+        error: e.message,
+        fields: e.fields,
+      }),
   });
 });
 ```
@@ -195,16 +191,15 @@ interface ProcessedFile {
 
 // Read file safely
 async function readFile(path: string): Promise<Result<string, FileError>> {
-  return tryPromise(() => fs.readFile(path, 'utf-8'))
-    .mapError(cause => FileError({ reason: `Cannot read ${path}` }));
+  return tryPromise(() => fs.readFile(path, 'utf-8')).mapError((cause) =>
+    FileError({ reason: `Cannot read ${path}` })
+  );
 }
 
 // Process file content
 function processContent(content: string): Result<string, FileError> {
   const trimmed = content.trim();
-  return trimmed.length > 0
-    ? ok(trimmed)
-    : err(FileError({ reason: 'File is empty' }));
+  return trimmed.length > 0 ? ok(trimmed) : err(FileError({ reason: 'File is empty' }));
 }
 
 // Compress content (simulated)
@@ -219,10 +214,10 @@ async function processFiles(paths: string[]): Promise<Result<ProcessedFile[], Fi
     sequence.map(async (path) => {
       const fileResult = await readFile(path);
 
-      return fileResult.flatMap(content => {
+      return fileResult.flatMap((content) => {
         return processContent(content).flatMap(async (processed) => {
           const compressed = await compress(processed);
-          return compressed.map(comp => ({
+          return compressed.map((comp) => ({
             name: path.basename(path),
             content: comp,
             size: comp.length,
@@ -231,9 +226,9 @@ async function processFiles(paths: string[]): Promise<Result<ProcessedFile[], Fi
       });
     }),
     sequence.collect(),
-    Result.map(items => items.filter((r): r is ProcessedFile =>
-      r !== undefined
-    ) as ProcessedFile[]),
+    Result.map(
+      (items) => items.filter((r): r is ProcessedFile => r !== undefined) as ProcessedFile[]
+    )
   );
 }
 ```
@@ -267,26 +262,31 @@ async function createOrderWithPayment(
 ): Promise<Result<Order, TransactionError>> {
   return gen(async function* () {
     // 1. Get user with lock
-    const user = yield* await getUserWithLock(userId)
-      .mapError(e => TransactionError({ reason: e.message }));
+    const user = yield* await getUserWithLock(userId).mapError((e) =>
+      TransactionError({ reason: e.message })
+    );
 
     // 2. Calculate total
     const total = items.reduce((sum, item) => sum + item.price, 0);
 
     // 3. Check balance
     if (user.balance < total) {
-      return err(TransactionError({
-        reason: `Insufficient balance. Need ${total}, have ${user.balance}`,
-      }));
+      return err(
+        TransactionError({
+          reason: `Insufficient balance. Need ${total}, have ${user.balance}`,
+        })
+      );
     }
 
     // 4. Deduct balance
-    yield* await deductBalance(userId, total)
-      .mapError(e => TransactionError({ reason: 'Failed to deduct balance' }));
+    yield* await deductBalance(userId, total).mapError((e) =>
+      TransactionError({ reason: 'Failed to deduct balance' })
+    );
 
     // 5. Create order
-    const order = yield* await createOrder({ userId, items, total })
-      .mapError(e => TransactionError({ reason: 'Failed to create order' }));
+    const order = yield* await createOrder({ userId, items, total }).mapError((e) =>
+      TransactionError({ reason: 'Failed to create order' })
+    );
 
     return ok(order);
   });
@@ -301,13 +301,16 @@ All methods work both as instance methods and as pipeable static functions:
 import { Result, ok, err, pipe } from '@deessejs/fp';
 
 // Instance method style
-const a = ok(5).map(n => n * 2); // Ok(10)
+const a = ok(5).map((n) => n * 2); // Ok(10)
 
 // Static data-first style
-const b = Result.map(ok(5), n => n * 2); // Ok(10)
+const b = Result.map(ok(5), (n) => n * 2); // Ok(10)
 
 // Static data-last (pipeable) style
-const c = pipe(ok(5), Result.map(n => n * 2)); // Ok(10)
+const c = pipe(
+  ok(5),
+  Result.map((n) => n * 2)
+); // Ok(10)
 ```
 
 ## Methods
@@ -317,8 +320,8 @@ const c = pipe(ok(5), Result.map(n => n * 2)); // Ok(10)
 Transforms the success value if Ok, passes through if Err.
 
 ```typescript
-ok(5).map(n => n * 2); // Ok(10)
-err('error').map(n => n * 2); // Err('error')
+ok(5).map((n) => n * 2); // Ok(10)
+err('error').map((n) => n * 2); // Err('error')
 ```
 
 ### flatMap (andThen)
@@ -326,7 +329,7 @@ err('error').map(n => n * 2); // Err('error')
 Chains a Result-returning function on success.
 
 ```typescript
-ok(5).flatMap(n => n > 0 ? ok(n) : err('negative')); // Ok(5)
+ok(5).flatMap((n) => (n > 0 ? ok(n) : err('negative'))); // Ok(5)
 ```
 
 ### filter
@@ -334,8 +337,8 @@ ok(5).flatMap(n => n > 0 ? ok(n) : err('negative')); // Ok(5)
 Filters the value, returning Err if predicate fails.
 
 ```typescript
-ok(5).filter(n => n % 2 === 0); // Err(FilterError)
-ok(4).filter(n => n % 2 === 0); // Ok(4)
+ok(5).filter((n) => n % 2 === 0); // Err(FilterError)
+ok(4).filter((n) => n % 2 === 0); // Ok(4)
 ```
 
 ### tap
@@ -351,7 +354,7 @@ ok(5).tap(console.log); // logs 5, returns Ok(5)
 Transforms the error value if Err.
 
 ```typescript
-err('error').mapError(e => new Error(e)); // Err(Error('error'))
+err('error').mapError((e) => new Error(e)); // Err(Error('error'))
 ```
 
 ### fold
@@ -360,8 +363,8 @@ Transforms both variants to the same type.
 
 ```typescript
 ok(5).fold(
-  n => `Success: ${n}`,
-  e => `Error: ${e}`,
+  (n) => `Success: ${n}`,
+  (e) => `Error: ${e}`
 ); // "Success: 5"
 ```
 
@@ -508,7 +511,7 @@ function gen<R extends AnyResult>(
 
 ### Utility Functions
 
-```typescript
+````typescript
 // Serialize for RPC/storage
 function serialize<T, E>(result: Result<T, E>): SerializedResult<T, E>;
 
@@ -535,21 +538,21 @@ function fromThrowable<T, E>(options: {
   onSuccess: () => T;
   onError: (cause: unknown) => E;
 }): Result<T, E>;
-```
+````
 
 Two overloads:
 
-- fromThrowable(thunk) — captures any thrown value into an UnhandledException carrying the original cause.
-- fromThrowable({ onSuccess, onError }) — runs onSuccess inside a try/catch; thrown values are mapped through onError.
+- fromThrowable(thunk) â€” captures any thrown value into an UnhandledException carrying the original cause.
+- fromThrowable({ onSuccess, onError }) â€” runs onSuccess inside a try/catch; thrown values are mapped through onError.
 
 ```typescript
-import { fromThrowable, ok, err, getOrElse } from "@deessejs/fp";
+import { fromThrowable, ok, err, getOrElse } from '@deessejs/fp';
 
 const config = getOrElse(defaultConfig)(
   fromThrowable<Config, Error>({
     onSuccess: () => readConfigSync(path),
-    onError: (e) => e instanceof Error ? e : new Error(String(e)),
-  }),
+    onError: (e) => (e instanceof Error ? e : new Error(String(e))),
+  })
 );
 ```
 
@@ -566,12 +569,12 @@ function fromAsyncThrowable<T, E>(options: {
 Same shape, async. Rejects and sync throws are captured; the onError mapper may itself return a Promise.
 
 ```typescript
-import { pipe, map, getOrElse, fromAsyncThrowable } from "@deessejs/fp";
+import { pipe, map, getOrElse, fromAsyncThrowable } from '@deessejs/fp';
 
 const templates = await pipe(
   fromAsyncThrowable(() => orpc.templates.list(undefined, liveCache)),
   map((list) => list.templates),
-  getOrElse([]),
+  getOrElse([])
 );
 ```
 
@@ -579,7 +582,7 @@ const templates = await pipe(
 
 ```typescript
 interface UnhandledException {
-  readonly _tag: "UnhandledException";
+  readonly _tag: 'UnhandledException';
   readonly cause: unknown;
 }
 ```
@@ -612,7 +615,7 @@ function withReporting<T>(
   onSuccess: () => T | Promise<T>,
   operationName: string,
   reporter: ErrorReporter,
-  metadata?: Readonly<Record<string, unknown>>,
+  metadata?: Readonly<Record<string, unknown>>
 ): Promise<Result<T, ReportableError>>;
 
 interface ErrorReporter {
@@ -624,7 +627,7 @@ interface ErrorContext {
   readonly metadata?: Readonly<Record<string, unknown>>;
 }
 interface ReportableError {
-  readonly _tag: "ReportableError";
+  readonly _tag: 'ReportableError';
   readonly message: string;
   readonly cause?: unknown;
 }
@@ -635,12 +638,9 @@ Wraps a sync or async operation. On failure, the original cause is forwarded to 
 ### classifyError
 
 ```typescript
-function classifyError(
-  e: unknown,
-  rules: ClassificationRule[],
-): ErrorClassification;
+function classifyError(e: unknown, rules: ClassificationRule[]): ErrorClassification;
 
-type ErrorClassification = "retryable" | "non-retryable";
+type ErrorClassification = 'retryable' | 'non-retryable';
 
 interface ClassificationRule {
   readonly error: ErrorConstructor;

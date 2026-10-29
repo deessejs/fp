@@ -29,7 +29,7 @@ export function map<T, E, B>(fn: (value: T) => B): (result: Result<T, E>) => Res
  * Bind through a function that returns a Result. Passes through on Err.
  */
 export function flatMap<T, E, B, E2>(
-  fn: (value: T) => Result<B, E2>,
+  fn: (value: T) => Result<B, E2>
 ): (result: Result<T, E>) => Result<B, E | E2> {
   return (result) => result.flatMap(fn);
 }
@@ -37,9 +37,7 @@ export function flatMap<T, E, B, E2>(
 /**
  * Map over the Err value. Passes through on Ok.
  */
-export function mapError<T, E, E2>(
-  fn: (error: E) => E2,
-): (result: Result<T, E>) => Result<T, E2> {
+export function mapError<T, E, E2>(fn: (error: E) => E2): (result: Result<T, E>) => Result<T, E2> {
   return (result) => result.mapError(fn);
 }
 
@@ -48,7 +46,7 @@ export function mapError<T, E, E2>(
  */
 export function filter<T, E>(
   predicate: (value: T) => boolean,
-  errorFn?: (value: T) => E,
+  errorFn?: (value: T) => E
 ): (result: Result<T, E>) => Result<T, E> {
   return (result) => result.filter(predicate, errorFn);
 }
@@ -64,7 +62,7 @@ export function tap<T, E>(fn: (value: T) => unknown): (result: Result<T, E>) => 
  * Side effect on the Ok value, async. Passes through unchanged.
  */
 export function tapAsync<T, E>(
-  fn: (value: T) => Promise<unknown>,
+  fn: (value: T) => Promise<unknown>
 ): (result: Result<T, E>) => Promise<Result<T, E>> {
   return (result) => result.tapAsync(fn);
 }
@@ -73,7 +71,7 @@ export function tapAsync<T, E>(
  * Bind through a function that returns a Promise<Result>. Passes through on Err.
  */
 export function flatMapAsync<T, E, B, E2>(
-  fn: (value: T) => Promise<Result<B, E2>>,
+  fn: (value: T) => Promise<Result<B, E2>>
 ): (result: Result<T, E>) => Promise<Result<B, E | E2>> {
   return (result) => result.flatMapAsync(fn);
 }
@@ -93,7 +91,7 @@ export function match<T, E, U>(handlers: {
  */
 export function fold<T, E, U>(
   onOk: (value: T) => U,
-  onErr: (error: E) => U,
+  onErr: (error: E) => U
 ): (result: Result<T, E>) => U {
   return (result) => result.fold(onOk, onErr);
 }

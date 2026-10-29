@@ -12,11 +12,11 @@ This is a **TypeScript monorepo** containing a functional programming library (`
 
 A functional programming utility library with three main types:
 
-| Type | Purpose | States |
-|------|---------|--------|
-| `Result<T, E>` | Type-safe error handling | `Ok` \| `Err` |
-| `Maybe<T>` | Optional values | `Some` \| `None` |
-| `Unit` | Intentional void for side effects | Single value |
+| Type           | Purpose                           | States           |
+| -------------- | --------------------------------- | ---------------- |
+| `Result<T, E>` | Type-safe error handling          | `Ok` \| `Err`    |
+| `Maybe<T>`     | Optional values                   | `Some` \| `None` |
+| `Unit`         | Intentional void for side effects | Single value     |
 
 ## Documentation Site (Design Focus)
 
@@ -53,6 +53,7 @@ index → getting-started → result → maybe → unit → [separator] → api-
 The errors documentation site demonstrates the target design patterns:
 
 ### Visual Design
+
 - **Background:** Blueprint grid aesthetic with floating SVG elements
 - **Typography:** Bold, tight tracking headings (text-5xl/6xl)
 - **Color:** `fd-` prefixed palette (foreground, muted, primary, etc.)
@@ -60,17 +61,20 @@ The errors documentation site demonstrates the target design patterns:
 - **Cards:** `bg-fd-card`, `border border-fd-border`, hover states with `hover:border-fd-accent`
 
 ### Key Components
+
 - `CodeBlock` — Syntax highlighting with Shiki, optional title bar with macOS dots
 - `CtaCard` — CTA section with copy-to-clipboard install command
 - `Footer` — Multi-column link grid with brand section
 
 ### Page Layout
+
 - Max width container: `max-w-6xl mx-auto px-6`
 - Hero sections with large typography + code examples
 - Feature cards in responsive grid (lg:grid-cols-6)
 - Before/After code comparisons side-by-side
 
 ### Navigation
+
 - Primary nav links with underline hover states
 - Smooth scroll behavior
 - Feature cards link to doc sections

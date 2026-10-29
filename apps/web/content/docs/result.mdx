@@ -34,7 +34,7 @@ Creates a successful `Result`.
 ```ts
 import { ok } from '@deessejs/fp';
 
-ok(5);       // Ok<number, never>
+ok(5); // Ok<number, never>
 ok('hello'); // Ok<string, never>
 ok({ id: 1 }); // Ok<{ id: number }, never>
 ```
@@ -46,8 +46,8 @@ Creates a failed `Result`.
 ```ts
 import { err } from '@deessejs/fp';
 
-err('Something went wrong');       // Err<never, string>
-err(new Error('Database error'));  // Err<never, Error>
+err('Something went wrong'); // Err<never, string>
+err(new Error('Database error')); // Err<never, Error>
 ```
 
 ## Transformation
@@ -57,8 +57,8 @@ err(new Error('Database error'));  // Err<never, Error>
 Transforms the value if `Ok`, passes through if `Err`.
 
 ```ts
-ok(5).map(n => n * 2);   // Ok(10)
-err('oops').map(n => n * 2); // Err('oops')
+ok(5).map((n) => n * 2); // Ok(10)
+err('oops').map((n) => n * 2); // Err('oops')
 ```
 
 ### flatMap (chain)
@@ -66,9 +66,9 @@ err('oops').map(n => n * 2); // Err('oops')
 Chains a `Result`-returning function on success. Short-circuits on `Err`.
 
 ```ts
-ok(5).flatMap(n => ok(n * 2));   // Ok(10)
-ok(5).flatMap(n => err('bad'));   // Err('bad')
-err('oops').flatMap(n => ok(n * 2)); // Err('oops')
+ok(5).flatMap((n) => ok(n * 2)); // Ok(10)
+ok(5).flatMap((n) => err('bad')); // Err('bad')
+err('oops').flatMap((n) => ok(n * 2)); // Err('oops')
 ```
 
 ### mapError
@@ -76,8 +76,8 @@ err('oops').flatMap(n => ok(n * 2)); // Err('oops')
 Transforms the error if `Err`, passes through if `Ok`.
 
 ```ts
-ok(5).mapError(e => new Error(e));    // Ok(5)
-err('bad').mapError(e => new Error(e)); // Err(Error('bad'))
+ok(5).mapError((e) => new Error(e)); // Ok(5)
+err('bad').mapError((e) => new Error(e)); // Err(Error('bad'))
 ```
 
 ### filter
@@ -90,10 +90,13 @@ Returns `Ok` if the predicate passes. When the predicate fails, behaviour depend
 `Err.filter` always passes through.
 
 ```ts
-ok(4).filter(n => n % 2 === 0);                  // Ok(4) — predicate passes
-ok(3).filter(n => n % 2 === 0);                  // Ok(3) — predicate fails, no errorFn, pass-through
-ok(3).filter(n => n % 2 === 0, n => `odd:${n}`); // Err('odd:3') — errorFn invoked
-err('bad').filter(n => n > 0);                   // Err('bad') — passes through
+ok(4).filter((n) => n % 2 === 0); // Ok(4) — predicate passes
+ok(3).filter((n) => n % 2 === 0); // Ok(3) — predicate fails, no errorFn, pass-through
+ok(3).filter(
+  (n) => n % 2 === 0,
+  (n) => `odd:${n}`
+); // Err('odd:3') — errorFn invoked
+err('bad').filter((n) => n > 0); // Err('bad') — passes through
 ```
 
 ### tap
@@ -102,8 +105,8 @@ Runs a side effect on `Ok`, returns the original `Result` unchanged.
 
 ```ts
 ok(5)
-  .tap(n => console.log('Value:', n)) // logs 'Value: 5'
-  .map(n => n * 2);                   // Ok(10)
+  .tap((n) => console.log('Value:', n)) // logs 'Value: 5'
+  .map((n) => n * 2); // Ok(10)
 ```
 
 ### tapAsync
@@ -111,7 +114,7 @@ ok(5)
 Async version of `tap`. Runs the async function and returns the original `Result`.
 
 ```ts
-await ok(5).tapAsync(async n => {
+await ok(5).tapAsync(async (n) => {
   await sendAnalytics('value_received', { value: n });
 });
 ```
@@ -148,7 +151,7 @@ Alias for `match`. Transforms both variants to the same type.
 ```ts
 ok(5).fold(
   (value) => value * 2,
-  (error) => 0,
+  (error) => 0
 ); // 10
 ```
 
@@ -159,7 +162,7 @@ ok(5).fold(
 Returns the value or a fallback.
 
 ```ts
-ok(5).getOrElse(0);    // 5
+ok(5).getOrElse(0); // 5
 err('oops').getOrElse(0); // 0
 ```
 
@@ -168,7 +171,7 @@ err('oops').getOrElse(0); // 0
 Returns the value or `null`.
 
 ```ts
-ok(5).getOrNull();    // 5
+ok(5).getOrNull(); // 5
 err('oops').getOrNull(); // null
 ```
 
@@ -177,7 +180,7 @@ err('oops').getOrNull(); // null
 Returns the value or `undefined`.
 
 ```ts
-ok(5).getOrUndefined();    // 5
+ok(5).getOrUndefined(); // 5
 err('oops').getOrUndefined(); // undefined
 ```
 
@@ -186,8 +189,8 @@ err('oops').getOrUndefined(); // undefined
 Returns the value or throws the error.
 
 ```ts
-ok(5).getOrThrow();           // 5
-err('oops').getOrThrow();     // throws Error('oops')
+ok(5).getOrThrow(); // 5
+err('oops').getOrThrow(); // throws Error('oops')
 err(new Error('bad')).getOrThrow(); // throws Error('bad')
 ```
 
@@ -224,7 +227,7 @@ if (result.isErr()) {
 Converts `Ok` to `Some` and `Err` to `None`.
 
 ```ts
-ok(5).toMaybe();    // Some(5)
+ok(5).toMaybe(); // Some(5)
 err('oops').toMaybe(); // None
 ```
 
@@ -257,9 +260,9 @@ Type guard to check if a value is a `Result`.
 ```ts
 import { isResult } from '@deessejs/fp';
 
-isResult(ok(5));     // true
+isResult(ok(5)); // true
 isResult(err('bad')); // true
-isResult('hello');   // false
+isResult('hello'); // false
 ```
 
 ## See Also

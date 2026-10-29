@@ -121,14 +121,20 @@ describe('Unit', () => {
 describe('Result.filter honours its type contract', () => {
   it('returns Err(errorFn(value)) when predicate fails and errorFn is supplied', () => {
     const r: Result<number, string> = ok<number, string>(3);
-    const filtered = r.filter((n) => n % 2 === 0, (n) => `odd:${n}`);
+    const filtered = r.filter(
+      (n) => n % 2 === 0,
+      (n) => `odd:${n}`
+    );
     expect(filtered.isErr()).toBe(true);
     if (filtered.isErr()) expect(filtered.error).toBe('odd:3');
   });
 
   it('passes through Ok(value) when predicate passes', () => {
     const r: Result<number, string> = ok<number, string>(4);
-    const filtered = r.filter((n) => n % 2 === 0, (n) => `odd:${n}`);
+    const filtered = r.filter(
+      (n) => n % 2 === 0,
+      (n) => `odd:${n}`
+    );
     expect(filtered.isOk()).toBe(true);
   });
 
@@ -141,7 +147,12 @@ describe('Result.filter honours its type contract', () => {
 
 describe('Conversion methods preserve chaining', () => {
   it('Ok.toMaybe().map chains', () => {
-    expect(ok(5).toMaybe().map((n: number) => n + 1).getOrNull()).toBe(6);
+    expect(
+      ok(5)
+        .toMaybe()
+        .map((n: number) => n + 1)
+        .getOrNull()
+    ).toBe(6);
   });
 
   it('Err.toMaybe() is None', () => {
@@ -149,7 +160,12 @@ describe('Conversion methods preserve chaining', () => {
   });
 
   it('Some.toResult chains', () => {
-    expect(some(5).toResult('e').map((n: number) => n + 1).getOrNull()).toBe(6);
+    expect(
+      some(5)
+        .toResult('e')
+        .map((n: number) => n + 1)
+        .getOrNull()
+    ).toBe(6);
   });
 
   it('None.toResult(err) is Err', () => {

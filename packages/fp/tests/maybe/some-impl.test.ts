@@ -12,37 +12,65 @@ describe('SomeImpl', () => {
 
   describe('map', () => {
     it('applies the function', () => {
-      expect(some(10).map((x) => x * 2).getOrNull()).toBe(20);
+      expect(
+        some(10)
+          .map((x) => x * 2)
+          .getOrNull()
+      ).toBe(20);
     });
   });
 
   describe('flatMap', () => {
     it('binds to a Maybe', () => {
-      expect(some(10).flatMap((x) => some(x + 1)).getOrNull()).toBe(11);
+      expect(
+        some(10)
+          .flatMap((x) => some(x + 1))
+          .getOrNull()
+      ).toBe(11);
     });
 
     it('flattens to None', () => {
-      expect(some(10).flatMap(() => none).isNone()).toBe(true);
+      expect(
+        some(10)
+          .flatMap(() => none)
+          .isNone()
+      ).toBe(true);
     });
   });
 
   describe('filter', () => {
     it('returns Some when predicate passes', () => {
-      expect(some(10).filter((x) => x > 5).isSome()).toBe(true);
+      expect(
+        some(10)
+          .filter((x) => x > 5)
+          .isSome()
+      ).toBe(true);
     });
 
     it('returns None when predicate fails', () => {
-      expect(some(10).filter((x) => x > 100).isNone()).toBe(true);
+      expect(
+        some(10)
+          .filter((x) => x > 100)
+          .isNone()
+      ).toBe(true);
     });
   });
 
   describe('filterMap', () => {
     it('keeps Some', () => {
-      expect(some(10).filterMap((x) => some(x + 1)).getOrNull()).toBe(11);
+      expect(
+        some(10)
+          .filterMap((x) => some(x + 1))
+          .getOrNull()
+      ).toBe(11);
     });
 
     it('transitions to None', () => {
-      expect(some(10).filterMap(() => none).isNone()).toBe(true);
+      expect(
+        some(10)
+          .filterMap(() => none)
+          .isNone()
+      ).toBe(true);
     });
   });
 
@@ -74,7 +102,7 @@ describe('SomeImpl', () => {
         some(10).match({
           some: (v) => v * 2,
           none: () => 0,
-        }),
+        })
       ).toBe(20);
     });
   });
@@ -84,8 +112,8 @@ describe('SomeImpl', () => {
       expect(
         some(10).fold(
           (v) => v + 1,
-          () => 0,
-        ),
+          () => 0
+        )
       ).toBe(11);
     });
   });
@@ -159,7 +187,12 @@ describe('SomeImpl', () => {
   // cross-conversion sanity checks
   describe('cross-conversion', () => {
     it('chains Some → Result → Ok', () => {
-      expect(some(5).toResult('e').map((n) => n + 1).getOrNull()).toBe(6);
+      expect(
+        some(5)
+          .toResult('e')
+          .map((n) => n + 1)
+          .getOrNull()
+      ).toBe(6);
     });
 
     it('returns ok / err importers', () => {

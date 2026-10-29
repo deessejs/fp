@@ -62,7 +62,7 @@ describe('NoneImpl', () => {
         none.match({
           some: () => 's',
           none: () => 'n',
-        }),
+        })
       ).toBe('n');
     });
   });
@@ -72,8 +72,8 @@ describe('NoneImpl', () => {
       expect(
         none.fold(
           () => 's',
-          () => 'n',
-        ),
+          () => 'n'
+        )
       ).toBe('n');
     });
   });

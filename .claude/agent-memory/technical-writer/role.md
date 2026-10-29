@@ -13,6 +13,7 @@ This is the Next.js + Fumadocs documentation site for the `@deessejs` ecosystem.
 Created documentation for `@deessejs/fp` based **only on existing code** (`packages/fp/src/`).
 
 Docs structure:
+
 ```
 content/docs/
 ├── index.mdx           — Landing page
@@ -33,6 +34,7 @@ Branch: `docs/fp-documentation`
 2. **Next.js 16 Turbopack + Fumadocs MDX** — Turbopack fails parsing MDX frontmatter. Fix: `cd apps/web && pnpm next build --webpack` (NOT `--no-turbopack`, the correct flag is `--webpack`)
 
 3. **Tab/Tabs components** — Not included in `defaultMdxComponents`. Must explicitly import and provide in `src/components/mdx.tsx`:
+
    ```ts
    import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
    ```

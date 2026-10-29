@@ -12,7 +12,7 @@ fp/
 ├── apps/
 │   └── web/           # Next.js documentation site
 ├── package.json       # Root: pnpm workspace + turbo config
-└── CLAUDE.md          # Project instructions
+└── AGENTS.md          # Project instructions (CLAUDE.md redirects here)
 ```
 
 ## Monorepo Tech Stack
@@ -34,19 +34,19 @@ main ← staging ← dev
 
 ## Root Scripts
 
-| Command | Description |
-|---------|-------------|
-| `pnpm build` | Build all packages |
-| `pnpm test` | Run all tests |
-| `pnpm dev` | Dev mode all packages |
-| `pnpm lint` | Lint all packages |
+| Command           | Description             |
+| ----------------- | ----------------------- |
+| `pnpm build`      | Build all packages      |
+| `pnpm test`       | Run all tests           |
+| `pnpm dev`        | Dev mode all packages   |
+| `pnpm lint`       | Lint all packages       |
 | `pnpm type-check` | Type-check all packages |
-| `pnpm changeset` | Manage version changes |
-| `pnpm release` | Build + test + publish |
+| `pnpm changeset`  | Manage version changes  |
+| `pnpm release`    | Build + test + publish  |
 
 ## Communication Rule
 
-**Always communicate in English** in code and documentation (per CLAUDE.md).
+**Always communicate in English** in code and documentation (per AGENTS.md).
 
 ## Web Search
 

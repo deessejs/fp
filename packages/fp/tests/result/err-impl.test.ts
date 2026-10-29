@@ -34,7 +34,10 @@ describe('ErrImpl', () => {
 
   describe('filter', () => {
     it('passes through', () => {
-      const out = err<number, string>('e').filter((x: number) => x > 0, (x: number) => 'odd');
+      const out = err<number, string>('e').filter(
+        (x: number) => x > 0,
+        (x: number) => 'odd'
+      );
       expect(out.isErr()).toBe(true);
       if (out.isErr()) expect(out.error).toBe('e');
     });
@@ -72,7 +75,7 @@ describe('ErrImpl', () => {
         err<string, number>(42).match({
           ok: (v) => `ok:${v}`,
           err: (e) => `err:${e}`,
-        }),
+        })
       ).toBe('err:42');
     });
   });
@@ -82,8 +85,8 @@ describe('ErrImpl', () => {
       expect(
         err<string, number>(42).fold(
           (v: string) => v,
-          (e: number) => `err:${e}`,
-        ),
+          (e: number) => `err:${e}`
+        )
       ).toBe('err:42');
     });
   });

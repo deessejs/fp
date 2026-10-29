@@ -6,21 +6,9 @@ description: Install and use "@deessejs/fp" in your project
 ## Installation
 
 <Tabs items={['npm', 'pnpm', 'yarn']}>
-  <Tab value="npm">
-    ```bash
-    npm install @deessejs/fp
-    ```
-  </Tab>
-  <Tab value="pnpm">
-    ```bash
-    pnpm add @deessejs/fp
-    ```
-  </Tab>
-  <Tab value="yarn">
-    ```bash
-    yarn add @deessejs/fp
-    ```
-  </Tab>
+  <Tab value="npm">```bash npm install @deessejs/fp ```</Tab>
+  <Tab value="pnpm">```bash pnpm add @deessejs/fp ```</Tab>
+  <Tab value="yarn">```bash yarn add @deessejs/fp ```</Tab>
 </Tabs>
 
 `@deessejs/fp` requires TypeScript 5.0 or later.
@@ -64,8 +52,8 @@ if (result.isOk()) {
 import { ok, err } from '@deessejs/fp';
 
 const result = ok(5)
-  .map(n => n * 2)    // Ok(10)
-  .map(n => n + 1);   // Ok(11)
+  .map((n) => n * 2) // Ok(10)
+  .map((n) => n + 1); // Ok(11)
 
 result.getOrElse(0); // 11
 ```
@@ -80,9 +68,9 @@ function findUser(id: string) {
 }
 
 ok('1')
-  .flatMap(id => findUser(id))
-  .map(user => user.name)   // Ok('Alice')
-  .getOrElse('Unknown');    // 'Alice'
+  .flatMap((id) => findUser(id))
+  .map((user) => user.name) // Ok('Alice')
+  .getOrElse('Unknown'); // 'Alice'
 ```
 
 ## Handle optional values with Maybe
@@ -91,17 +79,17 @@ ok('1')
 import { some, none, maybe } from '@deessejs/fp';
 
 // Create from a nullable value
-maybe(null);       // None
-maybe(undefined);  // None
-maybe('hello');    // Some('hello')
+maybe(null); // None
+maybe(undefined); // None
+maybe('hello'); // Some('hello')
 
 // Safe property access
 const user = { name: 'Alice', address: { city: 'Paris' } };
 
 some(user)
-  .flatMap(u => maybe(u.address))
-  .map(addr => addr.city)  // Some('Paris')
-  .getOrElse('Unknown');   // 'Paris'
+  .flatMap((u) => maybe(u.address))
+  .map((addr) => addr.city) // Some('Paris')
+  .getOrElse('Unknown'); // 'Paris'
 ```
 
 ## Pattern matching
