@@ -115,7 +115,7 @@ describe('Maybe pipeables', () => {
         matchMaybe<number, string>({
           some: (v) => `s:${v}`,
           none: () => 'n',
-        })(some(10)),
+        })(some(10))
       ).toBe('s:10');
     });
 
@@ -124,7 +124,7 @@ describe('Maybe pipeables', () => {
         matchMaybe<number, string>({
           some: () => 's',
           none: () => 'n',
-        })(none),
+        })(none)
       ).toBe('n');
     });
   });
@@ -134,8 +134,8 @@ describe('Maybe pipeables', () => {
       expect(
         foldMaybe(
           (v: number) => v + 1,
-          () => 0,
-        )(some(10)),
+          () => 0
+        )(some(10))
       ).toBe(11);
     });
 
@@ -143,8 +143,8 @@ describe('Maybe pipeables', () => {
       expect(
         foldMaybe(
           (v: number) => v + 1,
-          () => 0,
-        )(none),
+          () => 0
+        )(none)
       ).toBe(0);
     });
   });

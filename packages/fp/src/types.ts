@@ -9,16 +9,25 @@ import type { Some, Maybe } from './maybe/types.js';
  * Check if a value is a Result
  */
 export function isResult(value: unknown): value is Result<unknown, unknown> {
-  return typeof value === 'object' && value !== null &&
-    '_tag' in value && ((value as Result<unknown, unknown>)._tag === 'Ok' || (value as Result<unknown, unknown>)._tag === 'Err');
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    '_tag' in value &&
+    ((value as Result<unknown, unknown>)._tag === 'Ok' ||
+      (value as Result<unknown, unknown>)._tag === 'Err')
+  );
 }
 
 /**
  * Check if a value is a Maybe
  */
 export function isMaybe(value: unknown): value is Maybe<unknown> {
-  return typeof value === 'object' && value !== null &&
-    '_tag' in value && ((value as Maybe<unknown>)._tag === 'Some' || (value as Maybe<unknown>)._tag === 'None');
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    '_tag' in value &&
+    ((value as Maybe<unknown>)._tag === 'Some' || (value as Maybe<unknown>)._tag === 'None')
+  );
 }
 
 /**
@@ -27,8 +36,7 @@ export function isMaybe(value: unknown): value is Maybe<unknown> {
  * @example
  * type T = OkType<Result<string, Error>>; // string
  */
-export type OkType<R extends Result<unknown, unknown>> =
-  R extends Ok<infer T, unknown> ? T : never;
+export type OkType<R extends Result<unknown, unknown>> = R extends Ok<infer T, unknown> ? T : never;
 
 /**
  * Extract Err type from Result
@@ -39,9 +47,7 @@ export type OkType<R extends Result<unknown, unknown>> =
  * type E = ErrType<Result<string, Error>>; // Error
  */
 export type ErrType<R extends Result<unknown, unknown>> =
-  R extends Err<unknown, infer E> ? E :
-  R extends Ok<unknown, infer E> ? E :
-  never;
+  R extends Err<unknown, infer E> ? E : R extends Ok<unknown, infer E> ? E : never;
 
 /**
  * Extract Some value type from Maybe
@@ -49,5 +55,4 @@ export type ErrType<R extends Result<unknown, unknown>> =
  * @example
  * type T = SomeType<Maybe<string>>; // string
  */
-export type SomeType<M extends Maybe<unknown>> =
-  M extends Some<infer T> ? T : never;
+export type SomeType<M extends Maybe<unknown>> = M extends Some<infer T> ? T : never;

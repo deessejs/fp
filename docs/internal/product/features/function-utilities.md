@@ -17,18 +17,20 @@ import { pipe } from '@deessejs/fp';
 
 // Transform API response
 const processUserResponse = pipe(
-  JSON.parse,                          // string -> object
-  (obj: unknown) => obj as User,       // type assertion
-  (user: User) => ({                   // normalize
+  JSON.parse, // string -> object
+  (obj: unknown) => obj as User, // type assertion
+  (user: User) => ({
+    // normalize
     ...user,
     email: user.email.toLowerCase(),
     createdAt: new Date(user.createdAt),
   }),
-  (user: User) => ({                   // compute derived
+  (user: User) => ({
+    // compute derived
     ...user,
     fullName: `${user.firstName} ${user.lastName}`,
     initials: `${user.firstName[0]}${user.lastName[0]}`.toUpperCase(),
-  }),
+  })
 );
 
 // Build HTML safely
@@ -36,7 +38,7 @@ const sanitizeAndFormat = pipe(
   (str: string) => str.trim(),
   (str: string) => str.replace(/</g, '&lt;').replace(/>/g, '&gt;'),
   (str: string) => str.replace(/\n/g, '<br>'),
-  (str: string) => `<div class="content">${str}</div>`,
+  (str: string) => `<div class="content">${str}</div>`
 );
 
 // Parse and validate URL
@@ -47,14 +49,14 @@ const parseUrl = pipe(
     host: url.host,
     path: url.pathname,
     query: Object.fromEntries(url.searchParams),
-  }),
+  })
 );
 
 // Multi-step calculation
 const calculateOrderTotal = pipe(
   (items: OrderItem[]) => items.reduce((sum, i) => sum + i.price * i.quantity, 0),
   (subtotal: number) => subtotal * 1.08, // Add tax
-  (total: number) => Math.round(total * 100) / 100, // Round to 2 decimals
+  (total: number) => Math.round(total * 100) / 100 // Round to 2 decimals
 );
 ```
 
@@ -67,13 +69,13 @@ import { flow } from '@deessejs/fp';
 const normalizeText = flow(
   (s: string) => s.trim(),
   (s: string) => s.toLowerCase(),
-  (s: string) => s.replace(/\s+/g, ' '),
+  (s: string) => s.replace(/\s+/g, ' ')
 );
 
 const slugify = flow(
   normalizeText,
   (s: string) => s.replace(/[^a-z0-9]+/g, '-'),
-  (s: string) => s.replace(/^-+|-+$/g, ''),
+  (s: string) => s.replace(/^-+|-+$/g, '')
 );
 
 // Usage
@@ -83,13 +85,14 @@ slugify('What the heck??'); // 'what-the-heck'
 // Validate and transform
 const parseInteger = flow(
   (s: string) => parseInt(s, 10),
-  (n: number) => isNaN(n) ? null : n,
+  (n: number) => (isNaN(n) ? null : n)
 );
 
-const clamp = (min: number, max: number) => flow(
-  (n: number) => Math.max(min, n),
-  (n: number) => Math.min(max, n),
-);
+const clamp = (min: number, max: number) =>
+  flow(
+    (n: number) => Math.max(min, n),
+    (n: number) => Math.min(max, n)
+  );
 
 const clampBetween1And10 = clamp(1, 10);
 
@@ -103,7 +106,7 @@ const handleApiResponse = flow(
   (data: ApiResponse) => {
     if (data.error) throw new Error(data.error);
     return data;
-  },
+  }
 );
 
 // Compose validators
@@ -112,8 +115,8 @@ const isValidEmail = (s: string) => s.includes('@');
 const isLongEnough = (s: string) => s.length >= 8;
 
 const validatePassword = flow(
-  (s: string) => [isNonEmpty, isLongEnough].every(v => v(s)),
-  valid => valid ? s : null,
+  (s: string) => [isNonEmpty, isLongEnough].every((v) => v(s)),
+  (valid) => (valid ? s : null)
 );
 ```
 
@@ -123,18 +126,20 @@ const validatePassword = flow(
 import { identity } from '@deessejs/fp';
 
 // Default value helper
-const withDefault = <T>(fallback: T) => (value: T | null | undefined): T =>
-  value ?? fallback;
+const withDefault =
+  <T>(fallback: T) =>
+  (value: T | null | undefined): T =>
+    value ?? fallback;
 
 const config = withDefault('default');
 
 // Optional mapping
-const maybeMap = <T, R>(
-  fn: (value: T) => R
-) => (value: T | null): R | null =>
-  value ? fn(value) : null;
+const maybeMap =
+  <T, R>(fn: (value: T) => R) =>
+  (value: T | null): R | null =>
+    value ? fn(value) : null;
 
-const upperEmail = maybeMap(s => s.toUpperCase());
+const upperEmail = maybeMap((s) => s.toUpperCase());
 
 // Identity in generics
 const createLogger = <T>(message: string, value: T): T => {
@@ -147,15 +152,12 @@ const numbers = [1, 2, 3, 4, 5];
 numbers.reduce((acc, n) => acc + n, 0); // identity as initial value
 
 // Functional set default
-const setDefault = (key: string, value: unknown) =>
-  (obj: Record<string, unknown>) =>
-    key in obj ? obj : { ...obj, [key]: value };
+const setDefault = (key: string, value: unknown) => (obj: Record<string, unknown>) =>
+  key in obj ? obj : { ...obj, [key]: value };
 
 // Pipeline with optional step
 const maybeProcess = (shouldProcess: boolean) =>
-  shouldProcess
-    ? (fn: (x: string) => string) => fn
-    : identity;
+  shouldProcess ? (fn: (x: string) => string) => fn : identity;
 ```
 
 ### constant — Memoization & Caching
@@ -181,8 +183,8 @@ const expensiveComputation = constant(computeExpensiveValue());
 
 // Use with tap for logging
 ok(user)
-  .tap(user => console.log('User:', user.name))
-  .map(user => ({ ...user, processed: true }));
+  .tap((user) => console.log('User:', user.name))
+  .map((user) => ({ ...user, processed: true }));
 
 // Reusable placeholder
 const alwaysTrue = constant(true);
@@ -200,11 +202,14 @@ import { flip } from '@deessejs/fp';
 const subtract = (a: number, b: number) => a - b;
 const subtractFrom = flip(subtract);
 
-subtract(5, 3);   // 2 (5 - 3)
+subtract(5, 3); // 2 (5 - 3)
 subtractFrom(5, 3); // -2 (3 - 5)
 
 // Use with sort
-const users = [{ name: 'Alice', age: 30 }, { name: 'Bob', age: 25 }];
+const users = [
+  { name: 'Alice', age: 30 },
+  { name: 'Bob', age: 25 },
+];
 
 // Sort by age ascending
 users.sort((a, b) => a.age - b.age);
@@ -214,7 +219,10 @@ users.sort(flip((a, b) => a.age - b.age));
 
 // Object property access
 const get = <T, K extends keyof T>(obj: T, key: K): T[K] => obj[key];
-const prop = <K extends string>(key: K) => (obj: Record<string, unknown>) => obj[key];
+const prop =
+  <K extends string>(key: K) =>
+  (obj: Record<string, unknown>) =>
+    obj[key];
 
 // Use in higher-order functions
 const getProperty = flip(get);
@@ -225,18 +233,12 @@ const mapValues = <K extends string, V, R>(
   fn: (value: V) => R
 ): Record<K, R> => {
   const entries = Object.entries(obj) as [K, V][];
-  return Object.fromEntries(
-    entries.map(([k, v]) => [k, fn(v)])
-  ) as Record<K, R>;
+  return Object.fromEntries(entries.map(([k, v]) => [k, fn(v)])) as Record<K, R>;
 };
 
 // Invert key-value mapping
-const invertMap = <K extends string, V extends string>(
-  obj: Record<K, V>
-): Record<V, K> => {
-  return Object.fromEntries(
-    Object.entries(obj).map(flip)
-  ) as Record<V, K>;
+const invertMap = <K extends string, V extends string>(obj: Record<K, V>): Record<V, K> => {
+  return Object.fromEntries(Object.entries(obj).map(flip)) as Record<V, K>;
 };
 ```
 
@@ -255,7 +257,11 @@ const tupledAdd = tupled(add);
 const sum = tupled((nums: number[]) => nums.reduce((a, b) => a + b, 0));
 
 // Use with Array methods
-const numbers = [[1, 2], [3, 4], [5, 6]];
+const numbers = [
+  [1, 2],
+  [3, 4],
+  [5, 6],
+];
 numbers.map(tupled(add)); // [3, 7, 11]
 
 // Convert callback-style to tuple-style
@@ -266,12 +272,13 @@ const withTimeout = tupled((fn: () => void, ms: number) => {
 // Use in Result context
 pipe(
   [minValue, maxValue],
-  tupled((min, max) => validateRange(min, max)),
+  tupled((min, max) => validateRange(min, max))
 );
 
 // Untuple for variadic functions
-const makeQuery = untupled((table: string, conditions: string[]) =>
-  `SELECT * FROM ${table} WHERE ${conditions.join(' AND ')}`
+const makeQuery = untupled(
+  (table: string, conditions: string[]) =>
+    `SELECT * FROM ${table} WHERE ${conditions.join(' AND ')}`
 );
 
 makeQuery('users', ['id = 1', 'active = true']);
@@ -279,7 +286,7 @@ makeQuery('users', ['id = 1', 'active = true']);
 
 // Batch processing
 const processBatch = tupled((items: Item[], options: Options) =>
-  items.map(item => processItem(item, options))
+  items.map((item) => processItem(item, options))
 );
 ```
 
@@ -306,11 +313,12 @@ const handleApiRequest = flow(
     createdAt: new Date(),
     updatedAt: new Date(),
     id: generateId(),
-  }),
+  })
 );
 
 // Build validator from predicates
-const composeValidator = (...predicates: Array<(v: string) => boolean>) =>
+const composeValidator =
+  (...predicates: Array<(v: string) => boolean>) =>
   (value: string) => {
     for (const predicate of predicates) {
       if (!predicate(value)) return false;
@@ -319,9 +327,9 @@ const composeValidator = (...predicates: Array<(v: string) => boolean>) =>
   };
 
 const validatePassword = composeValidator(
-  s => s.length >= 8,
-  s => /[A-Z]/.test(s),
-  s => /[0-9]/.test(s),
+  (s) => s.length >= 8,
+  (s) => /[A-Z]/.test(s),
+  (s) => /[0-9]/.test(s)
 );
 
 // Pipeline with branching
@@ -339,7 +347,7 @@ const processOrder = flow(
   (order: ProcessedOrder) => ({
     ...order,
     total: order.subtotal - order.discount + order.shipping + order.tax,
-  }),
+  })
 );
 ```
 
@@ -397,13 +405,9 @@ function flip<A, B, C>(f: (a: A) => (b: B) => C): (b: B) => (a: A) => C;
 Convert between tupled and curried function forms.
 
 ```typescript
-function tupled<A extends ReadonlyArray<unknown>, B>(
-  f: (...args: A) => B
-): (args: A) => B;
+function tupled<A extends ReadonlyArray<unknown>, B>(f: (...args: A) => B): (args: A) => B;
 
-function untupled<A extends ReadonlyArray<unknown>, B>(
-  f: (args: A) => B
-): (...args: A) => B;
+function untupled<A extends ReadonlyArray<unknown>, B>(f: (args: A) => B): (...args: A) => B;
 ```
 
 ### Other Utilities

@@ -1,5 +1,5 @@
 /**
- * withReporting — wrap a throwing operation so that any caught
+ * WithReporting — wrap a throwing operation so that any caught
  * error is forwarded to a caller-supplied {@link ErrorReporter} and
  * the operation's outcome is returned as a `Result<T,
  * ReportableError>`.
@@ -12,9 +12,8 @@
  * @see rule 0014 — Functions Over Classes for Public API.
  */
 
-import { ok, err } from './constants.js';
-import type { Result } from './types.js';
-import type { ErrorReporter, ErrorContext, ReportableError } from './types.js';
+import { err, ok } from './constants.js';
+import type { Result, ErrorReporter, ErrorContext, ReportableError } from './types.js';
 
 /**
  * Wrap a sync or async operation in error reporting.
@@ -40,22 +39,22 @@ export async function withReporting<T>(
   onSuccess: () => T | Promise<T>,
   operationName: string,
   reporter: ErrorReporter,
-  metadata?: Readonly<Record<string, unknown>>,
+  metadata?: Readonly<Record<string, unknown>>
 ): Promise<Result<T, ReportableError>> {
   const context: ErrorContext = {
-    timestamp: Date.now(),
-    operation: operationName,
     metadata,
+    operation: operationName,
+    timestamp: Date.now(),
   };
   try {
     const value = await onSuccess();
     return ok<T, ReportableError>(value);
-  } catch (cause) {
-    reporter.report(cause, context);
+  } catch (error) {
+    reporter.report(error, context);
     const reported: ReportableError = {
       _tag: 'ReportableError',
-      message: cause instanceof Error ? cause.message : 'Operation failed',
-      cause,
+      message: error instanceof Error ? error.message : 'Operation failed',
+      cause: error,
     };
     return err<T, ReportableError>(reported);
   }

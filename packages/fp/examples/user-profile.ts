@@ -4,7 +4,7 @@
  * Demonstrates: Result wrapping Maybe, error hierarchies
  */
 
-import { ok, err, some, none, maybe, Result, Maybe } from '../src';
+import { ok, err, some, none, maybe, type Result, type Maybe } from '../src';
 
 // Error types
 interface NotFoundError {

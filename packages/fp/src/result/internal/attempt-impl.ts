@@ -14,14 +14,8 @@
  * @see rule 0014 — Functions Over Classes for Public API.
  */
 
-import { ok, err } from '../../result/constants.js';
-import type { Result } from '../../result/types.js';
-import type {
-  Attempt,
-  AttemptConfig,
-  NormalizedError,
-  RetryConfig,
-} from '../types.js';
+import { err, ok } from '../../result/constants.js';
+import type { Attempt, AttemptConfig, NormalizedError, Result, RetryConfig } from '../types.js';
 
 /**
  * Default {@link NormalizedError} used when `clientSafe()` must hide
@@ -30,8 +24,8 @@ import type {
 const DEFAULT_NORMALIZED: NormalizedError = {
   code: 'INTERNAL_ERROR',
   message: 'An unexpected error occurred',
-  status: 500,
   public: false,
+  status: 500,
 };
 
 /**
@@ -44,7 +38,7 @@ const DEFAULT_NORMALIZED: NormalizedError = {
  */
 function toNormalized(
   cause: unknown,
-  normalize: ((e: unknown) => unknown) | undefined,
+  normalize: ((e: unknown) => unknown) | undefined
 ): NormalizedError {
   const raw = normalize ? normalize(cause) : cause;
   if (
@@ -80,8 +74,8 @@ export class AttemptImpl<T> implements Attempt<T> {
     try {
       const value = await this.config.onSuccess();
       return ok<T, unknown>(value);
-    } catch (cause) {
-      if (shouldRetry(cause, this.config.retry)) {
+    } catch (error) {
+      if (shouldRetry(error, this.config.retry)) {
         try {
           const value = await this.config.onSuccess();
           return ok<T, unknown>(value);
@@ -89,7 +83,7 @@ export class AttemptImpl<T> implements Attempt<T> {
           return err<T, unknown>(this.config.normalize ? this.config.normalize(cause2) : cause2);
         }
       }
-      return err<T, unknown>(this.config.normalize ? this.config.normalize(cause) : cause);
+      return err<T, unknown>(this.config.normalize ? this.config.normalize(error) : error);
     }
   }
 
@@ -97,8 +91,8 @@ export class AttemptImpl<T> implements Attempt<T> {
     try {
       const value = await this.config.onSuccess();
       return ok<T, NormalizedError>(value);
-    } catch (cause) {
-      return err<T, NormalizedError>(toNormalized(cause, this.config.normalize));
+    } catch (error) {
+      return err<T, NormalizedError>(toNormalized(error, this.config.normalize));
     }
   }
 }

@@ -10,7 +10,7 @@ type: user
 
 ## User Profile
 
-- **Communication:** French (responds in French, but CLAUDE.md mandates English documentation)
+- **Communication:** French (responds in French, but AGENTS.md mandates English documentation)
 - **Preferences:** Direct, concise communication
 
 ## Project Context

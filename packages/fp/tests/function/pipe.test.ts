@@ -11,13 +11,24 @@ describe('pipe', () => {
   });
 
   it('composes two functions left-to-right', () => {
-    expect(pipe(10, (x: number) => x + 1, (x: number) => x * 2)).toBe(22);
+    expect(
+      pipe(
+        10,
+        (x: number) => x + 1,
+        (x: number) => x * 2
+      )
+    ).toBe(22);
   });
 
   it('composes three functions', () => {
-    expect(pipe('  hello  ', (s: string) => s.trim(), (s: string) => s.toUpperCase(), (s: string) => `${s}!`)).toBe(
-      'HELLO!',
-    );
+    expect(
+      pipe(
+        '  hello  ',
+        (s: string) => s.trim(),
+        (s: string) => s.toUpperCase(),
+        (s: string) => `${s}!`
+      )
+    ).toBe('HELLO!');
   });
 
   it('composes through up to nine functions', () => {

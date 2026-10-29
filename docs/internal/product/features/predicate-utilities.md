@@ -16,11 +16,20 @@ import { Predicate, Refinement, not, and, or } from '@deessejs/fp';
 import { Predicate, not, and, or } from '@deessejs/fp';
 
 // Basic predicates
-const isNonEmpty: Predicate<string> = s => s.length > 0;
-const isEmail: Predicate<string> = s => s.includes('@') && s.includes('.');
-const minLength = (min: number): Predicate<string> => s => s.length >= min;
-const maxLength = (max: number): Predicate<string> => s => s.length <= max;
-const matches = (regex: RegExp): Predicate<string> => s => regex.test(s);
+const isNonEmpty: Predicate<string> = (s) => s.length > 0;
+const isEmail: Predicate<string> = (s) => s.includes('@') && s.includes('.');
+const minLength =
+  (min: number): Predicate<string> =>
+  (s) =>
+    s.length >= min;
+const maxLength =
+  (max: number): Predicate<string> =>
+  (s) =>
+    s.length <= max;
+const matches =
+  (regex: RegExp): Predicate<string> =>
+  (s) =>
+    regex.test(s);
 
 // Combine validators
 const isValidPassword: Predicate<string> = and(
@@ -28,7 +37,7 @@ const isValidPassword: Predicate<string> = and(
   maxLength(128),
   matches(/[A-Z]/),
   matches(/[a-z]/),
-  matches(/[0-9]/),
+  matches(/[0-9]/)
 );
 
 // Form field validator
@@ -37,13 +46,8 @@ interface ValidationResult {
   errors: string[];
 }
 
-function validateField(
-  value: string,
-  ...predicates: Array<Predicate<string>>
-): ValidationResult {
-  const errors = predicates
-    .filter(p => !p(value))
-    .map(p => getErrorMessage(p));
+function validateField(value: string, ...predicates: Array<Predicate<string>>): ValidationResult {
+  const errors = predicates.filter((p) => !p(value)).map((p) => getErrorMessage(p));
 
   return {
     valid: errors.length === 0,
@@ -52,11 +56,7 @@ function validateField(
 }
 
 // Usage
-const passwordResult = validateField(
-  'weak',
-  isNonEmpty,
-  isValidPassword,
-);
+const passwordResult = validateField('weak', isNonEmpty, isValidPassword);
 // { valid: false, errors: ['Must be at least 8 characters', 'Must contain uppercase'] }
 ```
 
@@ -75,33 +75,27 @@ interface User {
 }
 
 // User predicates
-const isAdmin: Predicate<User> = u => u.role === 'admin';
-const isModerator: Predicate<User> = u => u.role === 'moderator';
-const isActive: Predicate<User> = u => u.isActive;
-const hasEmailVerified: Predicate<User> = u => u.emailVerified;
-const hasPermission = (perm: string): Predicate<User> => u => u.permissions.includes(perm);
+const isAdmin: Predicate<User> = (u) => u.role === 'admin';
+const isModerator: Predicate<User> = (u) => u.role === 'moderator';
+const isActive: Predicate<User> = (u) => u.isActive;
+const hasEmailVerified: Predicate<User> = (u) => u.emailVerified;
+const hasPermission =
+  (perm: string): Predicate<User> =>
+  (u) =>
+    u.permissions.includes(perm);
 
 // Staff user (admin or moderator)
 const isStaff: Predicate<User> = or(isAdmin, isModerator);
 
 // Can manage content (staff + verified email)
-const canManageContent: Predicate<User> = and(
-  isStaff,
-  hasEmailVerified,
-);
+const canManageContent: Predicate<User> = and(isStaff, hasEmailVerified);
 
 // Can delete (admin only)
-const canDelete: Predicate<User> = and(
-  isAdmin,
-  isActive,
-);
+const canDelete: Predicate<User> = and(isAdmin, isActive);
 
 // Access control middleware
 function requirePermission(permission: string) {
-  return (user: User): boolean => and(
-    isActive,
-    hasPermission(permission),
-  )(user);
+  return (user: User): boolean => and(isActive, hasPermission(permission))(user);
 }
 
 const canAccessDashboard = requirePermission('dashboard:read');
@@ -118,28 +112,30 @@ if (!canManageContent(currentUser)) {
 import { Refinement, not } from '@deessejs/fp';
 
 // Basic refinements
-const isString: Refinement<unknown, string> =
-  (v): v is string => typeof v === 'string';
+const isString: Refinement<unknown, string> = (v): v is string => typeof v === 'string';
 
-const isNumber: Refinement<unknown, number> =
-  (v): v is number => typeof v === 'number';
+const isNumber: Refinement<unknown, number> = (v): v is number => typeof v === 'number';
 
-const isObject: Refinement<unknown, object> =
-  (v): v is object => typeof v === 'object' && v !== null;
+const isObject: Refinement<unknown, object> = (v): v is object =>
+  typeof v === 'object' && v !== null;
 
-const isArray: Refinement<unknown, unknown[]> =
-  (v): v is unknown[] => Array.isArray(v);
+const isArray: Refinement<unknown, unknown[]> = (v): v is unknown[] => Array.isArray(v);
 
 // Refinement combinators
-const isNonEmpty = <T>(refinement: Refinement<unknown, T>): Refinement<unknown, T> =>
-  (v): v is T => refinement(v) && Array.isArray(v) ? v.length > 0 : refinement(v);
+const isNonEmpty =
+  <T>(refinement: Refinement<unknown, T>): Refinement<unknown, T> =>
+  (v): v is T =>
+    refinement(v) && Array.isArray(v) ? v.length > 0 : refinement(v);
 
 // API response refinements
 const isUser = (v: unknown): v is { id: string; name: string; email: string } =>
   isObject(v) &&
-  'id' in v && typeof (v as any).id === 'string' &&
-  'name' in v && typeof (v as any).name === 'string' &&
-  'email' in v && typeof (v as any).email === 'string';
+  'id' in v &&
+  typeof (v as any).id === 'string' &&
+  'name' in v &&
+  typeof (v as any).name === 'string' &&
+  'email' in v &&
+  typeof (v as any).email === 'string';
 
 const isErrorResponse = (v: unknown): v is { error: string; code?: number } =>
   isObject(v) && 'error' in v && typeof (v as any).error === 'string';
@@ -194,12 +190,23 @@ interface Product {
 }
 
 // Product predicates
-const isInStock: Predicate<Product> = p => p.inStock;
-const isAffordable = (maxPrice: number): Predicate<Product> => p => p.price <= maxPrice;
-const inCategory = (category: string): Predicate<Product> => p => p.category === category;
-const hasTag = (tag: string): Predicate<Product> => p => p.tags.includes(tag);
-const nameContains = (search: string): Predicate<Product> =>
-  p => p.name.toLowerCase().includes(search.toLowerCase());
+const isInStock: Predicate<Product> = (p) => p.inStock;
+const isAffordable =
+  (maxPrice: number): Predicate<Product> =>
+  (p) =>
+    p.price <= maxPrice;
+const inCategory =
+  (category: string): Predicate<Product> =>
+  (p) =>
+    p.category === category;
+const hasTag =
+  (tag: string): Predicate<Product> =>
+  (p) =>
+    p.tags.includes(tag);
+const nameContains =
+  (search: string): Predicate<Product> =>
+  (p) =>
+    p.name.toLowerCase().includes(search.toLowerCase());
 
 // Complex filter combinator
 function createProductFilter(filters: {
@@ -220,7 +227,7 @@ function createProductFilter(filters: {
   }
 
   if (filters.tags?.length) {
-    filters.tags.forEach(tag => predicates.push(hasTag(tag)));
+    filters.tags.forEach((tag) => predicates.push(hasTag(tag)));
   }
 
   if (filters.search) {
@@ -231,9 +238,7 @@ function createProductFilter(filters: {
     predicates.push(isInStock);
   }
 
-  return predicates.length > 0
-    ? and(...predicates)
-    : () => true;
+  return predicates.length > 0 ? and(...predicates) : () => true;
 }
 
 // Usage
@@ -259,23 +264,23 @@ const isNotAdmin = not((u: { role: string }) => u.role === 'admin');
 // AND combination
 const isValidAge = and(
   (n: number) => n >= 0,
-  (n: number) => n <= 150,
+  (n: number) => n <= 150
 );
 
 const canVote = and(
   (u: { age: number }) => u.age >= 18,
-  (u: { country: string }) => ['US', 'CA', 'UK'].includes(u.country),
+  (u: { country: string }) => ['US', 'CA', 'UK'].includes(u.country)
 );
 
 // OR combination
 const isWeekend = or(
   (d: Date) => d.getDay() === 0,
-  (d: Date) => d.getDay() === 6,
+  (d: Date) => d.getDay() === 6
 );
 
 const hasSpecialPermission = or(
   (u: { role: string }) => u.role === 'admin',
-  (u: { permissions: string[] }) => u.permissions.includes('special'),
+  (u: { permissions: string[] }) => u.permissions.includes('special')
 );
 
 // Complex conditions
@@ -283,15 +288,15 @@ const canAccessPremium = and(
   (u: { isSubscribed: boolean }) => u.isSubscribed,
   or(
     (u: { role: string }) => u.role === 'admin',
-    (u: { subscriptionTier: string }) => u.subscriptionTier === 'pro',
-  ),
+    (u: { subscriptionTier: string }) => u.subscriptionTier === 'pro'
+  )
 );
 
 // Chaining
 const isValidInput = and(
   (s: string) => s.length > 0,
   not((s: string) => s.includes(' ')), // No spaces
-  not((s: string) => /[A-Z]/.test(s)), // No uppercase
+  not((s: string) => /[A-Z]/.test(s)) // No uppercase
 );
 
 // Multiple predicates
@@ -299,7 +304,7 @@ const validateEmail = and(
   (s: string) => s.includes('@'),
   (s: string) => s.indexOf('@') > 0,
   (s: string) => s.includes('.', s.indexOf('@')),
-  not((s: string) => s.endsWith('.')),
+  not((s: string) => s.endsWith('.'))
 );
 ```
 

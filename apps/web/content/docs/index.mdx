@@ -1,5 +1,5 @@
 ---
-title: "@deessejs/fp"
+title: '@deessejs/fp'
 description: Functional programming utilities for TypeScript
 ---
 
@@ -9,11 +9,11 @@ This library is intentionally minimal. No magic, no dependencies — just the pr
 
 ## What you get
 
-| Primitive | Purpose |
-|-----------|---------|
-| **Result** | Represents a value that may have failed (`Ok \| Err`) |
-| **Maybe** | Represents a value that may be absent (`Some \| None`) |
-| **Unit** | Represents a void return that is intentional (`Unit`) |
+| Primitive  | Purpose                                                |
+| ---------- | ------------------------------------------------------ |
+| **Result** | Represents a value that may have failed (`Ok \| Err`)  |
+| **Maybe**  | Represents a value that may be absent (`Some \| None`) |
+| **Unit**   | Represents a void return that is intentional (`Unit`)  |
 
 ## Quick example
 
@@ -21,12 +21,10 @@ This library is intentionally minimal. No magic, no dependencies — just the pr
 import { ok, err, some, none } from '@deessejs/fp';
 
 // Result: operation that can fail
-const divide = (a: number, b: number) =>
-  b === 0 ? err('Division by zero') : ok(a / b);
+const divide = (a: number, b: number) => (b === 0 ? err('Division by zero') : ok(a / b));
 
 // Maybe: value that may not exist
-const findUser = (users: User[], id: string) =>
-  users.find(u => u.id === id) ?? none;
+const findUser = (users: User[], id: string) => users.find((u) => u.id === id) ?? none;
 ```
 
 Both types expose a consistent set of methods: `map`, `flatMap`, `filter`, `tap`, `match`, `fold`, and more.

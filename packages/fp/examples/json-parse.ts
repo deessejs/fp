@@ -4,7 +4,7 @@
  * Demonstrates: ok/err constructors, mapError, pattern matching
  */
 
-import { ok, err, Result } from '../src';
+import { ok, err, type Result } from '../src';
 
 type ParseError = { readonly message: string };
 

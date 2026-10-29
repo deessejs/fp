@@ -12,7 +12,7 @@ In the same PR, deliver the pipeable functions that the `TODO` comments in `resu
 
 ## Decisions
 
-1. **Public surface is unchanged.** `ok`, `err`, `some`, `none`, `maybe`, `Unit`, `isResult`, `isMaybe`, `isUnit`, and the type names (`Ok`, `Err`, `Result`, `Some`, `None`, `Maybe`, `Unit`, `OkType`, `ErrType`, `SomeType`) keep their signatures and exported names. No new exports are *required* by this refactor; the pipeables are additive.
+1. **Public surface is unchanged.** `ok`, `err`, `some`, `none`, `maybe`, `Unit`, `isResult`, `isMaybe`, `isUnit`, and the type names (`Ok`, `Err`, `Result`, `Some`, `None`, `Maybe`, `Unit`, `OkType`, `ErrType`, `SomeType`) keep their signatures and exported names. No new exports are _required_ by this refactor; the pipeables are additive.
 2. **Classes are internal.** `OkImpl`, `ErrImpl`, `SomeImpl`, `NoneImpl` live in `result/internal/` and `maybe/internal/` respectively. They are not re-exported. Per rule 0014, the only public construction point is the factory function.
 3. **Type aliases over `interface`.** Per rule 0012, the public types are `type Ok<T,E> = OkImpl<T,E>` (and equivalents). The former `interface` declarations become type aliases pointing at the class. This removes the ambiguity of the rule 0012 exception list: classes are the open shape; `type` is the public contract.
 4. **Private fields via `#`.** State is stored in `#value` / `#error` (or equivalent) using ECMAScript private fields. No `readonly` placeholder, no `private` TS keyword that compiles to public. Rule 0014 asks for true encapsulation; `#` delivers it.

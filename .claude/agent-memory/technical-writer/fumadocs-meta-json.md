@@ -10,34 +10,34 @@ type: reference
 
 ## Properties
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `title` | string | Display name in sidebar |
-| `icon` | string | Lucide icon name |
-| `defaultOpen` | boolean | Open folder by default |
-| `collapsible` | boolean | Allow folder collapse (default: true) |
-| `pages` | string[] | Custom page ordering |
-| `pagesIndex` | string | Index page path or link |
+| Property      | Type     | Description                           |
+| ------------- | -------- | ------------------------------------- |
+| `title`       | string   | Display name in sidebar               |
+| `icon`        | string   | Lucide icon name                      |
+| `defaultOpen` | boolean  | Open folder by default                |
+| `collapsible` | boolean  | Allow folder collapse (default: true) |
+| `pages`       | string[] | Custom page ordering                  |
+| `pagesIndex`  | string   | Index page path or link               |
 
 ## pages[] Item Types
 
-| Type | Syntax | Description |
-|------|--------|-------------|
-| Path | `"./path/to/page"` | Path to page or folder |
-| Separator | `"---Label---"` | Section separator |
-| Link | `"[Text](url)"` | Internal link |
-| External | `"external:[Text](url)"` | External link with icon |
-| Rest | `"..."` | Include remaining pages (alphabetical) |
-| Reversed | `"z...a"` | Include remaining pages (reversed) |
-| Extract | `"...folder"` | Extract items from subfolder |
-| Except | `"!item"` | Exclude from `...` or `z...a` |
+| Type      | Syntax                   | Description                            |
+| --------- | ------------------------ | -------------------------------------- |
+| Path      | `"./path/to/page"`       | Path to page or folder                 |
+| Separator | `"---Label---"`          | Section separator                      |
+| Link      | `"[Text](url)"`          | Internal link                          |
+| External  | `"external:[Text](url)"` | External link with icon                |
+| Rest      | `"..."`                  | Include remaining pages (alphabetical) |
+| Reversed  | `"z...a"`                | Include remaining pages (reversed)     |
+| Extract   | `"...folder"`            | Extract items from subfolder           |
+| Except    | `"!item"`                | Exclude from `...` or `z...a`          |
 
 ## Slug Conventions
 
-| Path Pattern | Slugs |
-|--------------|-------|
-| `./dir/page.mdx` | `['dir', 'page']` |
-| `./dir/index.mdx` | `['dir']` |
+| Path Pattern         | Slugs                          |
+| -------------------- | ------------------------------ |
+| `./dir/page.mdx`     | `['dir', 'page']`              |
+| `./dir/index.mdx`    | `['dir']`                      |
 | `./(group)/page.mdx` | `['page']` (group not in slug) |
 
 ## Example

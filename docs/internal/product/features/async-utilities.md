@@ -90,12 +90,14 @@ async function fetchWithJitter(url: string) {
 async function fanOutRequests(urls: string[]) {
   // Without jitter: all clients retry at same time
   // With jitter: random delays prevent server overload
-  return Promise.all(urls.map(url =>
-    retry({
-      attempts: 3,
-      delay: (attempt) => exponential(100)(attempt) + jitter(200),
-    })(() => fetch(url))
-  ));
+  return Promise.all(
+    urls.map((url) =>
+      retry({
+        attempts: 3,
+        delay: (attempt) => exponential(100)(attempt) + jitter(200),
+      })(() => fetch(url))
+    )
+  );
 }
 ```
 
@@ -233,10 +235,7 @@ app.post('/webhook', (req, res) => {
 const emailQueue = queue({ concurrency: 1 }); // Send one at a time
 
 async function sendEmail(to: string, subject: string, body: string, priority = 0) {
-  emailQueue.add(
-    () => smtp.send({ to, subject, body }),
-    { priority },
-  );
+  emailQueue.add(() => smtp.send({ to, subject, body }), { priority });
 }
 
 sendEmail('user@example.com', 'Welcome!', '...', 10); // high priority
@@ -277,18 +276,18 @@ async function* fetchAllPages<T>(fetchPage: (cursor: number) => Promise<Page<T>>
 
 // Collect all users
 async function getAllUsers(): Promise<User[]> {
-  return collect(fetchAllPages(cursor => api.users.list({ cursor })));
+  return collect(fetchAllPages((cursor) => api.users.list({ cursor })));
 }
 
 // Get latest notification
 async function getLatestNotification(): Promise<Maybe<Notification>> {
-  return last(fetchAllPages(cursor => api.notifications.list({ cursor })));
+  return last(fetchAllPages((cursor) => api.notifications.list({ cursor })));
 }
 
 // Process in batches
 async function processNotifications(ids: string[]) {
   for await (const batch of chunkIterator(ids, 100)) {
-    await Promise.all(batch.map(id => processNotification(id)));
+    await Promise.all(batch.map((id) => processNotification(id)));
   }
 }
 
@@ -305,10 +304,7 @@ async function* subscribeToEvents(endpoint: string) {
 }
 
 async function getFirst3Events(): Promise<string[]> {
-  return collect(
-    subscribeToEvents('/api/events/stream'),
-    { limit: 3 }
-  );
+  return collect(subscribeToEvents('/api/events/stream'), { limit: 3 });
 }
 ```
 
@@ -326,9 +322,7 @@ async function uploadWithRetry(file: File) {
     delay: exponential(200),
   });
 
-  return timeout(30000, () =>
-    robustFetch(() => uploadFile(file))
-  );
+  return timeout(30000, () => robustFetch(() => uploadFile(file)));
 }
 
 uploadQueue.add(() => uploadWithRetry(file));
@@ -395,8 +389,8 @@ function jitter(maxMs: number): number;
 function jitter(maxMs: number, minMs: number): number;
 
 // Examples
-jitter(500);           // 0 to 500ms
-jitter(500, 100);       // 100 to 600ms
+jitter(500); // 0 to 500ms
+jitter(500, 100); // 100 to 600ms
 ```
 
 ### timeout
@@ -404,10 +398,7 @@ jitter(500, 100);       // 100 to 600ms
 Cancels an async operation after a specified duration.
 
 ```typescript
-function timeout<T>(
-  ms: number,
-  thunk: () => Promise<T>
-): Promise<T>;
+function timeout<T>(ms: number, thunk: () => Promise<T>): Promise<T>;
 // Throws TimeoutError if takes longer than ms
 ```
 
@@ -435,20 +426,13 @@ interface QueueConfig {
 
 ```typescript
 // Collect all items from async iterator
-async function collect<T>(
-  iterable: AsyncIterable<T>,
-  options?: { limit?: number }
-): Promise<T[]>;
+async function collect<T>(iterable: AsyncIterable<T>, options?: { limit?: number }): Promise<T[]>;
 
 // Get first item
-async function first<T>(
-  iterable: AsyncIterable<T>
-): Promise<Maybe<T>>;
+async function first<T>(iterable: AsyncIterable<T>): Promise<Maybe<T>>;
 
 // Get last item
-async function last<T>(
-  iterable: AsyncIterable<T>
-): Promise<Maybe<T>>;
+async function last<T>(iterable: AsyncIterable<T>): Promise<Maybe<T>>;
 
 // Transform async iterator
 async function mapAsync<T, B>(

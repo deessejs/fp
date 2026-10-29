@@ -12,9 +12,8 @@
  * @see rule 0014 — Functions Over Classes for Public API.
  */
 
-import { ok, err } from './constants.js';
-import type { Result } from './types.js';
-import type { UnhandledException } from './types.js';
+import { err, ok } from './constants.js';
+import type { Result, UnhandledException } from './types.js';
 
 /**
  * Wrap a synchronous function that may throw.
@@ -44,7 +43,7 @@ export function fromThrowable<T, E>(options: {
   readonly onError: (cause: unknown) => E;
 }): Result<T, E>;
 export function fromThrowable<T, E>(
-  arg: (() => T) | { readonly onSuccess: () => T; readonly onError: (cause: unknown) => E },
+  arg: (() => T) | { readonly onSuccess: () => T; readonly onError: (cause: unknown) => E }
 ): Result<T, E> | Result<T, UnhandledException> {
   if (typeof arg === 'function') {
     try {
@@ -56,8 +55,8 @@ export function fromThrowable<T, E>(
   const opts = arg;
   try {
     return ok<T, E>(opts.onSuccess());
-  } catch (cause) {
-    return err<T, E>(opts.onError(cause));
+  } catch (error) {
+    return err<T, E>(opts.onError(error));
   }
 }
 
@@ -83,7 +82,7 @@ export function fromThrowable<T, E>(
  * // r: Result<TemplatesList, Error>
  */
 export function fromAsyncThrowable<T>(
-  thunk: () => Promise<T>,
+  thunk: () => Promise<T>
 ): Promise<Result<T, UnhandledException>>;
 export function fromAsyncThrowable<T, E>(options: {
   readonly onSuccess: () => Promise<T>;
@@ -92,7 +91,7 @@ export function fromAsyncThrowable<T, E>(options: {
 export async function fromAsyncThrowable<T, E>(
   arg:
     | (() => Promise<T>)
-    | { readonly onSuccess: () => Promise<T>; readonly onError: (cause: unknown) => E | Promise<E> },
+    | { readonly onSuccess: () => Promise<T>; readonly onError: (cause: unknown) => E | Promise<E> }
 ): Promise<Result<T, E> | Result<T, UnhandledException>> {
   if (typeof arg === 'function') {
     try {
@@ -106,7 +105,7 @@ export async function fromAsyncThrowable<T, E>(
   try {
     const value = await opts.onSuccess();
     return ok<T, E>(value);
-  } catch (cause) {
-    return err<T, E>(await opts.onError(cause));
+  } catch (error) {
+    return err<T, E>(await opts.onError(error));
   }
 }

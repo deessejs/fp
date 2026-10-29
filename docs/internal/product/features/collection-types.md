@@ -18,13 +18,15 @@ import { context } from '@deessejs/fp';
 // Multi-layer config: defaults < env < CLI
 function loadConfig() {
   return context<any>()
-    .push({ // Defaults
+    .push({
+      // Defaults
       port: 3000,
       debug: false,
       logLevel: 'info',
       db: { host: 'localhost', port: 5432 },
     })
-    .push({ // Environment overrides
+    .push({
+      // Environment overrides
       port: parseInt(process.env.PORT ?? ''),
       debug: process.env.DEBUG === 'true',
       db: {
@@ -32,7 +34,8 @@ function loadConfig() {
         password: process.env.DB_PASSWORD,
       },
     })
-    .push({ // CLI args (highest priority)
+    .push({
+      // CLI args (highest priority)
       port: cliArgs.port,
       debug: cliArgs.debug,
     });
@@ -163,9 +166,7 @@ const userPermissions = collection(['read', 'write', 'delete']);
 const adminPermissions = collection(['read', 'write', 'delete', 'admin']);
 
 // Check permissions
-const hasDeletePermission = userPermissions
-  .intersection(collection(['delete']))
-  .size > 0;
+const hasDeletePermission = userPermissions.intersection(collection(['delete'])).size > 0;
 
 // All user permissions (union)
 const allPermissions = userPermissions.union(adminPermissions);
@@ -191,28 +192,24 @@ const tagsToRemove = userTags.difference(availableTags);
 
 // Filter and transform
 const activeUsers = collection(users)
-  .filter(u => u.active)
-  .map(u => u.email)
+  .filter((u) => u.active)
+  .map((u) => u.email)
   .toArray();
 
 // Partition
-const [admins, regularUsers] = collection(users)
-  .partition(u => u.role === 'admin');
+const [admins, regularUsers] = collection(users).partition((u) => u.role === 'admin');
 
 // Group by department
-const byDepartment = collection(users)
-  .toMap(u => u.department);
+const byDepartment = collection(users).toMap((u) => u.department);
 
 // Merge multiple sources
-const allProducts = collection([
-  ...catalogProducts,
-  ...featuredProducts,
-  ...newArrivals,
-]).unique().toArray();
+const allProducts = collection([...catalogProducts, ...featuredProducts, ...newArrivals])
+  .unique()
+  .toArray();
 
 // Set operations with custom comparison
 const findDuplicateEmails = (users: User[]) => {
-  const emails = collection(users).map(u => u.email.toLowerCase());
+  const emails = collection(users).map((u) => u.email.toLowerCase());
   const unique = emails.unique();
   const duplicates = emails.difference(unique);
   return duplicates.toArray();
@@ -242,16 +239,10 @@ async function processEventStream(channel: string) {
   const initialEvents = await collect(events, { limit: 100 });
 
   // Filter for specific type
-  const clicks = await filterAsync(
-    subscribeToEvents(channel),
-    e => e.type === 'click'
-  );
+  const clicks = await filterAsync(subscribeToEvents(channel), (e) => e.type === 'click');
 
   // Transform and batch
-  const batched = await mapAsync(
-    subscribeToEvents(channel),
-    event => enrichEvent(event)
-  );
+  const batched = await mapAsync(subscribeToEvents(channel), (event) => enrichEvent(event));
 
   // Process in batches of 50
   for await (const batch of batchIterator(subscribeToEvents(channel), 50)) {
@@ -273,27 +264,21 @@ async function* sseStream(url: string): AsyncGenerator<Data> {
 }
 
 // Collect with timeout
-async function collectWithTimeout<T>(
-  iterable: AsyncIterable<T>,
-  timeoutMs: number
-): Promise<T[]> {
-  return Promise.race([
-    collect(iterable),
-    sleep(timeoutMs).then(() => []),
-  ]);
+async function collectWithTimeout<T>(iterable: AsyncIterable<T>, timeoutMs: number): Promise<T[]> {
+  return Promise.race([collect(iterable), sleep(timeoutMs).then(() => [])]);
 }
 ```
 
 ## Comparison with Python Collections
 
-| Python | @deessejs/fp | Use Case |
-|--------|---------------|----------|
-| `ChainMap` | `context` | Config precedence, scopes |
-| `deque` | `queue` | Job queues, buffers |
-| `defaultdict` | `getOrCompute` | Lazy defaults |
-| `namedtuple` | `type`/`interface` | TypeScript native |
-| `OrderedDict` | — | Not needed (insertion order in Map) |
-| `Counter` | — | Specific use case |
+| Python        | @deessejs/fp       | Use Case                            |
+| ------------- | ------------------ | ----------------------------------- |
+| `ChainMap`    | `context`          | Config precedence, scopes           |
+| `deque`       | `queue`            | Job queues, buffers                 |
+| `defaultdict` | `getOrCompute`     | Lazy defaults                       |
+| `namedtuple`  | `type`/`interface` | TypeScript native                   |
+| `OrderedDict` | —                  | Not needed (insertion order in Map) |
+| `Counter`     | —                  | Specific use case                   |
 
 ## API Reference
 

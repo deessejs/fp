@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { pipe } from '@deessejs/fp';
 import {
+  pipe,
   fromThrowable,
   fromAsyncThrowable,
   map,
@@ -16,14 +16,18 @@ describe('Result wrapping integration', () => {
     const out = pipe(
       fromThrowable<number>(() => 10),
       map((n) => n * 2),
-      getOrElse(0),
+      getOrElse(0)
     );
     expect(out).toBe(20);
   });
 
   it('fromAsyncThrowable -> map -> getOrElse', async () => {
     const r = await fromAsyncThrowable<number>(() => Promise.resolve(10));
-    const out = pipe(r, map((n) => n * 2), getOrElse(0));
+    const out = pipe(
+      r,
+      map((n) => n * 2),
+      getOrElse(0)
+    );
     expect(out).toBe(20);
   });
 
