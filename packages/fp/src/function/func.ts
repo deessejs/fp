@@ -1,40 +1,5 @@
-/**
- * A minimal copy of the Standard Schema v1 contract. Keeping this structural
- * avoids making schema libraries a dependency of `@deessejs/fp`.
- */
-interface StandardSchemaV1<Input = unknown, Output = Input> {
-  readonly '~standard': {
-    readonly version: 1;
-    readonly vendor: string;
-    readonly types?: {
-      readonly input: Input;
-      readonly output: Output;
-    };
-    readonly validate: (
-      value: unknown,
-      options?: { readonly libraryOptions?: Record<string, unknown> }
-    ) =>
-      | { readonly value: Output; readonly issues?: undefined }
-      | { readonly issues: ReadonlyArray<StandardSchemaIssue> }
-      | Promise<
-          | { readonly value: Output; readonly issues?: undefined }
-          | { readonly issues: ReadonlyArray<StandardSchemaIssue> }
-        >;
-  };
-}
-
-interface StandardSchemaIssue {
-  readonly message: string;
-  readonly path?: ReadonlyArray<PropertyKey | { readonly key: PropertyKey }>;
-}
-
-type InferInput<Schema extends StandardSchemaV1> = NonNullable<
-  Schema['~standard']['types']
->['input'];
-
-type InferOutput<Schema extends StandardSchemaV1> = NonNullable<
-  Schema['~standard']['types']
->['output'];
+import type { StandardSchemaV1 } from '@standard-schema/spec';
+import type { InferInput, InferOutput } from './standard-schema.js';
 
 /**
  * Create a typed function that validates its arguments with a Standard Schema

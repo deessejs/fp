@@ -203,8 +203,9 @@ function isMaybe(value: unknown): value is Maybe<unknown>;
 `func` creates an asynchronous function that validates its input with a
 [Standard Schema](https://standardschema.dev/) before passing the validated
 output to its handler. It accepts schemas from any library that implements the
-Standard Schema v1 interface and adds no schema-library dependency to
-`@deessejs/fp`.
+Standard Schema v1 interface. `@deessejs/fp` uses the official
+`@standard-schema/spec` TypeScript contract without depending on a schema
+implementation.
 
 ```ts
 function func<Input, Output, Return>(config: {
