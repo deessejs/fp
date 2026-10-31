@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "paths": {
+      "@deessejs/fp": ["./src/index.ts"]
+    }
+  },
+  "include": ["src", "tests/function/func.test.ts"]
+}

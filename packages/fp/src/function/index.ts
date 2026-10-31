@@ -11,6 +11,7 @@ export { flip } from './flip.js';
 export { tupled } from './tupled.js';
 export { untupled } from './untupled.js';
 export { tuple } from './tuple.js';
+export { func } from './func.js';
 export { not, and, or } from './predicate.js';
 export { constTrue, constFalse, constNull, constUndefined, constVoid } from './const-thunks.js';
 

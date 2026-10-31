@@ -84,6 +84,7 @@ export {
   tupled,
   untupled,
   tuple,
+  func,
   not,
   and,
   or,
