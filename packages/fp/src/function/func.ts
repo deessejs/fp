@@ -25,8 +25,9 @@ export function func<Schema extends StandardSchemaV1, Return>(config: {
   readonly handler: (args: InferOutput<Schema>) => Return;
 }): (input: InferInput<Schema>) => Promise<Awaited<Return>> {
   return (input) =>
-    Promise.resolve(config.args['~standard'].validate(input)).then<Awaited<Return>>(
-      async (validation): Promise<Awaited<Return>> => {
+    Promise.resolve()
+      .then(() => config.args['~standard'].validate(input))
+      .then<Awaited<Return>>(async (validation): Promise<Awaited<Return>> => {
         if ('issues' in validation && validation.issues !== undefined) {
           throw new TypeError('Function arguments failed validation', {
             cause: validation.issues,
@@ -34,6 +35,5 @@ export function func<Schema extends StandardSchemaV1, Return>(config: {
         }
 
         return await config.handler(validation.value);
-      }
-    );
+      });
 }

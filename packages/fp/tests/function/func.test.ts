@@ -84,4 +84,17 @@ describe('func', () => {
       cause: issues,
     });
   });
+
+  it('returns a rejected promise when synchronous validation throws', () => {
+    const error = new Error('validator failed');
+    const args = schema<string, string>(() => {
+      throw error;
+    });
+    const parse = func({ args, handler: (value) => value });
+
+    const result = parse('input');
+
+    expect(result).toBeInstanceOf(Promise);
+    return expect(result).rejects.toBe(error);
+  });
 });
