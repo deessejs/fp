@@ -198,6 +198,32 @@ function isMaybe(value: unknown): value is Maybe<unknown>;
 
 ---
 
+## Typed Functions
+
+`func` creates an asynchronous function that validates its input with a
+[Standard Schema](https://standardschema.dev/) before passing the validated
+output to its handler. It accepts schemas from any library that implements the
+Standard Schema v1 interface. `@deessejs/fp` uses the official
+`@standard-schema/spec` TypeScript contract without depending on a schema
+implementation.
+
+```ts
+function func<Input, Output, Return>(config: {
+  args: StandardSchemaV1<Input, Output>;
+  handler: (args: Output) => Return | Promise<Return>;
+}): (input: Input) => Promise<Awaited<Return>>;
+```
+
+The returned function is always asynchronous because a Standard Schema
+validator may be asynchronous. The handler receives the schema's output type,
+which can differ from the input type when the schema transforms values.
+
+If validation fails, the returned promise rejects with a `TypeError`; its
+`cause` contains the schema's validation issues. Exceptions thrown by the
+handler propagate to the caller.
+
+---
+
 ## Exports
 
 ```ts
@@ -205,6 +231,7 @@ function isMaybe(value: unknown): value is Maybe<unknown>;
 export { ok, err };
 export { some, none, maybe };
 export { unit, isUnit };
+export { func };
 
 export type { Ok, Err, Result };
 export type { Some, None, Maybe };

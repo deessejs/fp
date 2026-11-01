@@ -28,7 +28,7 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "build": "tsc -p tsconfig.build.json",
-    "type-check": "tsc --noEmit",
+    "type-check": "tsc --noEmit && tsc --noEmit -p tsconfig.tests.json",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix"
   },
@@ -59,6 +59,9 @@
   "publishConfig": {
     "access": "public",
     "provenance": false
+  },
+  "dependencies": {
+    "@standard-schema/spec": "1.1.0"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.10",
